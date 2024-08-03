@@ -62,9 +62,6 @@ int main(int argc, char* argv[]) {
         glm::mat4 projection = glm::perspective(glm::radians(camera.Fov), windowManager.getAspectRatio(), 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-        glm::vec3 lightPos = glm::vec3(camera.Position.x, camera.Position.y, camera.Position.z);
-        glm::vec3 viewPos = glm::vec3(camera.Position.x, camera.Position.y, camera.Position.z);
-
         gridShader.use();
         gridShader.setMat4("projection", projection);
         gridShader.setMat4("view", view);
