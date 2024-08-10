@@ -4,7 +4,6 @@ ModelLoader::ModelLoader() {}
 ModelLoader::~ModelLoader() {}
 
 bool ModelLoader::LoadModel(const std::string& path) {
-    tinygltf::Model model;
     tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
@@ -25,6 +24,11 @@ bool ModelLoader::LoadModel(const std::string& path) {
     }
 
     std::cout << "Model loaded successfully. Number of meshes: " << model.meshes.size() << std::endl;
+    std::cout << "GTLF version: " << model.asset.version << std::endl;
 
     return true;
+}
+
+void ModelLoader::Render() {
+     // test
 }

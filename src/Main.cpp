@@ -71,6 +71,8 @@ int main(int argc, char* argv[]) {
         gridShader.setMat4("view", view);
         gridMap.draw(gridShader);
 
+        model.Render();
+
         glClear(GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

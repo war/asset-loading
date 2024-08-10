@@ -10,5 +10,7 @@ public:
     ~ModelLoader();
 
     bool LoadModel(const std::string& path);
+    void Render();
 private:
+    tinygltf::Model model;
 };
