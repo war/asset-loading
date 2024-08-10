@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Map.h"
+#include "ModelLoader.h"
 
 int main(int argc, char* argv[]) {
     //Window
@@ -37,9 +38,10 @@ int main(int argc, char* argv[]) {
     SDL_ShowCursor(SDL_DISABLE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    std::cout << "loaded." << std::endl;
-
     //exit(0);
+
+    ModelLoader model;
+    model.LoadModel("res/models/pistol/scene.gltf");
 
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -50,6 +52,8 @@ int main(int argc, char* argv[]) {
     glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 objectColor = glm::vec3(0.5f, 0.5f, 0.5f);
     
+    float aspectRatio = windowManager.getAspectRatio();
+
     while (!windowManager.shouldClose()) {
         windowManager.clear();
 
@@ -59,7 +63,7 @@ int main(int argc, char* argv[]) {
 
         windowManager.processInput(camera, msDeltaTime);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Fov), windowManager.getAspectRatio(), 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(camera.FovRads, aspectRatio, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
         gridShader.use();

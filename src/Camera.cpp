@@ -8,6 +8,8 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     WorldUp = up;
     Yaw = yaw;
     Pitch = pitch;
+    FovRads = glm::radians(Fov);
+
     updateCameraVectors();
 }
 
@@ -67,6 +69,8 @@ void Camera::ProcessMouseScroll(float yoffset)
         Fov = 30.0f;
     if (Fov > 100.0f)
         Fov = 100.0f;
+
+    FovRads = glm::radians(Fov);
 }
 
 void Camera::updateCameraVectors()
