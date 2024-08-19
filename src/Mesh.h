@@ -28,11 +28,23 @@ private:
 	std::vector<GLfloat> tri_vertices;
 	std::vector<GLuint> tri_indices;
 	
+	glm::vec3 position = glm::vec3(0.f);
+	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+	glm::vec3 scale = glm::vec3(1.f);
+	
+	glm::mat4 modelMatrix = glm::mat4(1.f);
+	
+	int current_animation_frame {};
+	float current_animation_time {};
+	float rot_curr_t {};
+	
 public:
 	Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManager* win_manager);
 	~Mesh();                                    
 	
 	void update();
+	void updateAnimation();
+	void linearBlendAnimation();
 };
 
 

@@ -1210,7 +1210,7 @@ class Model {
   DEFAULT_METHODS(Model)
 
   bool operator==(const Model &) const;
-
+ 
   std::vector<Accessor> accessors;
   std::vector<Animation> animations;
   std::vector<Buffer> buffers;

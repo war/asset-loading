@@ -134,106 +134,211 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 	/////////////////////
 	//TEXTURES
 	/////////////////////
-//	if(model.textures.size() > 1){
-//		throw std::logic_error("Only 1 texture is currently supported.");
-//	}
-		tinygltf::Texture tex = model.textures.front();//DIFFUSE TEX
-//		tinygltf::Image diff_img = model.images[tex.source];//DIFFUSE TEX
-		tinygltf::Image diff_img;//DIFFUSE TEX
-		tinygltf::Image norm_img;//DIFFUSE TEX
-		tinygltf::Image metal_img;//DIFFUSE TEX
-		
-	for(auto t : model.textures){
-		if(model.images[t.source].name == diffuse_tex_name)
-			diff_img = model.images[t.source];
-		if(model.images[t.source].name == normal_tex_name)
-			norm_img = model.images[t.source];
-		if(model.images[t.source].name == metallic_tex_name)
-			metal_img = model.images[t.source];
-	}
-		
-	///////////
-	//diffuse
-	///////////
-	if(diff_img.width != -1){
-		has_diffuse_tex = true;
-		
-		glGenTextures(1, &diffuse_texture);
-		//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
-		glBindTexture(GL_TEXTURE_2D, diffuse_texture);
-		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
-		
-		/* set texture filtering */
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		
-		/* fill data buffer */
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, diff_img.width, diff_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, diff_img.image.data());
-		
-		glGenerateMipmap(GL_TEXTURE_2D);
-		
-		glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
-		
-		__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
-	}
-	///////////
-	//normal
-	///////////
-	if(norm_img.width != -1){
-		has_normal_tex = true;
-		
-		glGenTextures(1, &normal_texture);
-		//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
-		glBindTexture(GL_TEXTURE_2D, normal_texture);
-		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
-		
-		/* set texture filtering */
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		
-		/* fill data buffer */
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, norm_img.width, norm_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, norm_img.image.data());
-		
-		glGenerateMipmap(GL_TEXTURE_2D);
-		
-		glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
-		
-		__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
-	}
-	///////////
-	//metal
-	///////////
-	if(metal_img.width != -1){
-		has_normal_tex = true;
-		
-		glGenTextures(1, &metal_texture);
-		//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
-		glBindTexture(GL_TEXTURE_2D, metal_texture);
-		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
-		
-		/* set texture filtering */
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		
-		/* fill data buffer */
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, metal_img.width, metal_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, metal_img.image.data());
-		
-		glGenerateMipmap(GL_TEXTURE_2D);
-		
-		glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
-		
-		__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+	if(!model.textures.empty()){
+		std::cout << "ffffffffffffff" << std::endl;
+			tinygltf::Texture tex = model.textures.front();//DIFFUSE TEX
+	//		tinygltf::Image diff_img = model.images[tex.source];//DIFFUSE TEX
+			tinygltf::Image diff_img;//DIFFUSE TEX
+			tinygltf::Image norm_img;//DIFFUSE TEX
+			tinygltf::Image metal_img;//DIFFUSE TEX
+			
+		for(auto t : model.textures){
+			if(model.images[t.source].name == diffuse_tex_name)
+				diff_img = model.images[t.source];
+			if(model.images[t.source].name == normal_tex_name)
+				norm_img = model.images[t.source];
+			if(model.images[t.source].name == metallic_tex_name)
+				metal_img = model.images[t.source];
+		}
+			
+		///////////
+		//diffuse
+		///////////
+		if(diff_img.width != -1){
+			has_diffuse_tex = true;
+			
+			glGenTextures(1, &diffuse_texture);
+			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
+			glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+			
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
+			
+			/* set texture filtering */
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			
+			/* fill data buffer */
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, diff_img.width, diff_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, diff_img.image.data());
+			
+			glGenerateMipmap(GL_TEXTURE_2D);
+			
+			glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
+			
+			__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+		}
+		///////////
+		//normal
+		///////////
+		if(norm_img.width != -1){
+			has_normal_tex = true;
+			
+			glGenTextures(1, &normal_texture);
+			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
+			glBindTexture(GL_TEXTURE_2D, normal_texture);
+			
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
+			
+			/* set texture filtering */
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			
+			/* fill data buffer */
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, norm_img.width, norm_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, norm_img.image.data());
+			
+			glGenerateMipmap(GL_TEXTURE_2D);
+			
+			glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
+			
+			__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+		}
+		///////////
+		//metal
+		///////////
+		if(metal_img.width != -1){
+			has_normal_tex = true;
+			
+			glGenTextures(1, &metal_texture);
+			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
+			glBindTexture(GL_TEXTURE_2D, metal_texture);
+			
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
+			
+			/* set texture filtering */
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			
+			/* fill data buffer */
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, metal_img.width, metal_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, metal_img.image.data());
+			
+			glGenerateMipmap(GL_TEXTURE_2D);
+			
+			glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
+			
+			__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+		}
 	}
 
+	///////////////////////////
+	//get translation/rot/scale [if any]
+	///////////////////////////
+	//warning, dont use .front()
+	tinygltf::Node node = model.nodes.front();
+	if(!node.translation.empty())//translation
+		translation = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
+	if(!node.rotation.empty())//rotation
+		rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
+	if(!node.scale.empty())//scale
+		scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+	
+	
+	///////////////////////////
+	//ANIMATIONS
+	///////////////////////////
+	if(!model.animations.empty()){
+		
+		has_animation = true;
+		
+		//more than 1 animation?
+		animation = model.animations.front();
+		
+		animation_name = animation.name;
+		
+		//bad idea, need more robust way of fetching time data 
+		tinygltf::AnimationSampler time_sampler = animation.samplers[0];
+		
+		int input_idx = time_sampler.input;
+		
+		//fetch times
+		{
+			tinygltf::Accessor time_accessor = model.accessors[input_idx];
+			int frame_count = time_accessor.count;
+			
+			int byteOffset = model.bufferViews[time_accessor.bufferView].byteOffset;
+			int offset = byteOffset/sizeof(float);
+			
+			for(int t{}; t<frame_count; t++){
+				float start_time = float_array[offset];
+				float time_ = float_array[t + offset] - start_time; //subtract `start_time` to get it 0 initialized
+				time_array.emplace_back(time_);
+			}
+		}
+		
+		///////////////////////
+		//fetch translations/scale/rots
+		///////////////////////
+		for(int i{}; i<animation.channels.size(); i++){
+			tinygltf::AnimationChannel channel = animation.channels[i];
+			tinygltf::AnimationSampler sampler = animation.samplers[channel.sampler];
+			
+			//ensure no parenting is used for now
+			if(channel.target_node != 0)
+				throw std::logic_error("Parent animations are not currently supported");
+			
+			int output_idx = sampler.output;
+			
+			
+			std::string target_path = channel.target_path;
+			tinygltf::Accessor accessor = model.accessors[output_idx];
+			int frame_count = model.accessors[output_idx].count;
+			int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
+			int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
+			
+			for(int i{}; i<frame_count; i++){
+				
+				//translations
+				if(target_path == "translation"){
+					float x = float_array[(i*3) + 0 + offset];
+					float y = float_array[(i*3) + 1 + offset];
+					float z = float_array[(i*3) + 2 + offset];
+					translation_anim_array.emplace_back( glm::vec3(x, y, z) );
+					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				}
+				
+				//rotations
+				if(target_path == "rotation"){
+					float x = float_array[(i*4) + 0 + offset];
+					float y = float_array[(i*4) + 1 + offset];
+					float z = float_array[(i*4) + 2 + offset];
+					float w = float_array[(i*4) + 3 + offset];
+					rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
+					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+				}
+				
+				//scale
+				if(target_path == "scale"){
+					float x = float_array[(i*3) + 0 + offset];
+					float y = float_array[(i*3) + 1 + offset];
+					float z = float_array[(i*3) + 2 + offset];
+					scale_anim_array.emplace_back( glm::vec3(x, y, z) );
+					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				}
+				
+			}
+			
+		}
+		//ensure all of time/scale/rot/pos arrays are of equal length
+		if( translation_anim_array.size() != rotation_anim_array.size() || translation_anim_array.size() != scale_anim_array.size() || rotation_anim_array.size() != scale_anim_array.size() )
+			throw std::logic_error("Translation, scale and rotation animation durations must be equal.");
+		
+		
+		
+	}
 	
 	
     return true;

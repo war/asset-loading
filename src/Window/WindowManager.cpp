@@ -104,6 +104,8 @@ void WindowManager::updateFPS() {
 
 void WindowManager::processInput(Camera& camera, float deltaTime)
 {
+		sdlCurrTime = SDL_GetTicks();
+	
     float sDeltaTime = deltaTime / 1000;
 
     SDL_Event event;
@@ -177,4 +179,16 @@ void WindowManager::ShowWireframe(bool isShiftPressed) {
     else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+}
+
+void WindowManager::SetVSyncMode(bool mode) const{
+	SDL_GL_SetSwapInterval(static_cast<short>(mode));
+}
+
+void WindowManager::updateDeltaTime(){
+	m_deltaTime = (float)(sdlCurrTime - sdlLastTime)/1000.f;
+	
+	sdlLastTime = sdlCurrTime;
+	
+	std::cout << m_deltaTime << std::endl;
 }

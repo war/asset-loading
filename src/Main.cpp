@@ -15,9 +15,11 @@ int main(int argc, char* argv[]) {
     if (!windowManager.init()) {
         return -1;
     }
-
+		
+		
+	
     //Camera
-    Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
+    Camera camera(glm::vec3(0.0f, 15.0f, 25.0f));
 
     //Shaders
     Shader gridShader("grid.vert", "grid.frag");
@@ -34,12 +36,10 @@ int main(int argc, char* argv[]) {
     //Scene
     Map gridMap(40, 2.f);
 
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     std::string windowTitle = "";
 
-    SDL_GL_SetSwapInterval(0);
+		//turn on Vsync
+		windowManager.SetVSyncMode(true);
 
     SDL_ShowCursor(SDL_DISABLE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     //exit(0);
 
     ModelLoader model;
-    model.LoadModel("res/models/pistol/test-cube-texture.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+    model.LoadModel("res/models/pistol/arms.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
 		//mesh loading
@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+		glFrontFace(GL_CCW);
 
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -81,22 +82,29 @@ int main(int argc, char* argv[]) {
         glm::mat4 projection = glm::perspective(camera.FovRads, aspectRatio, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-//        gridShader.use();
-//        gridShader.setMat4("projection", projection);
-//        gridShader.setMat4("view", view);
-//        gridMap.draw(gridShader);
+			  glEnable(GL_BLEND);
+		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        gridShader.use();
+        gridShader.setMat4("projection", projection);
+        gridShader.setMat4("view", view);
+        gridMap.draw(gridShader);
+				glDisable(GL_BLEND);
+			
 //
 //        model.Render();
 			
-			////////////////
-			//render mesh
-			////////////////
-			glFrontFace(GL_CCW);
-			mesh->update();
-
+				////////////////
+				//render mesh
+				////////////////
+				mesh->update();
+			
         windowManager.swapBuffers();
         windowManager.updateFPS();
+			
+				windowManager.updateDeltaTime();
     }
 
+		delete mesh;
+	
     return 0;
 }
