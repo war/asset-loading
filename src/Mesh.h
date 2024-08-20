@@ -36,7 +36,6 @@ private:
 	
 	int current_animation_frame {};
 	float current_animation_time {};
-	float rot_curr_t {};
 	
 public:
 	Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManager* win_manager);
@@ -44,7 +43,10 @@ public:
 	
 	void update();
 	void updateAnimation();
-	void linearBlendAnimation();
+	
+	glm::vec3 calculateCurrentTranslation(const AnimationDataStruct& animation_data);
+	glm::quat calculateCurrentRotation(const AnimationDataStruct& animation_data);
+	glm::vec3 calculateCurrentScale(const AnimationDataStruct& animation_data);
 };
 
 

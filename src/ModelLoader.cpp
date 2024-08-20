@@ -20,7 +20,7 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 	}
 	
 	if(model.nodes.size() > 1)
-		throw std::logic_error("Only 1 node is currently supported.");
+		std::cout << "WARNING: only 1 node is currently supported" << std::endl;
 	if(model.meshes.size() > 1)
 		throw std::logic_error("Only 1 mesh is currently supported.");
 	
@@ -46,6 +46,7 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 	float* float_array = (float*)model.buffers.front().data.data();
 	unsigned short* ushort_array = (unsigned short*)model.buffers.front().data.data();
 	unsigned int* uint_array = (unsigned int*)model.buffers.front().data.data();
+	unsigned char* uchar_array = (unsigned char*)model.buffers.front().data.data();
 	
 	/////////////////////
 	//VERTEX DATA
@@ -135,7 +136,6 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 	//TEXTURES
 	/////////////////////
 	if(!model.textures.empty()){
-		std::cout << "ffffffffffffff" << std::endl;
 			tinygltf::Texture tex = model.textures.front();//DIFFUSE TEX
 	//		tinygltf::Image diff_img = model.images[tex.source];//DIFFUSE TEX
 			tinygltf::Image diff_img;//DIFFUSE TEX
@@ -238,7 +238,7 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 	//get translation/rot/scale [if any]
 	///////////////////////////
 	//warning, dont use .front()
-	tinygltf::Node node = model.nodes.front();
+	tinygltf::Node& node = model.nodes.front();
 	if(!node.translation.empty())//translation
 		translation = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
 	if(!node.rotation.empty())//rotation
@@ -260,9 +260,11 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 		animation_name = animation.name;
 		
 		//bad idea, need more robust way of fetching time data 
-		tinygltf::AnimationSampler time_sampler = animation.samplers[0];
+		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
 		
 		int input_idx = time_sampler.input;
+		
+		AnimationDataStruct animation_data {};
 		
 		//fetch times
 		{
@@ -275,26 +277,26 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 			for(int t{}; t<frame_count; t++){
 				float start_time = float_array[offset];
 				float time_ = float_array[t + offset] - start_time; //subtract `start_time` to get it 0 initialized
-				time_array.emplace_back(time_);
+				animation_data.time_array.emplace_back(time_);
 			}
 		}
+		
 		
 		///////////////////////
 		//fetch translations/scale/rots
 		///////////////////////
 		for(int i{}; i<animation.channels.size(); i++){
-			tinygltf::AnimationChannel channel = animation.channels[i];
-			tinygltf::AnimationSampler sampler = animation.samplers[channel.sampler];
+			tinygltf::AnimationChannel& channel = animation.channels[i];
+			tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
 			
 			//ensure no parenting is used for now
 			if(channel.target_node != 0)
-				throw std::logic_error("Parent animations are not currently supported");
+				std::cout << ("Warning: Parent animations are not currently supported") << std::endl;
 			
 			int output_idx = sampler.output;
 			
-			
 			std::string target_path = channel.target_path;
-			tinygltf::Accessor accessor = model.accessors[output_idx];
+			tinygltf::Accessor& accessor = model.accessors[output_idx];
 			int frame_count = model.accessors[output_idx].count;
 			int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
 			int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
@@ -306,8 +308,8 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 					float x = float_array[(i*3) + 0 + offset];
 					float y = float_array[(i*3) + 1 + offset];
 					float z = float_array[(i*3) + 2 + offset];
-					translation_anim_array.emplace_back( glm::vec3(x, y, z) );
-					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+					animation_data.translation_anim_array.emplace_back( glm::vec3(x, y, z) );
+//					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
 				}
 				
 				//rotations
@@ -316,7 +318,7 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 					float y = float_array[(i*4) + 1 + offset];
 					float z = float_array[(i*4) + 2 + offset];
 					float w = float_array[(i*4) + 3 + offset];
-					rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
+					animation_data.rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
 					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
 				}
 				
@@ -325,17 +327,145 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 					float x = float_array[(i*3) + 0 + offset];
 					float y = float_array[(i*3) + 1 + offset];
 					float z = float_array[(i*3) + 2 + offset];
-					scale_anim_array.emplace_back( glm::vec3(x, y, z) );
-					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+					animation_data.scale_anim_array.emplace_back( glm::vec3(x, y, z) );
+//					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
 				}
 				
 			}
 			
 		}
+		
+		animation_map.emplace_back(animation_data);
+		
 		//ensure all of time/scale/rot/pos arrays are of equal length
 		if( translation_anim_array.size() != rotation_anim_array.size() || translation_anim_array.size() != scale_anim_array.size() || rotation_anim_array.size() != scale_anim_array.size() )
 			throw std::logic_error("Translation, scale and rotation animation durations must be equal.");
 		
+		
+		
+	}
+	
+	/////////////////////
+	//SKINS/JOINTS/WEIGHTS
+	/////////////////////
+	if(!model.skins.empty()){
+		
+		has_skin = true;
+		
+		if(model.skins.size() > 1)
+			throw std::logic_error("Only 1 skin is currently supported");
+		
+		tinygltf::Skin& skin = model.skins.front();//.front()
+		
+		int joints_idx = primitive.attributes["JOINTS_0"];
+		int weights_idx = primitive.attributes["WEIGHTS_0"];
+		int skin_idx = skin.inverseBindMatrices;
+		
+		tinygltf::Accessor& joints_accessor = model.accessors[joints_idx];
+		tinygltf::Accessor& weights_accessor = model.accessors[weights_idx];
+		tinygltf::Accessor& skin_accessor = model.accessors[skin_idx];
+		
+		
+		
+		//joints
+		{
+			int byteOffset = model.bufferViews[joints_accessor.bufferView].byteOffset;
+			int offset = byteOffset/getSizeOfComponentType(joints_accessor.componentType);
+			
+			int count = joints_accessor.count;
+			
+			for(std::size_t i{}; i<count; i++){
+				unsigned char x = uchar_array[(i*4) + 0 + offset];
+				unsigned char y = uchar_array[(i*4) + 1 + offset];
+				unsigned char z = uchar_array[(i*4) + 2 + offset];
+				unsigned char w = uchar_array[(i*4) + 3 + offset];
+//				std::cout << "joint data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+				joints_array.emplace_back( glm::vec4(x, y, z, w) );
+			}
+		}
+		
+		
+		//weights
+		{
+			int byteOffset = model.bufferViews[weights_accessor.bufferView].byteOffset;
+			int offset = byteOffset/getSizeOfComponentType(weights_accessor.componentType);
+			
+			int count = weights_accessor.count;
+			
+			for(std::size_t i{}; i<count; i++){
+				float x = float_array[(i*4) + 0 + offset];
+				float y = float_array[(i*4) + 1 + offset];
+				float z = float_array[(i*4) + 2 + offset];
+				float w = float_array[(i*4) + 3 + offset];
+				weights_array.emplace_back( glm::vec4(x, y, z, w) );
+			}
+		}
+		
+		
+		//inverse bind matrices [i.e. the bones/their transformation matrices]
+		{
+			int byteOffset = model.bufferViews[skin_accessor.bufferView].byteOffset;
+			int offset = byteOffset/getSizeOfComponentType(skin_accessor.componentType);
+			
+			int bone_count = skin.joints.size();
+			
+			glm::mat4 inv_bind_mat = glm::mat4(1.f); 
+			
+			for(int i{}; i<bone_count; i++){
+				float x0_ = float_array[(i*16) + 0 + offset];
+				float y0_ = float_array[(i*16) + 4 + offset];
+				float z0_ = float_array[(i*16) + 8 + offset];
+				float w0_ = float_array[(i*16) + 12 + offset];
+				
+				float x1_ = float_array[(i*16) + 1 + offset];
+				float y1_ = float_array[(i*16) + 5 + offset];
+				float z1_ = float_array[(i*16) + 9 + offset];
+				float w1_ = float_array[(i*16) + 13 + offset];
+				
+				float x2_ = float_array[(i*16) + 2 + offset];
+				float y2_ = float_array[(i*16) + 6 + offset];
+				float z2_ = float_array[(i*16) + 10 + offset];
+				float w2_ = float_array[(i*16) + 14 + offset];
+				
+				float x3_ = float_array[(i*16) + 3 + offset];
+				float y3_ = float_array[(i*16) + 7 + offset];
+				float z3_ = float_array[(i*16) + 11 + offset];
+				float w3_ = float_array[(i*16) + 15 + offset];
+				
+				/*
+				std::cout << "###############################" << std::endl;
+				std::cout << "joint data [x: " << x0_ << ", y: " << y0_ << ", z: " << z0_ << ", w: " << w0_ << "]" << std::endl;
+				std::cout << "joint data [x: " << x1_ << ", y: " << y1_ << ", z: " << z1_ << ", w: " << w1_ << "]" << std::endl;
+				std::cout << "joint data [x: " << x2_ << ", y: " << y2_ << ", z: " << z2_ << ", w: " << w2_ << "]" << std::endl;
+				std::cout << "joint data [x: " << x3_ << ", y: " << y3_ << ", z: " << z3_ << ", w: " << w3_ << "]" << std::endl;
+				*/
+				
+				inv_bind_mat[0].x = x0_;
+				inv_bind_mat[0].y = y0_;
+				inv_bind_mat[0].z = z0_;
+				inv_bind_mat[0].w = w0_;
+				
+				inv_bind_mat[1].x = x1_;
+				inv_bind_mat[1].y = y1_;
+				inv_bind_mat[1].z = z1_;
+				inv_bind_mat[1].w = w1_;
+				
+				inv_bind_mat[2].x = x2_;
+				inv_bind_mat[2].y = y2_;
+				inv_bind_mat[2].z = z2_;
+				inv_bind_mat[2].w = w2_;
+
+				inv_bind_mat[3].x = x3_;
+				inv_bind_mat[3].y = y3_;
+				inv_bind_mat[3].z = z3_;
+				inv_bind_mat[3].w = w3_;
+
+				inverse_bind_matrix_array.emplace_back(inv_bind_mat);
+				
+			}
+			
+			
+		}
 		
 		
 	}
@@ -347,7 +477,6 @@ bool ModelLoader::LoadModel(const std::string& path, const std::string& diffuse_
 void ModelLoader::Render() {
      // test
 }
-
 
 long unsigned int ModelLoader::getSizeOfComponentType(int component_type){
 	if(component_type == TINYGLTF_COMPONENT_TYPE_BYTE)

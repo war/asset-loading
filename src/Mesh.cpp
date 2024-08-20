@@ -22,6 +22,30 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 		tri_vertices.emplace_back( (GLfloat)vert_norm.x );
 		tri_vertices.emplace_back( (GLfloat)vert_norm.y );
 		tri_vertices.emplace_back( (GLfloat)vert_norm.z );
+		
+		if(model->has_skin){
+			//joints
+			{
+				glm::vec4 joint = model->joints_array[i];
+				
+				tri_vertices.emplace_back( joint.x );
+				tri_vertices.emplace_back( joint.y );
+				tri_vertices.emplace_back( joint.z );
+				tri_vertices.emplace_back( joint.w );
+			}
+			//weights
+			{
+				glm::vec4 weight = model->weights_array[i];
+				
+				tri_vertices.emplace_back( weight.x );
+				tri_vertices.emplace_back( weight.y );
+				tri_vertices.emplace_back( weight.z );
+				tri_vertices.emplace_back( weight.w );
+			}
+			
+			
+		}
+		
 	}
 	for(unsigned int v_idx : model->getIndices()){
 		tri_indices.emplace_back( (GLuint)v_idx );
@@ -31,17 +55,40 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 	vbo = VBO(tri_vertices);
 	ebo = EBO(tri_indices);
 	
-	//setup pointers to the vertex position data `layout (location = 0)`
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), static_cast<void*>(0));
-	glEnableVertexAttribArray(0);
-	
-	//setup pointers to the vertex UV coord data `layout (location = 1)`
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
-	glEnableVertexAttribArray(1);
-	
-	//setup pointers to the vertex normal data `layout (location = 2)`
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
-	glEnableVertexAttribArray(2);
+	if(model->has_skin){
+		//setup pointers to the vertex position data `layout (location = 0)`
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 16*sizeof(float), static_cast<void*>(0));
+		glEnableVertexAttribArray(0);
+		
+		//setup pointers to the vertex UV coord data `layout (location = 1)`
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
+		glEnableVertexAttribArray(1);
+		
+		//setup pointers to the vertex normal data `layout (location = 2)`
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
+		glEnableVertexAttribArray(2);
+		
+		//setup pointers to the JOINTS_0 data `layout (location = 3)` 
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
+		glEnableVertexAttribArray(3);
+		
+		//setup pointers to the WEIGHTS_0 data `layout (location = 4)` 
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 12*sizeof(float) ));
+		glEnableVertexAttribArray(4);	
+	}
+	else{
+		//setup pointers to the vertex position data `layout (location = 0)`
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), static_cast<void*>(0));
+		glEnableVertexAttribArray(0);
+		
+		//setup pointers to the vertex UV coord data `layout (location = 1)`
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
+		glEnableVertexAttribArray(1);
+		
+		//setup pointers to the vertex normal data `layout (location = 2)`
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
+		glEnableVertexAttribArray(2);
+	}
 	
 	
 	vbo.unbind();
@@ -143,24 +190,26 @@ void Mesh::updateAnimation(){
 	scale = model->scale_anim_array[current_animation_frame];
 	
 	*/
-	current_animation_time += window_manager->GetDeltaTime();
-	rot_curr_t += window_manager->GetDeltaTime();
 	
-	linearBlendAnimation();
+	//update animation time
+	current_animation_time += window_manager->GetDeltaTime();
+	
+	//apply lerping between frame to set current pos/rot/scale
+
+	position = calculateCurrentTranslation(model->animation_map.front());
+	rotation = calculateCurrentRotation(model->animation_map.front());
+	scale = calculateCurrentScale(model->animation_map.front());
 	
 }
-
-void Mesh::linearBlendAnimation(){
+glm::vec3 Mesh::calculateCurrentTranslation(const AnimationDataStruct& animation_data){
 	
-	
-	std::vector<float>& time_array = model->time_array;
-	
+	std::vector<float> time_array = animation_data.time_array;
 	
 	/////////////////////////////////
 	//translation frame lerp
 	/////////////////////////////////
 	glm::vec3 final_mesh_pos = glm::vec3(0.f);
-	std::vector<glm::vec3>& trans_array = model->translation_anim_array;
+	std::vector<glm::vec3> trans_array = animation_data.translation_anim_array;
 	for (int i{}; i < time_array.size(); i++) {
 		float new_t = time_array[i + 1];
 		float old_t = time_array[i];
@@ -183,13 +232,16 @@ void Mesh::linearBlendAnimation(){
 		if ( (i == time_array.size() - 1) || current_animation_time >= time_array.back() )
 			current_animation_time = 0.f;
 	}
-	position = final_mesh_pos;
-	
-	
+	return final_mesh_pos;
+}
+
+glm::quat Mesh::calculateCurrentRotation(const AnimationDataStruct& animation_data){
 	/////////////////////////////////
 	//rotation frame lerp
 	/////////////////////////////////
-	std::vector<glm::quat>& rotations_vec = model->rotation_anim_array;
+	std::vector<float> time_array = animation_data.time_array;
+	
+	std::vector<glm::quat> rotations_vec = animation_data.rotation_anim_array;
 	glm::quat final_mesh_rot = glm::quat(1.f, 0.f, 0.f, 0.f);
 	for (int i{}; i < time_array.size(); i++) {
 		float new_t = time_array[i + 1];
@@ -212,15 +264,17 @@ void Mesh::linearBlendAnimation(){
 		if ( (i == time_array.size() - 1) || current_animation_time >= time_array.back() )
 			current_animation_time = 0.f;
 	}
-	rotation = final_mesh_rot;
-	
-	
-	
+	return final_mesh_rot;
+}
+
+glm::vec3 Mesh::calculateCurrentScale(const AnimationDataStruct& animation_data){
 	/////////////////////////////////
 	//scale frame lerp
 	/////////////////////////////////
+	std::vector<float> time_array = animation_data.time_array;
+	
 	glm::vec3 final_mesh_scale = glm::vec3(1.f);
-	std::vector<glm::vec3>& scale_array = model->scale_anim_array;
+	std::vector<glm::vec3> scale_array = animation_data.scale_anim_array;
 	for (int i{}; i < time_array.size(); i++) {
 		float new_t = time_array[i + 1];
 		float old_t = time_array[i];
@@ -243,10 +297,5 @@ void Mesh::linearBlendAnimation(){
 		if ( (i == time_array.size() - 1) || current_animation_time >= time_array.back() )
 			current_animation_time = 0.f;
 	}
-	scale = final_mesh_scale;
-	
-	
-	
-	
-	
+	return final_mesh_scale;
 }

@@ -189,6 +189,4 @@ void WindowManager::updateDeltaTime(){
 	m_deltaTime = (float)(sdlCurrTime - sdlLastTime)/1000.f;
 	
 	sdlLastTime = sdlCurrTime;
-	
-	std::cout << m_deltaTime << std::endl;
 }
