@@ -41,12 +41,12 @@ int main(int argc, char* argv[]) {
 		//turn on Vsync
 		windowManager.SetVSyncMode(true);
 
-    SDL_ShowCursor(SDL_DISABLE);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+//    SDL_ShowCursor(SDL_DISABLE);
+//    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     //exit(0);
 
-    ModelLoader model("res/models/pistol/skinned.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+    ModelLoader model("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
 		//mesh loading

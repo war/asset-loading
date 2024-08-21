@@ -313,6 +313,7 @@ glm::vec3 Mesh::calculateCurrentScale(const AnimationDataStruct& animation_data)
 }
 
 void Mesh::updateSkinnedAnimation(){
+		std::vector<std::size_t> bone_nodes_vec;//just to store bone/join indices for each matrix. Will be used to find parents for each bone
 	
 	if(!model->has_skin)
 		return;
@@ -330,10 +331,22 @@ void Mesh::updateSkinnedAnimation(){
 		//create TRS for each bone
 		glm::mat4 bone_transform = createTRSmatrix( bone_pos, bone_rot, bone_scale );
 		
-		m_boneTransformMatrices.emplace_back( bone_transform );
 		
 		//TODO - ADD PARENTING
 		//TODO - ADD PARENTING
+		//check if it is linked to another bone, and copy that root transform
+		bone_nodes_vec.emplace_back(bone_anim.node_index);
+		if (bone_anim.has_root) {
+			auto bone_idx_itr = std::find(bone_nodes_vec.begin(), bone_nodes_vec.end(), bone_anim.root_idx);
+			if ( bone_idx_itr != bone_nodes_vec.end() ) {
+				std::size_t root_mat_index = std::distance(bone_nodes_vec.begin(), bone_idx_itr);
+				bone_transform = m_boneTransformMatrices[ root_mat_index ] * bone_transform;
+			}
+		}
+		
+		
+		m_boneTransformMatrices.emplace_back( bone_transform );
+		
 	}
 	
 	//FETCH AND SEND ALL inverseBindMatrices
