@@ -46,8 +46,7 @@ int main(int argc, char* argv[]) {
 
     //exit(0);
 
-    ModelLoader model;
-    model.LoadModel("res/models/pistol/skinned.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+    ModelLoader model("res/models/pistol/skinned.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
 		//mesh loading

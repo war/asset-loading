@@ -165,6 +165,16 @@ void Mesh::update(){
 		shader->setInt("metal_tex", 2);//send Image to frag shader
 	}
 	
+	//////////
+	//skinning
+	//////////
+	//send skinned matrices to shader
+	for(short m{}; m<m_boneSkinnedMatrices.size(); m++){
+		std::string uniform_name = std::string("inverseBindMatrixArray[") + std::to_string(m) + std::string("].matrix");
+		shader->setMat4(uniform_name.c_str(), m_boneSkinnedMatrices[m]);
+	}
+	
+	
 	//render triangles
 	glDrawElements(GL_TRIANGLES, tri_indices.size(), GL_UNSIGNED_INT, 0);//rendering part
 	
@@ -199,6 +209,8 @@ void Mesh::updateAnimation(){
 	position = calculateCurrentTranslation(model->animation_map.front());
 	rotation = calculateCurrentRotation(model->animation_map.front());
 	scale = calculateCurrentScale(model->animation_map.front());
+	
+	updateSkinnedAnimation();
 	
 }
 glm::vec3 Mesh::calculateCurrentTranslation(const AnimationDataStruct& animation_data){
@@ -298,4 +310,51 @@ glm::vec3 Mesh::calculateCurrentScale(const AnimationDataStruct& animation_data)
 			current_animation_time = 0.f;
 	}
 	return final_mesh_scale;
+}
+
+void Mesh::updateSkinnedAnimation(){
+	
+	if(!model->has_skin)
+		return;
+	
+	m_boneTransformMatrices.clear();
+	m_boneSkinnedMatrices.clear();
+	
+	std::vector<AnimationDataStruct> bone_animations_vec = model->animation_map;
+	
+	for (const AnimationDataStruct& bone_anim : bone_animations_vec) {
+		glm::vec3 bone_pos = calculateCurrentTranslation(bone_anim);
+		glm::quat bone_rot = calculateCurrentRotation(bone_anim);
+		glm::vec3 bone_scale = calculateCurrentScale(bone_anim);
+		
+		//create TRS for each bone
+		glm::mat4 bone_transform = createTRSmatrix( bone_pos, bone_rot, bone_scale );
+		
+		m_boneTransformMatrices.emplace_back( bone_transform );
+		
+		//TODO - ADD PARENTING
+		//TODO - ADD PARENTING
+	}
+	
+	//FETCH AND SEND ALL inverseBindMatrices
+	std::vector<glm::mat4> inverseBindMat_vec = model->inverse_bind_matrix_array;
+	
+	for (std::size_t m{}; m < inverseBindMat_vec.size(); m++) {
+		
+		glm::mat4 invBindMat(
+			inverseBindMat_vec[m][0].x, inverseBindMat_vec[m][0].y, inverseBindMat_vec[m][0].z, inverseBindMat_vec[m][0].w,
+			inverseBindMat_vec[m][1].x, inverseBindMat_vec[m][1].y, inverseBindMat_vec[m][1].z, inverseBindMat_vec[m][1].w,
+			inverseBindMat_vec[m][2].x, inverseBindMat_vec[m][2].y, inverseBindMat_vec[m][2].z, inverseBindMat_vec[m][2].w,
+			inverseBindMat_vec[m][3].x, inverseBindMat_vec[m][3].y, inverseBindMat_vec[m][3].z, inverseBindMat_vec[m][3].w
+			);
+		
+		glm::mat4 skinnedMatrix = invBindMat * glm::transpose( m_boneTransformMatrices[m] );
+		m_boneSkinnedMatrices.emplace_back( glm::transpose( skinnedMatrix ) );
+	}
+
+	
+//	if(model->)
+	
+	
+	
 }
