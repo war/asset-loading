@@ -1,13 +1,14 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManager* win_manager) : camera(cam), model(model_loader), shader(_shader), window_manager(win_manager){
+Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager){
 	
 	//fill in the arrays with flattened GLfloat and GLuint vertex/index data
-	for(unsigned int i{}; i<model->getVertexPositions().size(); i++){
-		glm::vec3 vert_pos = model->getVertexPositions()[i];
-		glm::vec2 vert_uv = model->getVertexUVs()[i];
-		glm::vec3 vert_norm = model->getVertexNormals()[i];
+	for(unsigned int i{}; i<mesh_data.vertex_positions_array.size(); i++){
+		
+		glm::vec3& vert_pos = mesh_data.vertex_positions_array[i];
+		glm::vec2& vert_uv = mesh_data.vertex_uvs_array[i];
+		glm::vec3& vert_norm = mesh_data.vertex_normals_array[i];
 		
 		//push vert positions
 		tri_vertices.emplace_back( (GLfloat)vert_pos.x );
@@ -23,10 +24,10 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 		tri_vertices.emplace_back( (GLfloat)vert_norm.y );
 		tri_vertices.emplace_back( (GLfloat)vert_norm.z );
 		
-		if(model->has_skin){
+		if(mesh_data.has_skin){
 			//joints
 			{
-				glm::vec4 joint = model->joints_array[i];
+				glm::vec4 joint = mesh_data.joints_array[i];
 				
 				tri_vertices.emplace_back( joint.x );
 				tri_vertices.emplace_back( joint.y );
@@ -35,19 +36,18 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 			}
 			//weights
 			{
-				glm::vec4 weight = model->weights_array[i];
+				glm::vec4 weight = mesh_data.weights_array[i];
 				
 				tri_vertices.emplace_back( weight.x );
 				tri_vertices.emplace_back( weight.y );
 				tri_vertices.emplace_back( weight.z );
 				tri_vertices.emplace_back( weight.w );
 			}
-			
-			
 		}
 		
 	}
-	for(unsigned int v_idx : model->getIndices()){
+	//indices
+	for(unsigned int v_idx : mesh_data.vertex_indices_array){
 		tri_indices.emplace_back( (GLuint)v_idx );
 	}
 
@@ -55,7 +55,8 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 	vbo = VBO(tri_vertices);
 	ebo = EBO(tri_indices);
 	
-	if(model->has_skin){
+	//if skinned, update attribute and layouts
+	if(mesh_data.has_skin){
 		//setup pointers to the vertex position data `layout (location = 0)`
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 16*sizeof(float), static_cast<void*>(0));
 		glEnableVertexAttribArray(0);
@@ -76,6 +77,7 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 12*sizeof(float) ));
 		glEnableVertexAttribArray(4);	
 	}
+	//if normal/no skinning
 	else{
 		//setup pointers to the vertex position data `layout (location = 0)`
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), static_cast<void*>(0));
@@ -98,11 +100,10 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManage
 	//only throws error if it failed to fill in buffers
 	__GL_ERROR_THROW__("Failed to generate Mesh object"); //check for any GL errors
 	
-	
 	//set position/scale/orn
-	position = model->getTranslation();
-	rotation = model->getRotation();
-	scale = model->getScale();
+	position = mesh_data.translation;
+	rotation = mesh_data.rotation;
+	scale = mesh_data.scale;
 	
 }
 
@@ -113,7 +114,7 @@ Mesh::~Mesh(){
 	vbo.free();
 	ebo.free();
 	
-	std::cout << "Mesh object destroyed" << std::endl;
+	PRINT_COLOR( "Mesh object destroyed", 40, 220, 90);
 }
 
 void Mesh::update(){
@@ -174,7 +175,6 @@ void Mesh::update(){
 		shader->setMat4(uniform_name.c_str(), m_boneSkinnedMatrices[m]);
 	}
 	
-	
 	//render triangles
 	glDrawElements(GL_TRIANGLES, tri_indices.size(), GL_UNSIGNED_INT, 0);//rendering part
 	
@@ -185,6 +185,11 @@ void Mesh::update(){
 
 void Mesh::updateAnimation(){
 	
+	//quit if no animations for this mesh
+	if(!mesh_data.animation_data.has_animation){
+//		PRINT_WARN("no anim") ;
+		return;
+	}
 	
 	//old step interpolation method
 
@@ -202,13 +207,21 @@ void Mesh::updateAnimation(){
 	*/
 	
 	//update animation time
-	current_animation_time += window_manager->GetDeltaTime();
+	current_animation_time += window_manager->GetDeltaTime() * playback_speed;
+	
+	AnimationDataStruct& animation_data = mesh_data.animation_data;
+	
+	//ensure TRS anims are of equal lengths
+	if( animation_data.translation_anim_array.size() != animation_data.rotation_anim_array.size() || animation_data.translation_anim_array.size() != animation_data.scale_anim_array.size() || animation_data.rotation_anim_array.size() != animation_data.scale_anim_array.size() )
+		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
 	
 	//apply lerping between frame to set current pos/rot/scale
-
-	position = calculateCurrentTranslation(model->animation_map.front());
-	rotation = calculateCurrentRotation(model->animation_map.front());
-	scale = calculateCurrentScale(model->animation_map.front());
+	position = calculateCurrentTranslation(animation_data);
+	rotation = calculateCurrentRotation(animation_data);
+	scale = calculateCurrentScale(animation_data);
+	
+//	std::cout << animation_data.translation_anim_array.size() << std::endl;
+		
 	
 	updateSkinnedAnimation();
 	
@@ -265,7 +278,26 @@ glm::quat Mesh::calculateCurrentRotation(const AnimationDataStruct& animation_da
 			glm::quat old_rot = glm::quat(rotations_vec[i].w, rotations_vec[i].x, rotations_vec[i].y, rotations_vec[i].z);
 			glm::quat new_rot = glm::quat(rotations_vec[i + 1].w, rotations_vec[i + 1].x, rotations_vec[i + 1].y, rotations_vec[i + 1].z);
 			
+			
+			//EDGE CASE
+			//TAKE SHORTEST PATH (if dot product yields negative)
+			float quat_dot = glm::dot(old_rot, new_rot);
+			if( quat_dot < 0.f ){
+				new_rot = -new_rot;
+			}
+			
 			final_mesh_rot = glm::mix(old_rot, new_rot, lerp);
+			
+			//EDGE CASE
+			//if dot product is almost 1.f, can lerp between vec4
+			if( quat_dot > 0.99f ){
+				glm::vec4 old_r = glm::vec4(old_rot.x, old_rot.y, old_rot.z, old_rot.w);
+				glm::vec4 new_r = glm::vec4(new_rot.x, new_rot.y, new_rot.z, new_rot.w);
+				glm::vec4 lerped_r = glm::mix(old_r, new_r, lerp);
+				
+				final_mesh_rot = glm::quat(lerped_r.w, lerped_r.x, lerped_r.y, lerped_r.z);//overrites rot 
+			}
+			
 			
 			//EDGE CASE [if NaN. Seems to occur when old_rot and new_rot are very close, yielding NaN when Slerp is called]
 			if ( std::isnan(final_mesh_rot.x) || std::isnan(final_mesh_rot.y) || std::isnan(final_mesh_rot.z) || std::isnan(final_mesh_rot.w) )
@@ -315,7 +347,7 @@ glm::vec3 Mesh::calculateCurrentScale(const AnimationDataStruct& animation_data)
 void Mesh::updateSkinnedAnimation(){
 		std::vector<std::size_t> bone_nodes_vec;//just to store bone/join indices for each matrix. Will be used to find parents for each bone
 	
-	if(!model->has_skin)
+	if(!mesh_data.has_skin)
 		return;
 	
 	m_boneTransformMatrices.clear();
@@ -350,7 +382,7 @@ void Mesh::updateSkinnedAnimation(){
 	}
 	
 	//FETCH AND SEND ALL inverseBindMatrices
-	std::vector<glm::mat4> inverseBindMat_vec = model->inverse_bind_matrix_array;
+	std::vector<glm::mat4> inverseBindMat_vec = mesh_data.inverse_bind_matrix_array;
 	
 	for (std::size_t m{}; m < inverseBindMat_vec.size(); m++) {
 		

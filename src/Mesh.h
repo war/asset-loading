@@ -1,3 +1,5 @@
+//Mehdi Msayib - glTF asset loader - Mesh file for construction and rendering of loaded models
+
 #ifndef MESH_H
 #define MESH_H
 
@@ -10,6 +12,7 @@
 #include "ModelLoader.h"
 #include "Camera.h"
 #include "Shader.h"
+#include "Utils.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
@@ -18,6 +21,7 @@ class Mesh{
 private:
 	Camera* camera;
 	ModelLoader* model;
+	MeshDataStruct mesh_data;
 	Shader* shader;
 	WindowManager* window_manager;
 	
@@ -36,13 +40,14 @@ private:
 	
 	int current_animation_frame {};
 	float current_animation_time {};
+	float playback_speed = 1.f;
 	
 	std::vector<glm::mat4> m_boneTransformMatrices;//stores bone animated transform [pos/rot/scale] for EACH BONE.
 	std::vector<glm::mat4> m_boneSkinnedMatrices;//store the FINAL skinned matrix which will be sent directly to shader
 	
 	
 public:
-	Mesh(Camera* cam, ModelLoader* model_loader, Shader* _shader, WindowManager* win_manager);
+	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager);
 	~Mesh();                                    
 	
 	void update();

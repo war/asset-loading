@@ -9,6 +9,8 @@
 #include "ModelLoader.h"
 #include "Mesh.h"
 
+std::vector<Mesh*> mesh_array;
+
 int main(int argc, char* argv[]) {
     //Window
     WindowManager windowManager("FPS", SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -16,8 +18,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 		
-		
-	
     //Camera
     Camera camera(glm::vec3(0.0f, 15.0f, 25.0f));
 
@@ -27,9 +27,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Failed to load grid shaders." << std::endl;
         return -1;
     }
-		Shader shadelessShader("basic_shader.vert", "basic_shader.frag");
-		if (shadelessShader.isValid() == 0) {
+		Shader basicShader("basic_shader.vert", "basic_shader.frag");
+		if (basicShader.isValid() == 0) {
 			std::cout << "Failed to load basic_shader." << std::endl;
+			return -1;
+		}
+		Shader skinnedShader("skinned_shader.vert", "skinned_shader.frag");
+		if (skinnedShader.isValid() == 0) {
+			std::cout << "Failed to load skinned_shader." << std::endl;
 			return -1;
 		}
 
@@ -41,17 +46,22 @@ int main(int argc, char* argv[]) {
 		//turn on Vsync
 		windowManager.SetVSyncMode(true);
 
-//    SDL_ShowCursor(SDL_DISABLE);
-//    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_ShowCursor(SDL_DISABLE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    //exit(0);
 
-    ModelLoader model("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+		//load in glTF model (meshes, animations, skinning, textures etc)
+    ModelLoader* model = new ModelLoader("res/models/pistol/multiple-meshes.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
 		//mesh loading
 		///////////////
-		Mesh* mesh = new Mesh(&camera, &model, &shadelessShader, &windowManager);//delete this once finished to avoid memory leaks
+		//spawn meshes
+		for(MeshDataStruct mesh_data : model->mesh_data_struct_array){
+			Mesh* mesh = new Mesh(&camera, model, mesh_data, &basicShader, &windowManager);//delete this once finished to avoid memory leaks
+			mesh_array.emplace_back(mesh);
+		}
 	
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -88,14 +98,16 @@ int main(int argc, char* argv[]) {
         gridShader.setMat4("view", view);
         gridMap.draw(gridShader);
 				glDisable(GL_BLEND);
-			
 //
 //        model.Render();
 			
 				////////////////
-				//render mesh
+				//render meshes
 				////////////////
-				mesh->update();
+				{
+					for(Mesh* mesh : mesh_array)
+						mesh->update();
+				}
 			
         windowManager.swapBuffers();
         windowManager.updateFPS();
@@ -103,7 +115,12 @@ int main(int argc, char* argv[]) {
 				windowManager.updateDeltaTime();
     }
 
+	//delete Mesh* objects
+	for(Mesh* mesh : mesh_array)
 		delete mesh;
+	
+	//delete ModelLoader class
+	delete model;
 	
     return 0;
 }
