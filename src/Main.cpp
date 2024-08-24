@@ -57,8 +57,11 @@ int main(int argc, char* argv[]) {
 
 
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/parent-anims.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+    ModelLoader* model = new ModelLoader("res/models/pistol/coconut.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/animz.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/simple-gun-anim.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/arms.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
 		//mesh loading
@@ -117,6 +120,7 @@ int main(int argc, char* argv[]) {
 				{
 					for(Mesh* mesh : mesh_array)
 						mesh->update();
+					
 				}
 			
         windowManager.swapBuffers();

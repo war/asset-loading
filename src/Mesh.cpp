@@ -3,6 +3,69 @@
 
 Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager){
 	
+	
+	
+	
+	
+	std::vector<glm::vec3> tangent_array;
+	std::vector<glm::vec3> bitangent_array;
+	
+	std::map<unsigned int, glm::vec3> tangent_map;
+	std::map<unsigned int, glm::vec3> bitangent_map;
+	
+	
+	std::vector<glm::vec3> vert_pos_vec = mesh_data.vertex_positions_array;
+	std::vector<glm::vec2> uv_coord_vec = mesh_data.vertex_uvs_array;
+	
+	for(int i{}; i<mesh_data.vertex_indices_array.size()/3; i++){
+		
+		for(int count{}; count<3; count++){
+			int vert0_idx = mesh_data.vertex_indices_array[(i*3)+0];
+			
+			int vert1_idx = mesh_data.vertex_indices_array[(i*3)+1];
+			
+			int	vert2_idx = mesh_data.vertex_indices_array[(i*3)+2];
+			
+			glm::vec3 edge0 = glm::vec3( vert_pos_vec[vert1_idx].x, vert_pos_vec[vert1_idx].y, vert_pos_vec[vert1_idx].z ) - glm::vec3( vert_pos_vec[vert0_idx].x, vert_pos_vec[vert0_idx].y, vert_pos_vec[vert0_idx].z );
+			glm::vec3 edge1 = glm::vec3( vert_pos_vec[vert2_idx].x, vert_pos_vec[vert2_idx].y, vert_pos_vec[vert2_idx].z ) - glm::vec3( vert_pos_vec[vert0_idx].x, vert_pos_vec[vert0_idx].y, vert_pos_vec[vert0_idx].z );
+			
+			glm::vec2 uv0 = glm::vec2( uv_coord_vec[vert1_idx].x, uv_coord_vec[vert1_idx].y ) - glm::vec2( uv_coord_vec[vert0_idx].x, uv_coord_vec[vert0_idx].y );
+			glm::vec2 uv1 = glm::vec2( uv_coord_vec[vert2_idx].x, uv_coord_vec[vert2_idx].y ) - glm::vec2( uv_coord_vec[vert0_idx].x, uv_coord_vec[vert0_idx].y );
+			
+			float div = 1.f/(uv0.x * uv1.y - uv1.x * uv0.y);
+			
+			glm::vec3 tangent(0.f);
+			glm::vec3 bitangent(0.f);
+			
+			tangent.x = div * (uv1.y*edge0.x - uv0.y*edge1.x);
+			tangent.y = div * (uv1.y*edge0.y - uv0.y*edge1.y);
+			tangent.z = div * (uv1.y*edge0.z - uv0.y*edge1.z);
+			
+			bitangent.x = div * (-uv1.x*edge0.x + uv0.x*edge1.x);
+			bitangent.y = div * (-uv1.x*edge0.y + uv0.x*edge1.y);
+			bitangent.z = div * (-uv1.x*edge0.z + uv0.x*edge1.z);
+//			
+			tangent_map.emplace(mesh_data.vertex_indices_array[(i*3) + count], tangent);
+			bitangent_map.emplace(mesh_data.vertex_indices_array[(i*3) + count], bitangent);
+			
+		}
+		
+	}
+	
+	for(const auto& tang : tangent_map){
+		tangent_array.emplace_back(tang.second);
+	}
+	for(const auto& bitang : bitangent_map){
+		bitangent_array.emplace_back(bitang.second);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	//fill in the arrays with flattened GLfloat and GLuint vertex/index data
 	for(unsigned int i{}; i<mesh_data.vertex_positions_array.size(); i++){
 		
@@ -45,6 +108,18 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 			}
 		}
 		
+		//tang
+		glm::vec3 tangent = tangent_array[i];
+		tri_vertices.emplace_back( (GLfloat)tangent.x );
+		tri_vertices.emplace_back( (GLfloat)tangent.y );
+		tri_vertices.emplace_back( (GLfloat)tangent.z );
+		
+		//bitang
+		glm::vec3 bitangent = bitangent_array[i];
+		tri_vertices.emplace_back( (GLfloat)bitangent.x );
+		tri_vertices.emplace_back( (GLfloat)bitangent.y );
+		tri_vertices.emplace_back( (GLfloat)bitangent.z );
+		
 	}
 	//indices
 	for(unsigned int v_idx : mesh_data.vertex_indices_array){
@@ -58,38 +133,54 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	//if skinned, update attribute and layouts
 	if(mesh_data.has_skin){
 		//setup pointers to the vertex position data `layout (location = 0)`
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 16*sizeof(float), static_cast<void*>(0));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), static_cast<void*>(0));
 		glEnableVertexAttribArray(0);
 		
 		//setup pointers to the vertex UV coord data `layout (location = 1)`
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
 		glEnableVertexAttribArray(1);
 		
 		//setup pointers to the vertex normal data `layout (location = 2)`
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
 		glEnableVertexAttribArray(2);
 		
 		//setup pointers to the JOINTS_0 data `layout (location = 3)` 
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
 		glEnableVertexAttribArray(3);
 		
 		//setup pointers to the WEIGHTS_0 data `layout (location = 4)` 
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16*sizeof(float), reinterpret_cast<void*>( 12*sizeof(float) ));
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 12*sizeof(float) ));
 		glEnableVertexAttribArray(4);	
+		
+		//setup pointers to the bitang data `layout (location = 5)` 
+		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 15*sizeof(float) ));
+		glEnableVertexAttribArray(5);	
+		
+		//setup pointers to the tang data `layout (location = 5)` 
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 18*sizeof(float) ));
+		glEnableVertexAttribArray(6);	
 	}
 	//if normal/no skinning
 	else{
 		//setup pointers to the vertex position data `layout (location = 0)`
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), static_cast<void*>(0));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), static_cast<void*>(0));
 		glEnableVertexAttribArray(0);
 		
 		//setup pointers to the vertex UV coord data `layout (location = 1)`
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 3*sizeof(float) ));
 		glEnableVertexAttribArray(1);
 		
 		//setup pointers to the vertex normal data `layout (location = 2)`
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
 		glEnableVertexAttribArray(2);
+		
+		//setup pointers to the bitang data `layout (location = 5)` 
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
+		glEnableVertexAttribArray(3);	
+		
+		//setup pointers to the tang data `layout (location = 5)` 
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 11*sizeof(float) ));
+		glEnableVertexAttribArray(4);	
 	}
 	
 	
@@ -135,6 +226,9 @@ void Mesh::update(){
 
 	//finally apply scale
 	modelMatrix = glm::scale(modelMatrix, scale);
+//	modelMatrix = mesh_data.modelMatrix;
+//	printGlmMat4(modelMatrix);
+	
 	
 	//send camera and model matrices
 	shader->use();

@@ -3,8 +3,15 @@
 
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model(_model), mesh_array(_mesh_array), window_manager(win_manager){
 	
+	//#############
+	//PRINT CHILDS
+	//=============
+	for(Empty& empty : model->empties_array)
+		for(auto c : empty.child_array){
+			std::cout << "name :"  << empty.name << ", has child index: " << c << std::endl;
+		}
+	
 }
-
 
 void AnimationPlayer::update(){
 	std::vector<Empty>& empty_array = model->empties_array;
@@ -17,16 +24,65 @@ void AnimationPlayer::update(){
 	for(Empty& empty : empty_array){
 		
 		AnimationDataStruct& animation_data = empty.animation_data;
+
+		//skip for current empty if no anims found
+		if(!empty.animation_data.has_animation)
+			continue;
+		//add warning message
+		if(empty.child_array.size() > 1){
+			PRINT_WARN("WARNING -- MORE THAN 1 CHILDS ARE NOT SUPPORTED CURRENTLY!!!!!!!!!");
+		}
 		
 		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
-		
 		
 		//UPDATE EMPTY ANIMATED POS/ROT/SCALE
 		empty.position = calculateCurrentTranslation(animation_data);
 		empty.rotation = calculateCurrentRotation(animation_data);
 		empty.scale = calculateCurrentScale(animation_data);
 		
-
+		glm::mat4 parent_empty_trs = createTRSmatrix(empty.position, empty.rotation, empty.scale);
+		
+		
+		//GET FIRST EMPTY CHILD [if it exists]
+		Empty child_empty = getFirstChildEmpty(empty);
+		if(child_empty.node_index != -1){
+			
+			//////////// NEED TO MULTIPLY MODELMATRIX BY PARENT TRANSFORMS
+			glm::vec3 child_curr_anim_position = calculateCurrentTranslation(child_empty.animation_data);
+			glm::quat child_curr_anim_rotation = calculateCurrentRotation(child_empty.animation_data);
+			glm::vec3 child_curr_anim_scale = calculateCurrentScale(child_empty.animation_data);
+			glm::mat4 child_anim_model_matrix = createTRSmatrix(child_curr_anim_position, child_curr_anim_rotation, child_curr_anim_scale);//model matrix of animated pos/rot/scale
+			
+			glm::mat4 child_model_matrix = createTRSmatrix(child_empty.position, child_empty.rotation, child_empty.scale);//model matrix of static pos/rot/scale
+			
+			//final model matrix
+			child_empty.modelMatrix = child_model_matrix * parent_empty_trs * child_anim_model_matrix;
+			
+			
+			//GET FIRST MESH CHILD [if it exists]
+			MeshDataStruct child_msh = getFirstChildMesh(child_empty);
+			if(child_msh.node_index != -1){
+				
+				glm::mat4 mesh_model_martrix = createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model matrix of static pos/rot/scale
+				
+				//////////////////
+				//NEED TO MULTIPLY BY MESH TRANSFORM
+				//NEED TO MULTIPLY BY MESH TRANSFORM
+				
+				//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
+				//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
+				child_msh.modelMatrix = child_empty.modelMatrix * mesh_model_martrix;
+				
+				
+				for(Mesh* m : *mesh_array)
+					if(m->mesh_data.node_index == child_msh.node_index)
+						m->mesh_data = child_msh;
+			}
+			
+			
+		}
+		
+		
 		/*
 		bool base_reached = false;
 		tinygltf::Node node = model->getTinyGltfModel().nodes[ empty.node_index ];
@@ -43,7 +99,6 @@ void AnimationPlayer::update(){
 		
 		
 		/*
-		*/
 		//get child mesh BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
 		MeshDataStruct FIRST_CHILD_MESH;
 		for(auto c : empty.child_array){
@@ -67,16 +122,23 @@ void AnimationPlayer::update(){
 				mesh->setScale( empty.scale );
 			}
 		}
+		*/
 		
 		
 	}
 	
-	//set mesh pos
-//	mesh_array->front()->setTranslation(glm::vec3(10.f,0.f,0.f));
+	
+//	for(Mesh* mesh : *mesh_array){
+//		if(mesh->getMeshData().node_index == FIRST_CHILD_MESH.node_index){
+//	Mesh* mesh = mesh_array->front();
+//			mesh->setTranslation( empty_array[1].position );
+//			mesh->setRotation( empty_array[1].rotation );
+//			mesh->setScale( empty_array[1].scale );
+//		}
+//	}
+	
 	
 }
-
-
 
 glm::vec3 AnimationPlayer::calculateCurrentTranslation(AnimationDataStruct& animation_data){
 	
@@ -184,3 +246,39 @@ glm::vec3 AnimationPlayer::calculateCurrentScale(AnimationDataStruct& animation_
 	return final_mesh_scale;
 }
 
+MeshDataStruct AnimationPlayer::getFirstChildMesh(const Empty& empty){
+	MeshDataStruct mesh_data;
+	std::vector<MeshDataStruct>& mesh_data_struct_array = model->mesh_data_struct_array;
+	
+	//get first child mesh (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
+	for(int c : empty.child_array){
+		for(const MeshDataStruct& m : mesh_data_struct_array){
+			if(m.node_index == c){
+				return m;
+			}
+		}
+	}
+	
+	//WARNING - RETURNS A USELESS OBJECT
+	return mesh_data;
+	
+}
+
+Empty AnimationPlayer::getFirstChildEmpty(const Empty& empty){
+	Empty child_empty;
+	
+	std::vector<Empty>& empty_array = model->empties_array;
+	
+	//get first child empty (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
+	for(int c : empty.child_array){
+		for(const Empty& e : empty_array){
+			if(e.node_index == c){
+				child_empty = e;
+				return child_empty;
+			}
+		}
+	}
+	
+	//WARNING - RETURNS A USELESS OBJECT
+	return child_empty;
+}

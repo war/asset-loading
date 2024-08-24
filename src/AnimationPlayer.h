@@ -23,7 +23,9 @@ public:
 	glm::vec3 calculateCurrentTranslation(AnimationDataStruct& animation_data);
 	glm::quat calculateCurrentRotation(AnimationDataStruct& animation_data);
 	glm::vec3 calculateCurrentScale(AnimationDataStruct& animation_data);
-		
+	
+	MeshDataStruct getFirstChildMesh(const Empty& empty);
+	Empty getFirstChildEmpty(const Empty& empty);
 	
 };
 

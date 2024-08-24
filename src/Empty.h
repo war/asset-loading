@@ -24,6 +24,8 @@ public:
 	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 	glm::vec3 scale = glm::vec3(1.f);
 	
+	glm::mat4 modelMatrix = glm::mat4(1.f);
+	
 	bool has_childs = false;
 	std::vector<int> child_array;
 	

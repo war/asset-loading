@@ -57,6 +57,8 @@ struct MeshDataStruct{
 	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 	glm::vec3 scale = glm::vec3(1.f);
 	
+	glm::mat4 modelMatrix = glm::mat4(1.f);
+	
 	//vertex norm/uv etc data
 	std::vector<glm::vec3> vertex_positions_array;
 	std::vector<glm::vec3> vertex_normals_array;

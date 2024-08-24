@@ -18,7 +18,7 @@
 #include "EBO.h"
 
 class Mesh{
-private:
+public:
 	Camera* camera;
 	ModelLoader* model;
 	MeshDataStruct mesh_data;
@@ -54,13 +54,15 @@ public:
 	void updateAnimation();
 	void updateSkinnedAnimation();
 	
+	void setModelMatrix(const glm::mat4& mat) {	modelMatrix = mat;	}
 	void setTranslation(const glm::vec3& pos) {	position = pos;	}
 	void setRotation(const glm::quat& rot) {	rotation = rot;	}
 	void setScale(const glm::vec3& _scale) {	scale = _scale;	}
 	
-	glm::vec3 getTranslation() {	return position;	}
-	glm::quat getRotation() {	return rotation;	}
-	glm::vec3 getScale() {	return scale;	}
+	glm::mat4 getModelMatrix() const	{ return modelMatrix;		}
+	glm::vec3 getTranslation() const {	return position;	}
+	glm::quat getRotation() const {	return rotation;	}
+	glm::vec3 getScale() const {	return scale;	}
 	
 	MeshDataStruct getMeshData()	{	return mesh_data; }
 	

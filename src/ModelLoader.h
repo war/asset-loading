@@ -53,10 +53,6 @@ public:
 		GLuint getMetalTexture() const {	return metal_texture;	}
 		void generateTextures();
 		
-		//global model TRS
-//		glm::vec3 getTranslation() const {	return translation;	}
-//		glm::quat getRotation() const {	return rotation;	}
-//		glm::vec3 getScale() const {	return scale;	}
 		
 		//animations
 		bool has_animation = false;
@@ -65,28 +61,20 @@ public:
 		std::vector<AnimationDataStruct> animation_map;//contains list of all animations for this model, with key being the animation name
 		AnimationDataStruct getMeshAnimationData(const tinygltf::Mesh& mesh);
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
-	
-	/*
-		std::vector<float> time_array;//should be a time for each of trans/rot/scale
-		std::vector<glm::vec3> translation_anim_array;
-		std::vector<glm::quat> rotation_anim_array;
-		std::vector<glm::vec3> scale_anim_array;
-	*/
+		void getSkinnedAnimation();
+		void equalizeTRSanimationArrays(AnimationDataStruct& animation_data);	
 	
 		//skinning
 		bool has_skin = false;
 		tinygltf::Skin skin;
-//		std::vector<glm::vec4> joints_array;
-//		std::vector<glm::vec4> weights_array;
-//		std::vector<glm::mat4> inverse_bind_matrix_array;
 		std::vector<glm::vec4> getSkinJoints(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec4> getSkinWeights(const tinygltf::Mesh& mesh);
 		std::vector<glm::mat4> getInverseBindMatrices(const tinygltf::Mesh& mesh);
 
-	/* helper functions */
-	int getMeshNodeIndex(const tinygltf::Mesh& mesh);
-	
-	tinygltf::Model getTinyGltfModel() {	return model;	}
+		/* helper functions */
+		int getMeshNodeIndex(const tinygltf::Mesh& mesh);
+		
+		tinygltf::Model getTinyGltfModel() {	return model;	}
 	
 private:
     tinygltf::TinyGLTF tiny_gltf;
@@ -110,5 +98,51 @@ private:
 //		std::vector<glm::vec2> vertex_uvs_array;
 //		std::vector<unsigned int> vertex_indices_array;
 };
+
+
+
+
+
+
+inline glm::vec3 compute_tangent(const glm::vec3& v0, const glm::vec2& uv0, const glm::vec3& v1, const glm::vec2& uv1, const glm::vec3& v2, const glm::vec2& uv2){
+	glm::vec3 edge0 = v1 - v0;
+	
+	glm::vec3 edge1 = v2 - v0;
+	
+	glm::vec2 uv_0 = uv1 - uv0;
+	glm::vec2 uv_1 = uv2 - uv0;
+	
+	float div = 1.f/(uv_0.x * uv_1.y - uv_1.x * uv_0.y);
+	
+	glm::vec3 tangent = glm::vec3(0.f);
+	tangent.x = div * (uv_1.y*edge0.x - uv_0.y*edge1.x);
+	tangent.y = div * (uv_1.y*edge0.y - uv_0.y*edge1.y);
+	tangent.z = div * (uv_1.y*edge0.z - uv_0.y*edge1.z);
+	
+	glm::vec3 t = glm::normalize( tangent );
+	
+	return t;
+}
+
+inline glm::vec3 compute_bitangent(const glm::vec3& v0, const glm::vec2& uv0, const glm::vec3& v1, const glm::vec2& uv1, const glm::vec3& v2, const glm::vec2& uv2){
+	glm::vec3 edge0 = v1 - v0;
+	
+	glm::vec3 edge1 = v2 - v0;
+	
+	glm::vec2 uv_0 = uv1 - uv0;
+	glm::vec2 uv_1 = uv2 - uv0;
+	
+	float div = 1.f/(uv_0.x * uv_1.y - uv_1.x * uv_0.y);
+	
+	glm::vec3 bitangent = glm::vec3(0.f);
+	bitangent.x = div * (-uv1.x*edge0.x + uv0.x*edge1.x);
+	bitangent.y = div * (-uv1.x*edge0.y + uv0.x*edge1.y);
+	bitangent.z = div * (-uv1.x*edge0.z + uv0.x*edge1.z);
+	
+	glm::vec3 bt = glm::normalize(bitangent);
+	
+	return bt;
+}
+
 
 #endif //MODEL_LOADER_H
