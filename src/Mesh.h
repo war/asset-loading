@@ -42,8 +42,8 @@ private:
 	float current_animation_time {};
 	float playback_speed = 1.f;
 	
-	std::vector<glm::mat4> m_boneTransformMatrices;//stores bone animated transform [pos/rot/scale] for EACH BONE.
-	std::vector<glm::mat4> m_boneSkinnedMatrices;//store the FINAL skinned matrix which will be sent directly to shader
+	std::vector<glm::mat4> bone_transform_matrix_array;//stores bone animated transform [pos/rot/scale] for EACH BONE.
+	std::vector<glm::mat4> bone_skinned_matrix_array;//store the FINAL skinned matrix which will be sent directly to shader
 	
 	
 public:
@@ -53,6 +53,16 @@ public:
 	void update();
 	void updateAnimation();
 	void updateSkinnedAnimation();
+	
+	void setTranslation(const glm::vec3& pos) {	position = pos;	}
+	void setRotation(const glm::quat& rot) {	rotation = rot;	}
+	void setScale(const glm::vec3& _scale) {	scale = _scale;	}
+	
+	glm::vec3 getTranslation() {	return position;	}
+	glm::quat getRotation() {	return rotation;	}
+	glm::vec3 getScale() {	return scale;	}
+	
+	MeshDataStruct getMeshData()	{	return mesh_data; }
 	
 	glm::vec3 calculateCurrentTranslation(const AnimationDataStruct& animation_data);
 	glm::quat calculateCurrentRotation(const AnimationDataStruct& animation_data);

@@ -3,11 +3,12 @@
 #include <iostream>
 
 #include "Window/WindowManager.h"
+#include "AnimationPlayer.h"
+#include "ModelLoader.h"
 #include "Shader.h"
 #include "Camera.h"
-#include "Map.h"
-#include "ModelLoader.h"
 #include "Mesh.h"
+#include "Map.h"
 
 std::vector<Mesh*> mesh_array;
 
@@ -37,9 +38,14 @@ int main(int argc, char* argv[]) {
 			std::cout << "Failed to load skinned_shader." << std::endl;
 			return -1;
 		}
+		Shader defaultShader("default_shader.vert", "default_shader.frag");
+		if (defaultShader.isValid() == 0) {
+			std::cout << "Failed to load default_shader." << std::endl;
+			return -1;
+		}
 
     //Scene
-    Map gridMap(40, 2.f);
+    Map gridMap(5, 2.f);
 
     std::string windowTitle = "";
 
@@ -51,7 +57,7 @@ int main(int argc, char* argv[]) {
 
 
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/multiple-meshes.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+    ModelLoader* model = new ModelLoader("res/models/pistol/parent-anims.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
@@ -59,9 +65,12 @@ int main(int argc, char* argv[]) {
 		///////////////
 		//spawn meshes
 		for(MeshDataStruct mesh_data : model->mesh_data_struct_array){
-			Mesh* mesh = new Mesh(&camera, model, mesh_data, &basicShader, &windowManager);//delete this once finished to avoid memory leaks
+			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager);//delete this once finished to avoid memory leaks
 			mesh_array.emplace_back(mesh);
 		}
+	
+		//add AnimationPlayer system
+		AnimationPlayer animation_player(model, &mesh_array, &windowManager);
 	
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -104,6 +113,7 @@ int main(int argc, char* argv[]) {
 				////////////////
 				//render meshes
 				////////////////
+				animation_player.update();
 				{
 					for(Mesh* mesh : mesh_array)
 						mesh->update();

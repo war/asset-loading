@@ -170,10 +170,13 @@ void Mesh::update(){
 	//skinning
 	//////////
 	//send skinned matrices to shader
-	for(short m{}; m<m_boneSkinnedMatrices.size(); m++){
+	for(short m{}; m<bone_skinned_matrix_array.size(); m++){
 		std::string uniform_name = std::string("inverseBindMatrixArray[") + std::to_string(m) + std::string("].matrix");
-		shader->setMat4(uniform_name.c_str(), m_boneSkinnedMatrices[m]);
+		shader->setMat4(uniform_name.c_str(), bone_skinned_matrix_array[m]);
 	}
+	
+	//send isSkinned var
+	shader->setInt("isSkinned", (int)mesh_data.has_skin);
 	
 	//render triangles
 	glDrawElements(GL_TRIANGLES, tri_indices.size(), GL_UNSIGNED_INT, 0);//rendering part
@@ -226,6 +229,7 @@ void Mesh::updateAnimation(){
 	updateSkinnedAnimation();
 	
 }
+
 glm::vec3 Mesh::calculateCurrentTranslation(const AnimationDataStruct& animation_data){
 	
 	std::vector<float> time_array = animation_data.time_array;
@@ -246,10 +250,6 @@ glm::vec3 Mesh::calculateCurrentTranslation(const AnimationDataStruct& animation
 			glm::vec3 new_pos = glm::vec3(trans_array[i + 1].x, trans_array[i + 1].y, trans_array[i + 1].z);
 			
 			final_mesh_pos = glm::mix(old_pos, new_pos, lerp);
-			
-			//[EDGE CASE] CHECK IF NAN
-			if ( std::isnan(final_mesh_pos.x) || std::isnan(final_mesh_pos.y) || std::isnan(final_mesh_pos.z) )
-				final_mesh_pos = new_pos;
 			
 			break;
 		}
@@ -290,7 +290,7 @@ glm::quat Mesh::calculateCurrentRotation(const AnimationDataStruct& animation_da
 			
 			//EDGE CASE
 			//if dot product is almost 1.f, can lerp between vec4
-			if( quat_dot > 0.99f ){
+			if( quat_dot > 0.993f ){
 				glm::vec4 old_r = glm::vec4(old_rot.x, old_rot.y, old_rot.z, old_rot.w);
 				glm::vec4 new_r = glm::vec4(new_rot.x, new_rot.y, new_rot.z, new_rot.w);
 				glm::vec4 lerped_r = glm::mix(old_r, new_r, lerp);
@@ -298,10 +298,6 @@ glm::quat Mesh::calculateCurrentRotation(const AnimationDataStruct& animation_da
 				final_mesh_rot = glm::quat(lerped_r.w, lerped_r.x, lerped_r.y, lerped_r.z);//overrites rot 
 			}
 			
-			
-			//EDGE CASE [if NaN. Seems to occur when old_rot and new_rot are very close, yielding NaN when Slerp is called]
-			if ( std::isnan(final_mesh_rot.x) || std::isnan(final_mesh_rot.y) || std::isnan(final_mesh_rot.z) || std::isnan(final_mesh_rot.w) )
-				final_mesh_rot = new_rot;
 			break;
 		}
 		
@@ -330,11 +326,7 @@ glm::vec3 Mesh::calculateCurrentScale(const AnimationDataStruct& animation_data)
 			glm::vec3 new_scale = glm::vec3(scale_array[i + 1].x, scale_array[i + 1].y, scale_array[i + 1].z);
 			
 			final_mesh_scale = glm::mix(old_scale, new_scale, lerp);
-			
-			//[EDGE CASE] CHECK IF NAN
-			if ( std::isnan(final_mesh_scale.x) || std::isnan(final_mesh_scale.y) || std::isnan(final_mesh_scale.z) )
-				final_mesh_scale = new_scale;
-			
+
 			break;
 		}
 		
@@ -350,8 +342,8 @@ void Mesh::updateSkinnedAnimation(){
 	if(!mesh_data.has_skin)
 		return;
 	
-	m_boneTransformMatrices.clear();
-	m_boneSkinnedMatrices.clear();
+	bone_transform_matrix_array.clear();
+	bone_skinned_matrix_array.clear();
 	
 	std::vector<AnimationDataStruct> bone_animations_vec = model->animation_map;
 	
@@ -364,37 +356,35 @@ void Mesh::updateSkinnedAnimation(){
 		glm::mat4 bone_transform = createTRSmatrix( bone_pos, bone_rot, bone_scale );
 		
 		
-		//TODO - ADD PARENTING
-		//TODO - ADD PARENTING
 		//check if it is linked to another bone, and copy that root transform
 		bone_nodes_vec.emplace_back(bone_anim.node_index);
 		if (bone_anim.has_root) {
 			auto bone_idx_itr = std::find(bone_nodes_vec.begin(), bone_nodes_vec.end(), bone_anim.root_idx);
 			if ( bone_idx_itr != bone_nodes_vec.end() ) {
 				std::size_t root_mat_index = std::distance(bone_nodes_vec.begin(), bone_idx_itr);
-				bone_transform = m_boneTransformMatrices[ root_mat_index ] * bone_transform;
+				bone_transform = bone_transform_matrix_array[ root_mat_index ] * bone_transform;
 			}
 		}
 		
 		
-		m_boneTransformMatrices.emplace_back( bone_transform );
+		bone_transform_matrix_array.emplace_back( bone_transform );
 		
 	}
 	
 	//FETCH AND SEND ALL inverseBindMatrices
-	std::vector<glm::mat4> inverseBindMat_vec = mesh_data.inverse_bind_matrix_array;
+	std::vector<glm::mat4> inverse_bind_mat_array = mesh_data.inverse_bind_matrix_array;
 	
-	for (std::size_t m{}; m < inverseBindMat_vec.size(); m++) {
+	for (std::size_t m{}; m < inverse_bind_mat_array.size(); m++) {
 		
-		glm::mat4 invBindMat(
-			inverseBindMat_vec[m][0].x, inverseBindMat_vec[m][0].y, inverseBindMat_vec[m][0].z, inverseBindMat_vec[m][0].w,
-			inverseBindMat_vec[m][1].x, inverseBindMat_vec[m][1].y, inverseBindMat_vec[m][1].z, inverseBindMat_vec[m][1].w,
-			inverseBindMat_vec[m][2].x, inverseBindMat_vec[m][2].y, inverseBindMat_vec[m][2].z, inverseBindMat_vec[m][2].w,
-			inverseBindMat_vec[m][3].x, inverseBindMat_vec[m][3].y, inverseBindMat_vec[m][3].z, inverseBindMat_vec[m][3].w
+		glm::mat4 inverse_bind_mat(
+			inverse_bind_mat_array[m][0].x, inverse_bind_mat_array[m][0].y, inverse_bind_mat_array[m][0].z, inverse_bind_mat_array[m][0].w,
+			inverse_bind_mat_array[m][1].x, inverse_bind_mat_array[m][1].y, inverse_bind_mat_array[m][1].z, inverse_bind_mat_array[m][1].w,
+			inverse_bind_mat_array[m][2].x, inverse_bind_mat_array[m][2].y, inverse_bind_mat_array[m][2].z, inverse_bind_mat_array[m][2].w,
+			inverse_bind_mat_array[m][3].x, inverse_bind_mat_array[m][3].y, inverse_bind_mat_array[m][3].z, inverse_bind_mat_array[m][3].w
 			);
 		
-		glm::mat4 skinnedMatrix = invBindMat * glm::transpose( m_boneTransformMatrices[m] );
-		m_boneSkinnedMatrices.emplace_back( glm::transpose( skinnedMatrix ) );
+		glm::mat4 skinned_mat = inverse_bind_mat * glm::transpose( bone_transform_matrix_array[m] );
+		bone_skinned_matrix_array.emplace_back( glm::transpose( skinned_mat ) );
 	}
 
 	

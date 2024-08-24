@@ -29,8 +29,6 @@ public:
 		std::vector<Empty> empties_array;
 		std::vector<MeshDataStruct> mesh_data_struct_array;
 
-		void loadEmpties();
-
 		//vertex/index/normal/uv data
 		std::vector<glm::vec3> getVertexPositions(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec3> getVertexNormals(const tinygltf::Mesh& mesh);
@@ -65,8 +63,8 @@ public:
 		std::string animation_name;
 		tinygltf::Animation animation_tinygltf;
 		std::vector<AnimationDataStruct> animation_map;//contains list of all animations for this model, with key being the animation name
-	
 		AnimationDataStruct getMeshAnimationData(const tinygltf::Mesh& mesh);
+		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
 	
 	/*
 		std::vector<float> time_array;//should be a time for each of trans/rot/scale
@@ -87,6 +85,8 @@ public:
 
 	/* helper functions */
 	int getMeshNodeIndex(const tinygltf::Mesh& mesh);
+	
+	tinygltf::Model getTinyGltfModel() {	return model;	}
 	
 private:
     tinygltf::TinyGLTF tiny_gltf;

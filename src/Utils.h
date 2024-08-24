@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include "../external/tinygltf/tiny_gltf.h"
+
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -27,6 +29,9 @@ struct AnimationDataStruct{
 	bool is_mesh = false;
 	bool is_empty = false;
 	bool is_bone = false;
+	
+	float current_animation_time {};
+	float playback_speed = 1.f;
 	
 	std::vector<int> child_array;
 	
@@ -63,6 +68,10 @@ struct MeshDataStruct{
 	GLuint normal_texture {};
 	GLuint metal_texture {};
 	
+	//materials
+	bool has_material = false;
+	tinygltf::Material material;
+	
 	//animation data FOR THIS MESH
 	AnimationDataStruct animation_data {};
 	
@@ -72,6 +81,10 @@ struct MeshDataStruct{
 	std::vector<glm::vec4> joints_array;
 	std::vector<glm::vec4> weights_array;
 	std::vector<glm::mat4> inverse_bind_matrix_array;
+	
+	//root and sub-node
+	bool has_childs = false;
+	std::vector<int> childs_array;
 };
 
 //basic print
@@ -81,12 +94,12 @@ inline void PRINT(const std::string& message){
 
 //warning
 inline void PRINT_WARN(const std::string& message){
-	PRINT("\x1B[38;2;255;120;10m [Warn] - \x1B[0m" + message);
+	PRINT("\x1B[38;2;255;120;10mWARNING - \x1B[0m" + message);
 }
 
 //print custom color
 inline void PRINT_COLOR(const std::string& message, short red, short green, short blue){
-	PRINT( std::string("\x1B[38;2;") + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "m [Info] - \x1B[0m" + message);
+	PRINT( std::string("\x1B[38;2;") + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "mLOG - \x1B[0m" + message);
 }
 
 
