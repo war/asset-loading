@@ -24,6 +24,7 @@ public:
 	MeshDataStruct mesh_data;
 	Shader* shader;
 	WindowManager* window_manager;
+	DirectionalLight* direct_light;
 	
 	VAO vao {};
 	VBO vbo {};
@@ -47,7 +48,7 @@ public:
 	
 	
 public:
-	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager);
+	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light);
 	~Mesh();                                    
 	
 	void update();

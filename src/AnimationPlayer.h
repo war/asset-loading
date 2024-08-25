@@ -27,6 +27,8 @@ public:
 	MeshDataStruct getFirstChildMesh(const Empty& empty);
 	Empty getFirstChildEmpty(const Empty& empty);
 	
+	void resetAnimations();
+	
 };
 
 

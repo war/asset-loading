@@ -33,13 +33,14 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 	uint_array = (unsigned int*)model.buffers.front().data.data();
 	uchar_array = (unsigned char*)model.buffers.front().data.data();
 	
-
-	
 	/////////////////
 	//LOAD ALL MESHES
 	/////////////////
 	for(int m{}; m<model.meshes.size(); m++){
 		tinygltf::Mesh& mesh = model.meshes[m];
+		
+		int mesh_node_idx = getMeshNodeIndex(mesh);
+		tinygltf::Node& node = model.nodes[mesh_node_idx];
 		
 		MeshDataStruct mesh_data_struct {};//will store all mesh data [vertex pos/norm/uv, global mesh pos/rot etc]
 		
@@ -49,27 +50,10 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 			throw std::logic_error("Only 1 primitive per mesh is supported");
 		
 		//check to see if has sub-nodes
-		tinygltf::Node& node = model.nodes[getMeshNodeIndex(mesh)];
 		if(!node.children.empty()){
 			mesh_data_struct.has_childs = true;
 			mesh_data_struct.childs_array = node.children;
 		}
-		
-		/*
-		//legacy code
-		//warning, bad idea doing .front()
-		tinygltf::Primitive primitive = mesh.primitives.front();
-		int vert_pos_idx = primitive.attributes["POSITION"];
-		int vert_norm_idx = primitive.attributes["NORMAL"];
-		int vert_uv_idx = primitive.attributes["TEXCOORD_0"];
-		int vert_index_count_idx = primitive.indices;
-		
-		tinygltf::Accessor vert_pos_accessor = model.accessors[vert_pos_idx];
-		tinygltf::Accessor vert_norm_accessor = model.accessors[vert_norm_idx];
-		tinygltf::Accessor vert_uv_accessor = model.accessors[vert_uv_idx];
-		tinygltf::Accessor vert_index_accessor = model.accessors[vert_index_count_idx];
-		*/
-		
 		
 		/////////////////////
 		//VERTEX DATA
@@ -95,8 +79,6 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		//GLOBAL POS/ROT/SCALE
 		///////////////////////////
 		{
-			int mesh_node_idx = getMeshNodeIndex(mesh);
-			tinygltf::Node& node = model.nodes[mesh_node_idx];
 			//find node this mesh is assigned to
 			mesh_data_struct.node_index = mesh_node_idx;
 			if(!node.translation.empty())//translation
@@ -106,6 +88,7 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 			if(!node.scale.empty())//scale
 				mesh_data_struct.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
 		}
+		
 		
 		///////////////////////////
 		//SKINNING [JOINTS/WEIGHTS]
@@ -137,7 +120,6 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		///////////////////////////
 		mesh_data_struct.animation_data = getMeshAnimationData(mesh);
 		
-		
 		/////////////////
 		//MATERIALS
 		/////////////////
@@ -150,7 +132,6 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 				mesh_data_struct.material = model.materials[material_idx];
 			}
 		}
-		
 		
 		//add to MeshDataStruct array
 		mesh_data_struct_array.emplace_back(mesh_data_struct);
@@ -166,11 +147,16 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		
 		empty.node_index = n;
 		
-		//checks to make sure this is not a mesh
-		if(node.mesh != -1)
-			continue;
-		
 		empty.name = node.name;
+		
+		//checks to make sure this is NOT a mesh
+		if(node.mesh != -1){
+			continue;
+		}
+		//checks to make sure this is NOT a bone
+		if( isBone(empty.node_index) ){
+			continue;
+		}
 		
 		//check to see if has sub-nodes
 		if(!node.children.empty()){
@@ -200,6 +186,7 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		//add to array
 		empties_array.emplace_back(empty);
 	}
+	
 	
 	
 	///////////////
@@ -427,7 +414,7 @@ void ModelLoader::generateTextures(){
 		//metal
 		///////////
 		if(metal_img.width != -1){
-			has_normal_tex = true;
+			has_metal_tex = true;
 			
 			glGenTextures(1, &metal_texture);
 			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
@@ -468,6 +455,7 @@ int ModelLoader::getMeshNodeIndex(const tinygltf::Mesh& mesh){
 			//find node this mesh is assigned to
 			if(node.mesh == m){
 				return m;
+//				return n;//RETURN n
 			}
 		}
 		
@@ -504,38 +492,21 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 	
 	//if no animations for the current mesh, break out
 	if(!animations_found){
-		PRINT_WARN("no anims found for " + mesh.name);
 		return animation_data;
 	}
 	
 	for(int c{}; c<animation.channels.size(); c++){
 		
-		//bad idea, need more robust way of fetching time data 
-		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
-		
-		int input_idx = time_sampler.input;
+		animation_data.has_animation = true;
 		
 		/////////////////////
 		//fetch times
 		/////////////////////
-		std::vector<float> times;
-		{
-			tinygltf::Accessor time_accessor = model.accessors[input_idx];
-			int frame_count = time_accessor.count;
-			
-			int byteOffset = model.bufferViews[time_accessor.bufferView].byteOffset;
-			int offset = byteOffset/sizeof(float);
-			
-			for(int t{}; t<frame_count; t++){
-				float start_time = float_array[offset];
-				float time_ = float_array[t + offset] - start_time; //subtract `start_time` to get it 0 initialized
-				times.emplace_back(time_);
-			}
-		}
+		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
+		std::vector<float> times = getTimelineArray(time_sampler);
 		animation_data.time_array = times;
 		
-		animation_data.has_animation = true;
-		
+
 		tinygltf::AnimationChannel& channel = animation.channels[c];
 		tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
 		
@@ -544,13 +515,12 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 		for(std::size_t n{}; n<model.nodes.size(); n++){
 			std::vector<int> childs_vec = model.nodes[n].children;
 			
-			if(childs_vec.size()>1)
-				PRINT_WARN("IMPROVE SYSTEM FOR MORE THAN 1 CHILD");
+//			if(childs_vec.size()>1)
+//				PRINT_WARN("IMPROVE SYSTEM FOR MORE THAN 1 CHILD");
 			
 			if( std::find(childs_vec.begin(), childs_vec.end(), node_idx) != childs_vec.end() ){
 				animation_data.has_root = true;
 				animation_data.root_idx = n;
-				std::cout << "zzzoooooooo" <<animation_data.root_idx << std::endl;
 				break;
 			}
 			
@@ -564,7 +534,6 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 		int frame_count = model.accessors[output_idx].count;
 		int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
 		int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
-		
 		for(int i{}; i<frame_count; i++){
 			
 			//translations
@@ -574,6 +543,9 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.translation_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				
+				//fetch timeline for translation channel
+				animation_data.trans_time_array = getTimelineArray(sampler);
 			}
 			
 			//rotations
@@ -584,6 +556,9 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 				float w = float_array[(i*4) + 3 + offset];
 				animation_data.rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
 //					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+				
+				//fetch timeline for rot channel
+				animation_data.rot_time_array = getTimelineArray(sampler);
 			}
 			
 			//scale
@@ -593,6 +568,9 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.scale_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				
+				//fetch timeline for scale channel
+				animation_data.scale_time_array = getTimelineArray(sampler);
 			}
 			
 		}
@@ -637,9 +615,8 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 		}
 	}
 	
-	//if no animations for the current mesh, break out
+	//if no animations for the current empty/node, break out
 	if(!animations_found){
-		PRINT_WARN("no anims found for " + node.name);
 		return animation_data;
 	}
 	
@@ -647,31 +624,14 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 	
 	for(int c{}; c<animation.channels.size(); c++){
 		
-		//bad idea, need more robust way of fetching time data 
-		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
-		
-		int input_idx = time_sampler.input;
+		animation_data.has_animation = true;
 		
 		/////////////////////
 		//fetch times
 		/////////////////////
-		std::vector<float> times;
-		{
-			tinygltf::Accessor time_accessor = model.accessors[input_idx];
-			int frame_count = time_accessor.count;
-			
-			int byteOffset = model.bufferViews[time_accessor.bufferView].byteOffset;
-			int offset = byteOffset/sizeof(float);
-			
-			for(int t{}; t<frame_count; t++){
-				float start_time = float_array[offset];
-				float time_ = float_array[t + offset] - start_time; //subtract `start_time` to get it 0 initialized
-				times.emplace_back(time_);
-			}
-		}
+		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
+		std::vector<float> times = getTimelineArray(time_sampler);
 		animation_data.time_array = times;
-		
-		animation_data.has_animation = true;
 		
 		tinygltf::AnimationChannel& channel = animation.channels[c];
 		tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
@@ -694,6 +654,8 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.translation_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				
+				animation_data.trans_time_array = getTimelineArray(sampler);
 			}
 			
 			//rotations
@@ -704,6 +666,8 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 				float w = float_array[(i*4) + 3 + offset];
 				animation_data.rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
 //					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+				
+				animation_data.rot_time_array = getTimelineArray(sampler);
 			}
 			
 			//scale
@@ -713,6 +677,8 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.scale_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				
+				animation_data.scale_time_array = getTimelineArray(sampler);
 			}
 			
 		}
@@ -768,28 +734,12 @@ void ModelLoader::getSkinnedAnimation(){
 	static std::size_t idx {};//used to keep track of individual bones
 	for(int c{}; c<anim.channels.size(); c++){
 		
-		//bad idea, need more robust way of fetching time data 
-		tinygltf::AnimationSampler& time_sampler = anim.samplers[0];
-		
-		int input_idx = time_sampler.input;
 		
 		/////////////////////
 		//fetch times
 		/////////////////////
-		std::vector<float> times;
-		{
-			tinygltf::Accessor time_accessor = model.accessors[input_idx];
-			int frame_count = time_accessor.count;
-			
-			int byteOffset = model.bufferViews[time_accessor.bufferView].byteOffset;
-			int offset = byteOffset/sizeof(float);
-			
-			for(int t{}; t<frame_count; t++){
-				float start_time = float_array[offset];
-				float time_ = float_array[t + offset] - start_time; //subtract `start_time` to get it 0 initialized
-				times.emplace_back(time_);
-			}
-		}
+		tinygltf::AnimationSampler& time_sampler = anim.samplers[0];
+		std::vector<float> times = getTimelineArray(time_sampler);
 		
 		///////////////////////
 		//fetch translations/rots/scale
@@ -804,13 +754,13 @@ void ModelLoader::getSkinnedAnimation(){
 		///////////////////
 		///////ADDING TO ARRAY
 		if(idx != node_idx){
-			animation_map.emplace_back(AnimationDataStruct{}); 
+			bone_animation_array.emplace_back(AnimationDataStruct{}); 
 			idx = node_idx;
 		}
-		if(animation_map.empty())
-			animation_map.emplace_back(AnimationDataStruct{}); 
+		if(bone_animation_array.empty())
+			bone_animation_array.emplace_back(AnimationDataStruct{}); 
 		
-		AnimationDataStruct& animation_data = animation_map.back();
+		AnimationDataStruct& animation_data = bone_animation_array.back();
 		
 		animation_data.time_array = times;
 		
@@ -830,7 +780,6 @@ void ModelLoader::getSkinnedAnimation(){
 			if( std::find(childs_vec.begin(), childs_vec.end(), node_idx) != childs_vec.end() ){
 				animation_data.has_root = true;
 				animation_data.root_idx = n;
-				std::cout << "ROOT BONEZZZZZZZZZ     " << animation_data.root_idx << std::endl;
 				break;
 			}
 			
@@ -858,6 +807,8 @@ void ModelLoader::getSkinnedAnimation(){
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.translation_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				
+				animation_data.trans_time_array = getTimelineArray(sampler);
 			}
 			
 			//rotations
@@ -868,6 +819,8 @@ void ModelLoader::getSkinnedAnimation(){
 				float w = float_array[(i*4) + 3 + offset];
 				animation_data.rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
 //					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+				
+				animation_data.rot_time_array = getTimelineArray(sampler);
 			}
 			
 			//scale
@@ -877,6 +830,8 @@ void ModelLoader::getSkinnedAnimation(){
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.scale_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+				
+				animation_data.scale_time_array = getTimelineArray(sampler);
 			}
 			
 		}
@@ -1088,4 +1043,42 @@ void ModelLoader::equalizeTRSanimationArrays(AnimationDataStruct& animation_data
 		}
 	}
 	
+}
+
+std::vector<float> ModelLoader::getTimelineArray(const tinygltf::AnimationSampler& sampler){
+	std::vector<float> times;
+	{
+		int input_idx = sampler.input;
+		tinygltf::Accessor time_accessor = model.accessors[input_idx];
+		int frame_count = time_accessor.count;
+		
+		int byteOffset = model.bufferViews[time_accessor.bufferView].byteOffset;
+		int offset = byteOffset/sizeof(float);
+		
+		for(int t{}; t<frame_count; t++){
+			float start_time = float_array[offset];
+			float time_ = float_array[t + offset] - start_time; //subtract `start_time` to get it 0 initialized
+			times.emplace_back(time_);
+		}
+	}
+	
+	return times;
+}
+
+bool ModelLoader::isBone(int node_index){
+	
+	bool result = false;
+	
+	if(model.skins.empty())
+		return result;
+	
+	tinygltf::Skin& skin = model.skins.front();
+	
+	std::vector<int> skin_node_indices = skin.joints;
+	
+	if( std::find(skin_node_indices.begin(), skin_node_indices.end(), node_index) != skin_node_indices.end() ){
+		result = true;
+	}
+	
+	return result;
 }

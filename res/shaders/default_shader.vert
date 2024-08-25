@@ -3,10 +3,10 @@
 layout(location = 0) in vec3 vertPos; //vertex pos
 layout(location = 1) in vec2 uvVertCoord; //vertex UV's
 layout(location = 2) in vec3 vNormal; //vertex normals
-layout(location = 3) in vec4 joints_0; //JOINTS_0
-layout(location = 4) in vec4 weights_0; //WEIGHTS_0
-layout(location = 5) in vec3 vTangent; //tangent
-layout(location = 6) in vec3 vBiTangent; //bitangent
+layout(location = 3) in vec3 vTangent; //tangent
+layout(location = 4) in vec3 vBiTangent; //bitangent
+layout(location = 5) in vec4 joints_0; //JOINTS_0
+layout(location = 6) in vec4 weights_0; //WEIGHTS_0
 
 out vec2 uvCoord;
 out vec3 vertCoord;
@@ -51,7 +51,7 @@ void main(){
   vertNormal = vNormal;
   
   
-    tangentVec = normalize(vec3( (modelMatrix * vec4(vTangent.xyz, 0.f)).xyz ));
+  tangentVec = normalize(vec3( (modelMatrix * vec4(vTangent.xyz, 0.f)).xyz ));
   bitangentVec = normalize(vec3( (modelMatrix * vec4(vBiTangent.xyz, 0.f)).xyz ));
   perpNormalVec = normalize(cross(bitangentVec, tangentVec));
 }

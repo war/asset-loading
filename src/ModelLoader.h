@@ -57,12 +57,12 @@ public:
 		//animations
 		bool has_animation = false;
 		std::string animation_name;
-		tinygltf::Animation animation_tinygltf;
-		std::vector<AnimationDataStruct> animation_map;//contains list of all animations for this model, with key being the animation name
+		std::vector<AnimationDataStruct> bone_animation_array;//contains list of all animations for this model, with key being the animation name
 		AnimationDataStruct getMeshAnimationData(const tinygltf::Mesh& mesh);
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
 		void getSkinnedAnimation();
 		void equalizeTRSanimationArrays(AnimationDataStruct& animation_data);	
+		std::vector<float> getTimelineArray(const tinygltf::AnimationSampler& sampler);
 	
 		//skinning
 		bool has_skin = false;
@@ -70,6 +70,7 @@ public:
 		std::vector<glm::vec4> getSkinJoints(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec4> getSkinWeights(const tinygltf::Mesh& mesh);
 		std::vector<glm::mat4> getInverseBindMatrices(const tinygltf::Mesh& mesh);
+		bool isBone(int node_index);
 
 		/* helper functions */
 		int getMeshNodeIndex(const tinygltf::Mesh& mesh);
@@ -89,14 +90,6 @@ private:
 		GLuint normal_texture;
 		GLuint metal_texture;
 		
-//		glm::vec3 translation = glm::vec3(0.f);
-//		glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
-//		glm::vec3 scale = glm::vec3(1.f);
-		
-//		std::vector<glm::vec3> vertex_positions_array;
-//		std::vector<glm::vec3> vertex_normals_array;
-//		std::vector<glm::vec2> vertex_uvs_array;
-//		std::vector<unsigned int> vertex_indices_array;
 };
 
 

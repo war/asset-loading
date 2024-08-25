@@ -36,6 +36,9 @@ struct AnimationDataStruct{
 	std::vector<int> child_array;
 	
 	std::vector<float> time_array;//should be a time for each of trans/rot/scale
+	std::vector<float> trans_time_array;
+	std::vector<float> rot_time_array;
+	std::vector<float> scale_time_array;
 	std::vector<glm::vec3> translation_anim_array;
 	std::vector<glm::quat> rotation_anim_array;
 	std::vector<glm::vec3> scale_anim_array;
@@ -87,6 +90,13 @@ struct MeshDataStruct{
 	//root and sub-node
 	bool has_childs = false;
 	std::vector<int> childs_array;
+};
+
+struct DirectionalLight{
+	float strength = 1.f;
+	float specular = 1.f;
+	glm::vec3 direction = glm::vec3(0.f, -1.f, 0.f);
+	glm::vec3 color = glm::vec3(1.f);
 };
 
 //basic print

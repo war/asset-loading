@@ -131,7 +131,17 @@ void WindowManager::processInput(Camera& camera, float deltaTime)
                     SDL_ShowCursor(SDL_TRUE);
                 }
             }
+					
+					//R key pressed
+					if(event.key.keysym.sym == SDLK_r)
+						isRpressed = true;
         }
+				else if (event.type == SDL_KEYUP)//key released
+				{
+					//R key released
+					if(event.key.keysym.sym == SDLK_r)
+						isRpressed = false;
+				}
         else if (event.type == SDL_MOUSEMOTION && mouseCaptured)
         {
             float xoffset = event.motion.xrel;

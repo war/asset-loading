@@ -8,7 +8,7 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 	//=============
 	for(Empty& empty : model->empties_array)
 		for(auto c : empty.child_array){
-			std::cout << "name :"  << empty.name << ", has child index: " << c << std::endl;
+			PRINT_WARN("name :"  + empty.name + ", has child index: " + std::to_string(c) );
 		}
 	
 }
@@ -16,7 +16,6 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 void AnimationPlayer::update(){
 	std::vector<Empty>& empty_array = model->empties_array;
 	std::vector<MeshDataStruct>& mesh_data_struct_array = model->mesh_data_struct_array;
-	
 	
 	
 //	std::cout << empty_array.front().animation_data.translation_anim_array.size() << std::endl;
@@ -30,7 +29,7 @@ void AnimationPlayer::update(){
 			continue;
 		//add warning message
 		if(empty.child_array.size() > 1){
-			PRINT_WARN("WARNING -- MORE THAN 1 CHILDS ARE NOT SUPPORTED CURRENTLY!!!!!!!!!");
+			PRINT_WARN("WARNING -- MORE THAN 1 CHILD");
 		}
 		
 		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
@@ -281,4 +280,26 @@ Empty AnimationPlayer::getFirstChildEmpty(const Empty& empty){
 	
 	//WARNING - RETURNS A USELESS OBJECT
 	return child_empty;
+}
+
+void AnimationPlayer::resetAnimations(){
+	//reset for all Empties
+	for(Empty& empty : model->empties_array){
+		empty.animation_data.current_animation_time = 0.f;
+	}
+	
+	//reset for all Meshes
+	for(MeshDataStruct& mesh_data : model->mesh_data_struct_array){
+		mesh_data.animation_data.current_animation_time = 0.f;
+	}
+	
+	//reset for skinning
+	for(Mesh* mesh : *mesh_array)
+		mesh->current_animation_time = 0.f;
+	/*
+	for(AnimationDataStruct& bone_anim_data : model->bone_animation_array){
+		bone_anim_data.current_animation_time = 0.f;//not being used currently
+	}
+	*/
+	
 }

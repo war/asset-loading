@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager){
+Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager), direct_light(_direct_light){
 	
 	
 	
@@ -87,6 +87,24 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		tri_vertices.emplace_back( (GLfloat)vert_norm.y );
 		tri_vertices.emplace_back( (GLfloat)vert_norm.z );
 		
+		//tang
+		glm::vec3 tangent = tangent_array[i];
+//		tri_vertices.emplace_back( (GLfloat)tangent.x );
+//		tri_vertices.emplace_back( (GLfloat)tangent.y );
+//		tri_vertices.emplace_back( (GLfloat)tangent.z );
+		tri_vertices.emplace_back( 0.f );
+		tri_vertices.emplace_back( 1.f );
+		tri_vertices.emplace_back( 0.f );
+		
+		//bitang
+		glm::vec3 bitangent = bitangent_array[i];
+//		tri_vertices.emplace_back( (GLfloat)bitangent.x );
+//		tri_vertices.emplace_back( (GLfloat)bitangent.y );
+//		tri_vertices.emplace_back( (GLfloat)bitangent.z );
+		tri_vertices.emplace_back( 1.f );
+		tri_vertices.emplace_back( 0.f );
+		tri_vertices.emplace_back( 0.f );
+		
 		if(mesh_data.has_skin){
 			//joints
 			{
@@ -108,17 +126,8 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 			}
 		}
 		
-		//tang
-		glm::vec3 tangent = tangent_array[i];
-		tri_vertices.emplace_back( (GLfloat)tangent.x );
-		tri_vertices.emplace_back( (GLfloat)tangent.y );
-		tri_vertices.emplace_back( (GLfloat)tangent.z );
+
 		
-		//bitang
-		glm::vec3 bitangent = bitangent_array[i];
-		tri_vertices.emplace_back( (GLfloat)bitangent.x );
-		tri_vertices.emplace_back( (GLfloat)bitangent.y );
-		tri_vertices.emplace_back( (GLfloat)bitangent.z );
 		
 	}
 	//indices
@@ -130,7 +139,7 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	vbo = VBO(tri_vertices);
 	ebo = EBO(tri_indices);
 	
-	//if skinned, update attribute and layouts
+	//setup attributes
 	if(mesh_data.has_skin){
 		//setup pointers to the vertex position data `layout (location = 0)`
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), static_cast<void*>(0));
@@ -144,23 +153,25 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
 		glEnableVertexAttribArray(2);
 		
-		//setup pointers to the JOINTS_0 data `layout (location = 3)` 
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
+		//setup pointers to the vertex tangent data `layout (location = 3)`
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
 		glEnableVertexAttribArray(3);
 		
-		//setup pointers to the WEIGHTS_0 data `layout (location = 4)` 
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 12*sizeof(float) ));
-		glEnableVertexAttribArray(4);	
+		//setup pointers to the vertex bitangent data `layout (location = 4)`
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 11*sizeof(float) ));
+		glEnableVertexAttribArray(4);
 		
-		//setup pointers to the bitang data `layout (location = 5)` 
-		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 15*sizeof(float) ));
-		glEnableVertexAttribArray(5);	
+		//setup pointers to the JOINTS_0 data `layout (location = 5)` 
+		//USE CHAR INSTEAD OF FLOAT
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 14*sizeof(float) ));
+		glEnableVertexAttribArray(5);
 		
-		//setup pointers to the tang data `layout (location = 5)` 
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 18*sizeof(float) ));
+		//setup pointers to the WEIGHTS_0 data `layout (location = 6)` 
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 22*sizeof(float), reinterpret_cast<void*>( 18*sizeof(float) ));
 		glEnableVertexAttribArray(6);	
+		
 	}
-	//if normal/no skinning
+	//non-skinned mesh
 	else{
 		//setup pointers to the vertex position data `layout (location = 0)`
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), static_cast<void*>(0));
@@ -174,13 +185,13 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 5*sizeof(float) ));
 		glEnableVertexAttribArray(2);
 		
-		//setup pointers to the bitang data `layout (location = 5)` 
+		//setup pointers to the vertex tangent data `layout (location = 3)`
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 8*sizeof(float) ));
-		glEnableVertexAttribArray(3);	
+		glEnableVertexAttribArray(3);
 		
-		//setup pointers to the tang data `layout (location = 5)` 
+		//setup pointers to the vertex bitangent data `layout (location = 4)`
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14*sizeof(float), reinterpret_cast<void*>( 11*sizeof(float) ));
-		glEnableVertexAttribArray(4);	
+		glEnableVertexAttribArray(4);
 	}
 	
 	
@@ -227,14 +238,19 @@ void Mesh::update(){
 	//finally apply scale
 	modelMatrix = glm::scale(modelMatrix, scale);
 //	modelMatrix = mesh_data.modelMatrix;
-//	printGlmMat4(modelMatrix);
-	
 	
 	//send camera and model matrices
 	shader->use();
 	shader->setMat4("modelMatrix", modelMatrix);
 	shader->setMat4("viewMatrix", camera->GetViewMatrix());
 	shader->setMat4("projMatrix", glm::perspective(camera->FovRads, window_manager->getAspectRatio(), 0.1f, 1000.0f));
+	shader->setVec3("cameraPos", camera->GetPosition());
+	
+	//light info
+	shader->setFloat("light_strength", direct_light->strength);
+	shader->setFloat("light_specular", direct_light->specular);
+	shader->setVec3("light_color", direct_light->color);
+	shader->setVec3("light_dir", direct_light->direction);
 	
 	///////////
 	//textures
@@ -439,7 +455,7 @@ void Mesh::updateSkinnedAnimation(){
 	bone_transform_matrix_array.clear();
 	bone_skinned_matrix_array.clear();
 	
-	std::vector<AnimationDataStruct> bone_animations_vec = model->animation_map;
+	std::vector<AnimationDataStruct> bone_animations_vec = model->bone_animation_array;
 	
 	for (const AnimationDataStruct& bone_anim : bone_animations_vec) {
 		glm::vec3 bone_pos = calculateCurrentTranslation(bone_anim);

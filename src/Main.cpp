@@ -55,25 +55,31 @@ int main(int argc, char* argv[]) {
     SDL_ShowCursor(SDL_DISABLE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-
+		//add directional light
+		DirectionalLight direct_light {};
+	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/coconut.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
-//    ModelLoader* model = new ModelLoader("res/models/pistol/animz.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/simple-gun-anim.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands1.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/skin-and-stat.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/unmatched.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/arms.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/multi-parenting.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 
 		///////////////
 		//mesh loading
 		///////////////
 		//spawn meshes
 		for(MeshDataStruct mesh_data : model->mesh_data_struct_array){
-			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager);//delete this once finished to avoid memory leaks
+			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager, &direct_light);//delete this once finished to avoid memory leaks
 			mesh_array.emplace_back(mesh);
 		}
 	
 		//add AnimationPlayer system
 		AnimationPlayer animation_player(model, &mesh_array, &windowManager);
+	
+
 	
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -82,7 +88,7 @@ int main(int argc, char* argv[]) {
 
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+//    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 objectColor = glm::vec3(0.5f, 0.5f, 0.5f);
     
     float aspectRatio = windowManager.getAspectRatio();
@@ -120,8 +126,12 @@ int main(int argc, char* argv[]) {
 				{
 					for(Mesh* mesh : mesh_array)
 						mesh->update();
-					
 				}
+			
+				//reset animations if R pressed
+				if(windowManager.isRKeyPressed())
+					animation_player.resetAnimations();
+			
 			
         windowManager.swapBuffers();
         windowManager.updateFPS();

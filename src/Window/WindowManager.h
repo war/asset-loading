@@ -26,6 +26,7 @@ public:
 
     void setShouldClose(bool close) { quit = close; }
     bool isShiftKeyPressed() const { return isShiftPressed; }
+    bool isRKeyPressed() const { return isRpressed; }
     void ShowWireframe(bool isShiftPressed);
 
     int getWidth() { return width; }
@@ -37,7 +38,7 @@ public:
 	
 		void updateDeltaTime();
 	
-	inline constexpr float GetDeltaTime() const {	return m_deltaTime;	}
+		inline constexpr float GetDeltaTime() const {	return m_deltaTime;	}
 	
 private:
     int width;
@@ -71,4 +72,6 @@ private:
     bool firstMouse;
 
     bool isShiftPressed;
+	
+		bool isRpressed = false;
 };
