@@ -19,7 +19,7 @@
 
 class ModelLoader {
 public:
-    ModelLoader(const std::string& path, const std::string& diffuse_tex_name, const std::string& normal_tex_name, const std::string& metallic_tex_name);
+    ModelLoader(const std::string& path);
     ~ModelLoader();
 
 //    void Render();
@@ -42,17 +42,8 @@ public:
 		unsigned char* uchar_array = nullptr;
 	
 		//textures
-		std::string diffuse_texture_name;
-		std::string normal_texture_name;
-		std::string metallic_texture_name;
-		bool has_diffuse_tex = false;
-		bool has_normal_tex = false;
-		bool has_metal_tex = false;
-		GLuint getDiffuseTexture() const {	return diffuse_texture;	}
-		GLuint getNormalTexture() const {	return normal_texture;	}
-		GLuint getMetalTexture() const {	return metal_texture;	}
-		void generateTextures();
-		
+		std::map<TextureType, TextureDataStruct> getTextureMap(const tinygltf::Mesh& mesh);
+	
 		
 		//animations
 		bool has_animation = false;
@@ -74,8 +65,7 @@ public:
 
 		/* helper functions */
 		int getMeshNodeIndex(const tinygltf::Mesh& mesh);
-		
-		tinygltf::Model getTinyGltfModel() {	return model;	}
+		tinygltf::Model& getTinyGltfModel() {	return model;	}
 	
 private:
     tinygltf::TinyGLTF tiny_gltf;

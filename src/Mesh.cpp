@@ -209,7 +209,6 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	
 }
 
-
 Mesh::~Mesh(){
 	//delete VAO, VBO, EBO to avoid mem leaks
 	vao.free();
@@ -236,8 +235,10 @@ void Mesh::update(){
 	modelMatrix = glm::translate(glm::mat4(1.f), position) * glm::mat4(rotation);
 
 	//finally apply scale
-	modelMatrix = glm::scale(modelMatrix, scale);
-//	modelMatrix = mesh_data.modelMatrix;
+//	if(mesh_data.animation_data.has_animation)
+		modelMatrix = mesh_data.modelMatrix;
+//	else
+//		modelMatrix = glm::scale(modelMatrix, scale);
 	
 	//send camera and model matrices
 	shader->use();
@@ -256,23 +257,23 @@ void Mesh::update(){
 	//textures
 	///////////
 	//diffuse tex
-	if(model->has_diffuse_tex != 0){
+	if(mesh_data.texture_map.count(TextureType::DIFFUSE) != 0){
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, model->getDiffuseTexture());
+		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::DIFFUSE].tex_id);
 		shader->setInt("diffuse_tex", 0);//send Image to frag shader
 	}
 	
 	//normal tex
-	if(model->has_normal_tex != 0){
+	if(mesh_data.texture_map.count(TextureType::NORMAL) != 0){
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, model->getNormalTexture());
+		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::NORMAL].tex_id);
 		shader->setInt("normal_tex", 1);//send Image to frag shader
 	}
 	
 	//metal tex
-	if(model->has_metal_tex != 0){
+	if(mesh_data.texture_map.count(TextureType::METAL) != 0){
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, model->getMetalTexture());
+		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::METAL].tex_id);
 		shader->setInt("metal_tex", 2);//send Image to frag shader
 	}
 	
@@ -288,21 +289,16 @@ void Mesh::update(){
 	//send isSkinned var
 	shader->setInt("isSkinned", (int)mesh_data.has_skin);
 	
-	//render triangles
+	//render mesh
 	glDrawElements(GL_TRIANGLES, tri_indices.size(), GL_UNSIGNED_INT, 0);//rendering part
 	
 	//checks for rendering errors
 	__GL_ERROR_THROW__("Failed to render Mesh.");
 }
 
-
 void Mesh::updateAnimation(){
 	
-	//quit if no animations for this mesh
-	if(!mesh_data.animation_data.has_animation){
-//		PRINT_WARN("no anim") ;
-		return;
-	}
+
 	
 	//old step interpolation method
 
@@ -322,7 +318,15 @@ void Mesh::updateAnimation(){
 	//update animation time
 	current_animation_time += window_manager->GetDeltaTime() * playback_speed;
 	
+	updateSkinnedAnimation();
+	
 	AnimationDataStruct& animation_data = mesh_data.animation_data;
+	
+	//quit if no animations for this mesh
+	if(!animation_data.has_animation){
+//		PRINT_WARN("no anim") ;
+		return;
+	}
 	
 	//ensure TRS anims are of equal lengths
 	if( animation_data.translation_anim_array.size() != animation_data.rotation_anim_array.size() || animation_data.translation_anim_array.size() != animation_data.scale_anim_array.size() || animation_data.rotation_anim_array.size() != animation_data.scale_anim_array.size() )
@@ -336,7 +340,6 @@ void Mesh::updateAnimation(){
 //	std::cout << animation_data.translation_anim_array.size() << std::endl;
 		
 	
-	updateSkinnedAnimation();
 	
 }
 
@@ -465,7 +468,6 @@ void Mesh::updateSkinnedAnimation(){
 		//create TRS for each bone
 		glm::mat4 bone_transform = createTRSmatrix( bone_pos, bone_rot, bone_scale );
 		
-		
 		//check if it is linked to another bone, and copy that root transform
 		bone_nodes_vec.emplace_back(bone_anim.node_index);
 		if (bone_anim.has_root) {
@@ -497,7 +499,6 @@ void Mesh::updateSkinnedAnimation(){
 		bone_skinned_matrix_array.emplace_back( glm::transpose( skinned_mat ) );
 	}
 
-	
 //	if(model->)
 	
 	

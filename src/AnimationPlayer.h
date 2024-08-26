@@ -25,7 +25,10 @@ public:
 	glm::vec3 calculateCurrentScale(AnimationDataStruct& animation_data);
 	
 	MeshDataStruct getFirstChildMesh(const Empty& empty);
-	Empty getFirstChildEmpty(const Empty& empty);
+	Empty getFirstChildEmpty(const Empty& parent_empty);
+	std::vector<Empty> getChildEmptyArray(const Empty& parent_empty);
+	
+	void equalizeAllAnimationDurations();
 	
 	void resetAnimations();
 	

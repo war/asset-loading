@@ -16,6 +16,15 @@
 
 #include <glad/glad.h>
 
+enum TextureType{
+	DIFFUSE = 0,
+	NORMAL = 1,
+	METAL = 2,
+	SPECULAR = 3,
+	ROUGHNESS = 4
+};
+
+
 struct AnimationDataStruct{
 	std::string name;
 	
@@ -36,6 +45,7 @@ struct AnimationDataStruct{
 	std::vector<int> child_array;
 	
 	std::vector<float> time_array;//should be a time for each of trans/rot/scale
+	std::vector<float> time_array_MAX;
 	std::vector<float> trans_time_array;
 	std::vector<float> rot_time_array;
 	std::vector<float> scale_time_array;
@@ -45,7 +55,7 @@ struct AnimationDataStruct{
 };
 
 struct TextureDataStruct{
-	std::string file_name;
+	TextureType type;
 	GLuint tex_id {};
 };
 
@@ -72,6 +82,7 @@ struct MeshDataStruct{
 	GLuint diffuse_texture {};
 	GLuint normal_texture {};
 	GLuint metal_texture {};
+	std::map<TextureType, TextureDataStruct> texture_map;
 	
 	//materials
 	bool has_material = false;
@@ -98,6 +109,78 @@ struct DirectionalLight{
 	glm::vec3 direction = glm::vec3(0.f, -1.f, 0.f);
 	glm::vec3 color = glm::vec3(1.f);
 };
+
+
+
+inline void equalizeTRSanimationArrays(AnimationDataStruct& animation_data){
+//	std::vector<int> anim_array_sizes = {animation_data.translation_anim_array.size(), animation_data.rotation_anim_array.size(), animation_data.scale_anim_array.size()};
+//	std::sort(anim_array_sizes.begin(), anim_array_sizes.end());
+	
+	std::map<int, std::vector<float>> size_sorted_timelines;
+	size_sorted_timelines.emplace(animation_data.trans_time_array.size(), animation_data.trans_time_array);
+	size_sorted_timelines.emplace(animation_data.rot_time_array.size(), animation_data.rot_time_array);
+	size_sorted_timelines.emplace(animation_data.scale_time_array.size(), animation_data.scale_time_array);
+	
+	int max_size = animation_data.time_array.size();
+	
+	/////////////////////////////
+	//equalize translation array
+	/////////////////////////////
+	if(animation_data.translation_anim_array.size() != max_size){
+		//if size 0, then fill will default values
+		if(animation_data.translation_anim_array.empty()){
+			for(int i{}; i<max_size; i++)
+				animation_data.translation_anim_array.emplace_back( glm::vec3(0.f) );
+		}
+		
+		//if few frames short, calc difference and apply
+		int diff = max_size - animation_data.translation_anim_array.size();
+		glm::vec3 last_pos = animation_data.translation_anim_array.back();
+		for(int i{}; i<diff; i++){
+			animation_data.translation_anim_array.emplace_back( last_pos );
+		}
+	}
+	
+	
+	/////////////////////////////
+	//equalize rotations array
+	/////////////////////////////
+	if(animation_data.rotation_anim_array.size() != max_size){
+		//if size 0, then fill will default values
+		if(animation_data.rotation_anim_array.empty()){
+			for(int i{}; i<max_size; i++)
+				animation_data.rotation_anim_array.emplace_back( glm::quat(1.f, 0.f, 0.f, 0.f) );
+		}
+		
+		//if few frames short, calc difference and apply
+		int diff = max_size - animation_data.rotation_anim_array.size();
+		glm::quat last_rot = animation_data.rotation_anim_array.back();
+		for(int i{}; i<diff; i++){
+			animation_data.rotation_anim_array.emplace_back( last_rot );
+		}
+	}
+	
+	/////////////////////////////
+	//equalize scale array
+	/////////////////////////////
+	if(animation_data.scale_anim_array.size() != max_size){
+		//if size 0, then fill will default values
+		if(animation_data.scale_anim_array.empty()){
+			for(int i{}; i<max_size; i++)
+				animation_data.scale_anim_array.emplace_back( glm::vec3(1.f) );
+		}
+		
+		//if few frames short, calc difference and apply
+		int diff = max_size - animation_data.scale_anim_array.size();
+		glm::vec3 last_pos = animation_data.scale_anim_array.back();
+		for(int i{}; i<diff; i++){
+			animation_data.scale_anim_array.emplace_back( last_pos );
+		}
+	}
+	
+}
+
+
 
 //basic print
 inline void PRINT(const std::string& message){

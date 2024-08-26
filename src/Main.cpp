@@ -61,11 +61,15 @@ int main(int argc, char* argv[]) {
 		//load in glTF model (meshes, animations, skinning, textures etc)
 //    ModelLoader* model = new ModelLoader("res/models/pistol/simple-gun-anim.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
-    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands1.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/skinned-hands1.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/skin-and-stat.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
-//    ModelLoader* model = new ModelLoader("res/models/pistol/unmatched.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/gun-base.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/arms.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/multi-parenting.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/anim-empty.gltf", "material_baseColor", "material_normal", "material_metallicRoughness");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/GUN-2STEP.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/check-for-bone.glb");
+    ModelLoader* model = new ModelLoader("res/models/pistol/tired.gltf");
 
 		///////////////
 		//mesh loading
@@ -123,9 +127,11 @@ int main(int argc, char* argv[]) {
 				//render meshes
 				////////////////
 				animation_player.update();
+			
 				{
 					for(Mesh* mesh : mesh_array)
 						mesh->update();
+					
 				}
 			
 				//reset animations if R pressed

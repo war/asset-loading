@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <algorithm>
 
-ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex_name, const std::string& normal_tex_name, const std::string& metallic_tex_name) : diffuse_texture_name(diffuse_tex_name), normal_texture_name(normal_tex_name), metallic_texture_name(metallic_tex_name) {
+ModelLoader::ModelLoader(const std::string& path){
 	
 	std::string error;
 	std::string warning;
@@ -42,6 +42,8 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		int mesh_node_idx = getMeshNodeIndex(mesh);
 		tinygltf::Node& node = model.nodes[mesh_node_idx];
 		
+//		std::cout << "node idx " << mesh_node_idx << ", name " << mesh.name << ", node name : " << node.name << std::endl; 
+		
 		MeshDataStruct mesh_data_struct {};//will store all mesh data [vertex pos/norm/uv, global mesh pos/rot etc]
 		
 		mesh_data_struct.name	= mesh.name;
@@ -54,7 +56,10 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 			mesh_data_struct.has_childs = true;
 			mesh_data_struct.childs_array = node.children;
 		}
-		
+		//checks to make sure this is NOT a bone
+		if( isBone(mesh_node_idx) ){
+			continue;
+		}
 		/////////////////////
 		//VERTEX DATA
 		/////////////////////
@@ -74,6 +79,11 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		//INDICES
 		/////////////////////
 		mesh_data_struct.vertex_indices_array = getIndices(mesh);
+	
+		///////////////
+		//TEXTURES
+		///////////////
+		mesh_data_struct.texture_map = getTextureMap(mesh);
 		
 		///////////////////////////
 		//GLOBAL POS/ROT/SCALE
@@ -88,7 +98,6 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 			if(!node.scale.empty())//scale
 				mesh_data_struct.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
 		}
-		
 		
 		///////////////////////////
 		//SKINNING [JOINTS/WEIGHTS]
@@ -113,7 +122,6 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 			//inverse bind matrices
 			mesh_data_struct.inverse_bind_matrix_array = getInverseBindMatrices(mesh);
 		}
-			
 		
 		///////////////////////////
 		//ANIMATIONS
@@ -186,14 +194,6 @@ ModelLoader::ModelLoader(const std::string& path, const std::string& diffuse_tex
 		//add to array
 		empties_array.emplace_back(empty);
 	}
-	
-	
-	
-	///////////////
-	//TEXTURES
-	///////////////
-	generateTextures();
-	
 	
 	/*
 	*/
@@ -336,108 +336,124 @@ std::vector<unsigned int> ModelLoader::getIndices(const tinygltf::Mesh& mesh){
 	return indices_array;
 }
 
-void ModelLoader::generateTextures(){
-	/////////////////////
-	//TEXTURES
-	/////////////////////
-	if(!model.textures.empty()){
-		tinygltf::Texture tex = model.textures.front();//DIFFUSE TEX
-		//		tinygltf::Image diff_img = model.images[tex.source];//DIFFUSE TEX
-		tinygltf::Image diff_img;//DIFFUSE TEX
-		tinygltf::Image norm_img;//DIFFUSE TEX
-		tinygltf::Image metal_img;//DIFFUSE TEX
-		
-		for(auto t : model.textures){
-			if(model.images[t.source].name == diffuse_texture_name)
-				diff_img = model.images[t.source];
-			if(model.images[t.source].name == normal_texture_name)
-				norm_img = model.images[t.source];
-			if(model.images[t.source].name == metallic_texture_name)
-				metal_img = model.images[t.source];
-		}
-		
-		///////////
-		//diffuse
-		///////////
-		if(diff_img.width != -1){
-			has_diffuse_tex = true;
-			
-			glGenTextures(1, &diffuse_texture);
-			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
-			glBindTexture(GL_TEXTURE_2D, diffuse_texture);
-			
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
-			
-			/* set texture filtering */
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			
-			/* fill data buffer */
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, diff_img.width, diff_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, diff_img.image.data());
-			
-			glGenerateMipmap(GL_TEXTURE_2D);
-			
-			glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
-			
-			__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
-		}
-		///////////
-		//normal
-		///////////
-		if(norm_img.width != -1){
-			has_normal_tex = true;
-			
-			glGenTextures(1, &normal_texture);
-			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
-			glBindTexture(GL_TEXTURE_2D, normal_texture);
-			
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
-			
-			/* set texture filtering */
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			
-			/* fill data buffer */
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, norm_img.width, norm_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, norm_img.image.data());
-			
-			glGenerateMipmap(GL_TEXTURE_2D);
-			
-			glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
-			
-			__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
-		}
-		///////////
-		//metal
-		///////////
-		if(metal_img.width != -1){
-			has_metal_tex = true;
-			
-			glGenTextures(1, &metal_texture);
-			//	glActiveTexture(GL_TEXTURE0 + m_slot); //Is setting active texture even needed?
-			glBindTexture(GL_TEXTURE_2D, metal_texture);
-			
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
-			
-			/* set texture filtering */
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			
-			/* fill data buffer */
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, metal_img.width, metal_img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, metal_img.image.data());
-			
-			glGenerateMipmap(GL_TEXTURE_2D);
-			
-			glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
-			
-			__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
-		}
+std::map<TextureType, TextureDataStruct> ModelLoader::getTextureMap(const tinygltf::Mesh& mesh){
+	
+	std::map<TextureType, TextureDataStruct> texture_data_array;
+	
+	if(model.textures.empty()){
+		return texture_data_array; 
 	}
+	
+	tinygltf::Primitive prim = mesh.primitives.front();
+		
+	int mat_idx = prim.material;
+	
+	tinygltf::Material mat = model.materials[mat_idx];
+	
+	int diff_tex_idx = mat.pbrMetallicRoughness.baseColorTexture.index;
+	int normal_tex_idx = mat.normalTexture.index;
+	int metallic_tex_idx = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+	
+	//////////////////
+	//diffuse texture
+	//////////////////
+	if(diff_tex_idx != -1){
+		tinygltf::Texture diffuse_textu = model.textures[diff_tex_idx];
+		int diff_img_idx = diffuse_textu.source; 
+		
+		tinygltf::Image diffuse_image = model.images[diff_img_idx];
+		
+		////////////////////
+		//generate GL texture
+		////////////////////
+		glGenTextures(1, &diffuse_texture);
+		glBindTexture(GL_TEXTURE_2D, diffuse_texture);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, diffuse_image.width, diffuse_image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, diffuse_image.image.data());
+		
+		glGenerateMipmap(GL_TEXTURE_2D);
+		
+		glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
+		
+		__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+		
+		//adds to array
+		texture_data_array.emplace( TextureType::DIFFUSE, TextureDataStruct{TextureType::DIFFUSE, diffuse_texture} );
+	}
+	//////////////////
+	//normal texture
+	//////////////////
+	if(normal_tex_idx != -1){
+		tinygltf::Texture normal_textu = model.textures[normal_tex_idx];
+		int norm_img_idx = normal_textu.source; 
+		
+		tinygltf::Image normal_image = model.images[norm_img_idx];
+		
+		////////////////////
+		//generate GL texture
+		////////////////////
+		glGenTextures(1, &normal_texture);
+		glBindTexture(GL_TEXTURE_2D, normal_texture);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, normal_image.width, normal_image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, normal_image.image.data());
+		
+		glGenerateMipmap(GL_TEXTURE_2D);
+		
+		glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
+		
+		__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+		
+		//adds to array
+		texture_data_array.emplace( TextureType::NORMAL, TextureDataStruct{TextureType::NORMAL, normal_texture} );
+	}
+	//////////////////
+	//metallic texture
+	//////////////////
+	if(metallic_tex_idx != -1){
+		tinygltf::Texture metal_textu = model.textures[metallic_tex_idx];
+		int metal_img_idx = metal_textu.source; 
+		
+		tinygltf::Image metal_image = model.images[metal_img_idx];
+		
+		////////////////////
+		//generate GL texture
+		////////////////////
+		glGenTextures(1, &metal_texture);
+		glBindTexture(GL_TEXTURE_2D, metal_texture);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);//from ex
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //far away texture mipmap
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //close up texture mipmap
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, metal_image.width, metal_image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, metal_image.image.data());
+		
+		glGenerateMipmap(GL_TEXTURE_2D);
+		
+		glBindTexture(GL_TEXTURE_2D, 0);//unbind once we've finished [by binding to 0]
+		
+		__GL_ERROR_THROW__("Texture creation failed"); //check for GL any errors
+		
+		//adds to array
+		texture_data_array.emplace( TextureType::METAL, TextureDataStruct{TextureType::METAL, metal_texture} );
+	}
+	
+	
+	return texture_data_array;
+
 }
 
 int ModelLoader::getMeshNodeIndex(const tinygltf::Mesh& mesh){
@@ -454,8 +470,8 @@ int ModelLoader::getMeshNodeIndex(const tinygltf::Mesh& mesh){
 			tinygltf::Node& node = model.nodes[n];
 			//find node this mesh is assigned to
 			if(node.mesh == m){
-				return m;
-//				return n;//RETURN n
+//				return m;
+				return n;//RETURN n
 			}
 		}
 		
@@ -485,6 +501,7 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 			if(chan.target_node == getMeshNodeIndex(mesh)){
 				animation = anim;
 				animations_found = true;
+				
 				break;
 			}
 		}
@@ -511,6 +528,11 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 		tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
 		
 		int node_idx = channel.target_node;
+		
+		//MAKE SURE ITS NOT BONE
+		if(isBone(node_idx)){
+			continue;
+		}
 		
 		for(std::size_t n{}; n<model.nodes.size(); n++){
 			std::vector<int> childs_vec = model.nodes[n].children;
@@ -580,7 +602,7 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 	//adds check to ensure all arrays are equal [will be fixed soon]
 	if( animation_data.translation_anim_array.size() != animation_data.rotation_anim_array.size() || animation_data.translation_anim_array.size() != animation_data.scale_anim_array.size() || animation_data.rotation_anim_array.size() != animation_data.scale_anim_array.size() ){
 		equalizeTRSanimationArrays(animation_data);
-		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
+//		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
 //		throw std::logic_error("Translation, scale and rotation animation durations must be equal.");
 	}
 	
@@ -602,6 +624,11 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 	
 	//index in the node array
 	int node_idx = std::distance(model.nodes.begin(), std::find(model.nodes.begin(), model.nodes.end(), node));
+	
+	//MAKE SURE ITS NOT BONE
+	if(isBone(node_idx)){
+		return animation_data;
+	}
 	
 	//find the tinygltf::Animation object for this empty/node
 	bool animations_found = false;
@@ -689,7 +716,7 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 	//adds check to ensure all arrays are equal [will be fixed soon]
 	if( animation_data.translation_anim_array.size() != animation_data.rotation_anim_array.size() || animation_data.translation_anim_array.size() != animation_data.scale_anim_array.size() || animation_data.rotation_anim_array.size() != animation_data.scale_anim_array.size() ){
 		equalizeTRSanimationArrays(animation_data);
-		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
+//		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
 //		throw std::logic_error("Translation, scale and rotation animation durations must be equal.");
 	}
 	
@@ -728,8 +755,10 @@ void ModelLoader::getSkinnedAnimation(){
 		}
 	}
 	
-		
+	
 	animation_name = anim.name;
+	
+	PRINT_WARN("ANIM NAME " + animation_name);
 	
 	static std::size_t idx {};//used to keep track of individual bones
 	for(int c{}; c<anim.channels.size(); c++){
@@ -750,6 +779,10 @@ void ModelLoader::getSkinnedAnimation(){
 		//the node it belongs to
 		int node_idx = channel.target_node;
 		
+		//MAKE SURE ITS A BONE
+		if(!isBone(node_idx)){
+			continue;
+		}
 		
 		///////////////////
 		///////ADDING TO ARRAY
@@ -838,7 +871,7 @@ void ModelLoader::getSkinnedAnimation(){
 		
 	}
 	
-		
+	
 	
 }
 
@@ -986,6 +1019,13 @@ void ModelLoader::equalizeTRSanimationArrays(AnimationDataStruct& animation_data
 //	std::vector<int> anim_array_sizes = {animation_data.translation_anim_array.size(), animation_data.rotation_anim_array.size(), animation_data.scale_anim_array.size()};
 //	std::sort(anim_array_sizes.begin(), anim_array_sizes.end());
 	
+	std::map<int, std::vector<float>> size_sorted_timelines;
+	size_sorted_timelines.emplace(animation_data.trans_time_array.size(), animation_data.trans_time_array);
+	size_sorted_timelines.emplace(animation_data.rot_time_array.size(), animation_data.rot_time_array);
+	size_sorted_timelines.emplace(animation_data.scale_time_array.size(), animation_data.scale_time_array);
+	
+	animation_data.time_array = size_sorted_timelines.rbegin()->second;
+	
 	int max_size = animation_data.time_array.size();
 	
 	/////////////////////////////
@@ -1077,6 +1117,8 @@ bool ModelLoader::isBone(int node_index){
 	std::vector<int> skin_node_indices = skin.joints;
 	
 	if( std::find(skin_node_indices.begin(), skin_node_indices.end(), node_index) != skin_node_indices.end() ){
+		std::cout << "bone found: " << model.nodes[node_index].name<< ", index: " << std::distance(skin_node_indices.begin(), skin_node_indices.begin()+node_index) << std::endl;
+		
 		result = true;
 	}
 	

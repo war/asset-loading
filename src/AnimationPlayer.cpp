@@ -4,82 +4,117 @@
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model(_model), mesh_array(_mesh_array), window_manager(win_manager){
 	
 	//#############
-	//PRINT CHILDS
+	//PRINT CHILD
 	//=============
 	for(Empty& empty : model->empties_array)
 		for(auto c : empty.child_array){
 			PRINT_WARN("name :"  + empty.name + ", has child index: " + std::to_string(c) );
 		}
 	
+	//ensures all empty animations have the same duration (required for full animation playback)
+	equalizeAllAnimationDurations();
 }
 
 void AnimationPlayer::update(){
 	std::vector<Empty>& empty_array = model->empties_array;
 	std::vector<MeshDataStruct>& mesh_data_struct_array = model->mesh_data_struct_array;
 	
-	
 //	std::cout << empty_array.front().animation_data.translation_anim_array.size() << std::endl;
+	
 	
 	for(Empty& empty : empty_array){
 		
 		AnimationDataStruct& animation_data = empty.animation_data;
+		
+//		std::cout << "name: " <<empty.name << ", childs" << empty.child_array.size() << std::endl;
 
 		//skip for current empty if no anims found
 		if(!empty.animation_data.has_animation)
 			continue;
-		//add warning message
-		if(empty.child_array.size() > 1){
-			PRINT_WARN("WARNING -- MORE THAN 1 CHILD");
+		
+		//print childs EMPTY
+		PRINT_WARN("################");
+		for(auto e : getChildEmptyArray(empty)){
+			std::cout << "name: " <<empty.name << ", child: " << e.name << std::endl;
 		}
+
+		
+//		//add warning message
+//		if(empty.child_array.size() > 1){
+//			PRINT_WARN("WARNING -- MORE THAN 1 CHILD");
+//		}
 		
 		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
 		
 		//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-		empty.position = calculateCurrentTranslation(animation_data);
-		empty.rotation = calculateCurrentRotation(animation_data);
-		empty.scale = calculateCurrentScale(animation_data);
+		auto empty_position = calculateCurrentTranslation(animation_data);
+		auto empty_rotation = calculateCurrentRotation(animation_data);
+		auto empty_scale = calculateCurrentScale(animation_data);
 		
-		glm::mat4 parent_empty_trs = createTRSmatrix(empty.position, empty.rotation, empty.scale);
+		glm::mat4 parent_empty_trs = createTRSmatrix(empty_position, empty_rotation, empty_scale);
 		
 		
+//		//get first mesh
+//		MeshDataStruct child_msh = getFirstChildMesh(empty);
+//		glm::mat4 child_model_matrix = parent_empty_trs* createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model matrix of static pos/rot/scale
+//		child_msh.modelMatrix = child_model_matrix;
+//		PRINT_WARN(child_msh.name);
+//		for(Mesh* m : *mesh_array)
+//			if(m->mesh_data.node_index == child_msh.node_index){
+//				
+//				m->mesh_data = child_msh;
+//			}
+		
+		/*
+		*/
 		//GET FIRST EMPTY CHILD [if it exists]
-		Empty child_empty = getFirstChildEmpty(empty);
-		if(child_empty.node_index != -1){
+//		Empty child_empty = getFirstChildEmpty(empty);
+		for(Empty& child_empty : getChildEmptyArray(empty)){
 			
-			//////////// NEED TO MULTIPLY MODELMATRIX BY PARENT TRANSFORMS
-			glm::vec3 child_curr_anim_position = calculateCurrentTranslation(child_empty.animation_data);
-			glm::quat child_curr_anim_rotation = calculateCurrentRotation(child_empty.animation_data);
-			glm::vec3 child_curr_anim_scale = calculateCurrentScale(child_empty.animation_data);
-			glm::mat4 child_anim_model_matrix = createTRSmatrix(child_curr_anim_position, child_curr_anim_rotation, child_curr_anim_scale);//model matrix of animated pos/rot/scale
-			
-			glm::mat4 child_model_matrix = createTRSmatrix(child_empty.position, child_empty.rotation, child_empty.scale);//model matrix of static pos/rot/scale
-			
-			//final model matrix
-			child_empty.modelMatrix = child_model_matrix * parent_empty_trs * child_anim_model_matrix;
-			
-			
-			//GET FIRST MESH CHILD [if it exists]
-			MeshDataStruct child_msh = getFirstChildMesh(child_empty);
-			if(child_msh.node_index != -1){
+			if(child_empty.node_index != -1){
 				
-				glm::mat4 mesh_model_martrix = createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model matrix of static pos/rot/scale
+				//////////// NEED TO MULTIPLY MODELMATRIX BY PARENT TRANSFORMS
+				glm::vec3 child_curr_anim_position = calculateCurrentTranslation(child_empty.animation_data);
+				glm::quat child_curr_anim_rotation = calculateCurrentRotation(child_empty.animation_data);
+				glm::vec3 child_curr_anim_scale = calculateCurrentScale(child_empty.animation_data);
+				glm::mat4 child_anim_model_matrix = createTRSmatrix(child_curr_anim_position, child_curr_anim_rotation, child_curr_anim_scale);//model matrix of animated pos/rot/scale
 				
-				//////////////////
-				//NEED TO MULTIPLY BY MESH TRANSFORM
-				//NEED TO MULTIPLY BY MESH TRANSFORM
+				glm::mat4 child_model_matrix = createTRSmatrix(child_empty.position, child_empty.rotation, child_empty.scale);//model matrix of static pos/rot/scale
 				
-				//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
-				//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
-				child_msh.modelMatrix = child_empty.modelMatrix * mesh_model_martrix;
+				//final model matrix
+				child_empty.modelMatrix = parent_empty_trs * child_anim_model_matrix * child_model_matrix;
 				
 				
-				for(Mesh* m : *mesh_array)
-					if(m->mesh_data.node_index == child_msh.node_index)
-						m->mesh_data = child_msh;
+				//GET FIRST MESH CHILD [if it exists]
+				MeshDataStruct child_msh = getFirstChildMesh(child_empty);
+				if(child_msh.node_index != -1){
+					
+					glm::mat4 mesh_model_matrix = createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model matrix of static pos/rot/scale
+					//////////////////
+					//NEED TO MULTIPLY BY MESH TRANSFORM
+					//NEED TO MULTIPLY BY MESH TRANSFORM
+					
+					//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
+					//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
+					child_msh.modelMatrix = child_empty.modelMatrix * mesh_model_matrix;
+					
+					
+					for(Mesh* m : *mesh_array)
+						if(m->mesh_data.node_index == child_msh.node_index){
+							m->mesh_data = child_msh;
+						}
+				}
+				
 			}
 			
 			
 		}
+
+		
+		
+		
+		
+		
 		
 		
 		/*
@@ -97,32 +132,6 @@ void AnimationPlayer::update(){
 		*/
 		
 		
-		/*
-		//get child mesh BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
-		MeshDataStruct FIRST_CHILD_MESH;
-		for(auto c : empty.child_array){
-			for(auto m :mesh_data_struct_array){
-				if(m.node_index == c){
-					FIRST_CHILD_MESH = m;
-					break;
-				}
-			}
-		}
-		
-		//SKIP CURR LOOP IF NO CHILD MESH
-		if(FIRST_CHILD_MESH.node_index == -1)
-			continue;
-		
-		//update child pos/rot/scale
-		for(Mesh* mesh : *mesh_array){
-			if(mesh->getMeshData().node_index == FIRST_CHILD_MESH.node_index){
-				mesh->setTranslation( empty.position );
-				mesh->setRotation( empty.rotation );
-				mesh->setScale( empty.scale );
-			}
-		}
-		*/
-		
 		
 	}
 	
@@ -135,7 +144,6 @@ void AnimationPlayer::update(){
 //			mesh->setScale( empty_array[1].scale );
 //		}
 //	}
-	
 	
 }
 
@@ -263,13 +271,13 @@ MeshDataStruct AnimationPlayer::getFirstChildMesh(const Empty& empty){
 	
 }
 
-Empty AnimationPlayer::getFirstChildEmpty(const Empty& empty){
+Empty AnimationPlayer::getFirstChildEmpty(const Empty& parent_empty){
 	Empty child_empty;
 	
 	std::vector<Empty>& empty_array = model->empties_array;
 	
 	//get first child empty (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
-	for(int c : empty.child_array){
+	for(int c : parent_empty.child_array){
 		for(const Empty& e : empty_array){
 			if(e.node_index == c){
 				child_empty = e;
@@ -280,6 +288,24 @@ Empty AnimationPlayer::getFirstChildEmpty(const Empty& empty){
 	
 	//WARNING - RETURNS A USELESS OBJECT
 	return child_empty;
+}
+
+std::vector<Empty> AnimationPlayer::getChildEmptyArray(const Empty& parent_empty){
+	std::vector<Empty> child_empty_array;
+	
+	std::vector<Empty>& empty_array = model->empties_array;
+	
+	//get first child empty (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
+	for(int c : parent_empty.child_array){
+		for(const Empty& e : empty_array){
+			if(e.node_index == c){
+				child_empty_array.emplace_back( e );
+			}
+		}
+	}
+	
+	//WARNING - RETURNS A USELESS OBJECT
+	return child_empty_array;
 }
 
 void AnimationPlayer::resetAnimations(){
@@ -301,5 +327,35 @@ void AnimationPlayer::resetAnimations(){
 		bone_anim_data.current_animation_time = 0.f;//not being used currently
 	}
 	*/
+	
+}
+
+
+
+void AnimationPlayer::equalizeAllAnimationDurations(){
+	
+	std::vector<Empty>& empty_array = model->empties_array;
+	
+	//break out if no empties
+	if(empty_array.empty())
+		return;
+	
+	std::map<int, std::vector<float>> size_sorted_timelines;
+	
+	for(Empty& empty : empty_array){
+		AnimationDataStruct& animation_data = empty.animation_data;
+		size_sorted_timelines.emplace(animation_data.time_array.size(), animation_data.time_array);
+	}
+	
+	std::vector<float> max_timeline_array = size_sorted_timelines.rbegin()->second;
+	
+	int max_size = max_timeline_array.size();
+
+	for(Empty& empty : empty_array){
+		AnimationDataStruct& animation_data = empty.animation_data;
+		animation_data.time_array = max_timeline_array;
+		
+		equalizeTRSanimationArrays(animation_data);
+	}
 	
 }
