@@ -215,7 +215,7 @@ Mesh::~Mesh(){
 	vbo.free();
 	ebo.free();
 	
-	PRINT_COLOR( "Mesh object destroyed", 40, 220, 90);
+	PRINT_COLOR( "Mesh object [" + mesh_data.name + "] destroyed", 40, 220, 90);
 }
 
 void Mesh::update(){
@@ -276,6 +276,10 @@ void Mesh::update(){
 		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::METAL].tex_id);
 		shader->setInt("metal_tex", 2);//send Image to frag shader
 	}
+	
+	//send base/diffuse color
+	shader->setVec3("base_color", glm::vec3( mesh_data.material_data.base_color.x, mesh_data.material_data.base_color.y, mesh_data.material_data.base_color.z ) );
+	
 	
 	//////////
 	//skinning

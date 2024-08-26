@@ -60,6 +60,10 @@ ModelLoader::ModelLoader(const std::string& path){
 		if( isBone(mesh_node_idx) ){
 			continue;
 		}
+		//checks to make sure this is NOT an armature
+		if( isArmature(mesh_node_idx) ){
+			continue;
+		}
 		/////////////////////
 		//VERTEX DATA
 		/////////////////////
@@ -131,15 +135,7 @@ ModelLoader::ModelLoader(const std::string& path){
 		/////////////////
 		//MATERIALS
 		/////////////////
-		{
-			tinygltf::Primitive primitive = mesh.primitives.front();
-			int material_idx = primitive.material;
-			//must be >-1 if it has a material
-			if(material_idx != -1){
-				mesh_data_struct.has_material = true;
-				mesh_data_struct.material = model.materials[material_idx];
-			}
-		}
+		mesh_data_struct.material_data = getMaterial(mesh);
 		
 		//add to MeshDataStruct array
 		mesh_data_struct_array.emplace_back(mesh_data_struct);
@@ -157,12 +153,17 @@ ModelLoader::ModelLoader(const std::string& path){
 		
 		empty.name = node.name;
 		
+		
 		//checks to make sure this is NOT a mesh
 		if(node.mesh != -1){
 			continue;
 		}
 		//checks to make sure this is NOT a bone
 		if( isBone(empty.node_index) ){
+			continue;
+		}
+		//checks to make sure this is NOT an armature
+		if( isArmature(empty.node_index) ){
 			continue;
 		}
 		
@@ -176,6 +177,8 @@ ModelLoader::ModelLoader(const std::string& path){
 		//GLOBAL POS/ROT/SCALE
 		///////////////////////////
 		{
+			PRINT_WARN("empty" + empty.name);
+			
 			//find node this mesh is assigned to
 			if(!node.translation.empty())//translation
 				empty.position = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
@@ -340,7 +343,7 @@ std::map<TextureType, TextureDataStruct> ModelLoader::getTextureMap(const tinygl
 	
 	std::map<TextureType, TextureDataStruct> texture_data_array;
 	
-	if(model.textures.empty()){
+	if(model.textures.empty() || model.materials.empty()){
 		return texture_data_array; 
 	}
 	
@@ -451,9 +454,35 @@ std::map<TextureType, TextureDataStruct> ModelLoader::getTextureMap(const tinygl
 		texture_data_array.emplace( TextureType::METAL, TextureDataStruct{TextureType::METAL, metal_texture} );
 	}
 	
-	
 	return texture_data_array;
 
+}
+
+MaterialDataStruct ModelLoader::getMaterial(const tinygltf::Mesh& mesh){
+	
+	MaterialDataStruct material_data;
+	
+	tinygltf::Primitive prim = mesh.primitives.front();
+	
+	int mat_idx = prim.material;
+	
+	if(model.materials.empty() && model.materials.size() >= mat_idx)
+		return material_data;
+	
+	tinygltf::Material mat = model.materials[mat_idx];
+
+	if(!mat.pbrMetallicRoughness.baseColorFactor.empty())
+		material_data.base_color = glm::vec4( mat.pbrMetallicRoughness.baseColorFactor[0], mat.pbrMetallicRoughness.baseColorFactor[1], mat.pbrMetallicRoughness.baseColorFactor[2], mat.pbrMetallicRoughness.baseColorFactor[3] );
+	
+	material_data.has_material = true;
+	
+	material_data.name = mat.name;
+	
+	material_data.metalness = mat.pbrMetallicRoughness.metallicFactor;
+	
+	material_data.roughness = mat.pbrMetallicRoughness.roughnessFactor;
+	
+	return material_data;
 }
 
 int ModelLoader::getMeshNodeIndex(const tinygltf::Mesh& mesh){
@@ -649,21 +678,39 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 	
 	animation_data.has_animation = true;
 	
+	static int current_target_node = animation.channels[0].target_node;
+	
 	for(int c{}; c<animation.channels.size(); c++){
 		
-		animation_data.has_animation = true;
 		
 		/////////////////////
 		//fetch times
 		/////////////////////
 		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
 		std::vector<float> times = getTimelineArray(time_sampler);
-		animation_data.time_array = times;
 		
 		tinygltf::AnimationChannel& channel = animation.channels[c];
 		tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
 		
+		int input_idx = channel.target_node;
 		int output_idx = sampler.output;
+		
+		
+		//detect different animations within the same channel
+		if(input_idx != node_idx){
+			PRINT_WARN("NEW ANIMS" + std::to_string(node_idx));
+			continue;
+		}
+		animation_data.has_animation = true;
+		
+		animation_data.time_array = times;
+		
+		animation_data.name = animation.name;
+		
+		//MAKES SURE THIS ISN'T A BONE [just an empty]
+		if(isBone(input_idx)){
+			continue;
+		}
 		
 		std::string target_path = channel.target_path;
 		tinygltf::Accessor& accessor = model.accessors[output_idx];
@@ -758,8 +805,6 @@ void ModelLoader::getSkinnedAnimation(){
 	
 	animation_name = anim.name;
 	
-	PRINT_WARN("ANIM NAME " + animation_name);
-	
 	static std::size_t idx {};//used to keep track of individual bones
 	for(int c{}; c<anim.channels.size(); c++){
 		
@@ -779,6 +824,14 @@ void ModelLoader::getSkinnedAnimation(){
 		//the node it belongs to
 		int node_idx = channel.target_node;
 		
+//		//checks to make sure this is NOT a mesh
+//		if(node.mesh != -1){
+//			continue;
+//		}
+		//checks to make sure this is NOT an armature
+		if( isArmature(node_idx) ){
+			continue;
+		}
 		//MAKE SURE ITS A BONE
 		if(!isBone(node_idx)){
 			continue;
@@ -1117,8 +1170,25 @@ bool ModelLoader::isBone(int node_index){
 	std::vector<int> skin_node_indices = skin.joints;
 	
 	if( std::find(skin_node_indices.begin(), skin_node_indices.end(), node_index) != skin_node_indices.end() ){
-		std::cout << "bone found: " << model.nodes[node_index].name<< ", index: " << std::distance(skin_node_indices.begin(), skin_node_indices.begin()+node_index) << std::endl;
-		
+//		std::cout << "bone found: " << model.nodes[node_index].name<< ", index: " << std::distance(skin_node_indices.begin(), skin_node_indices.begin()+node_index) << std::endl;
+		result = true;
+	}
+	
+	return result;
+}
+
+bool ModelLoader::isArmature(int node_index){
+	bool result = false;
+	
+	if(model.skins.empty())
+		return result;
+
+	tinygltf::Node& node = model.nodes[node_index];
+	
+	tinygltf::Skin& skin = model.skins.front();
+	
+	//not a good way of checking, but sufficient for now since no way to get skin/node index [tinygltf issue?]
+	if(node.name == skin.name){
 		result = true;
 	}
 	

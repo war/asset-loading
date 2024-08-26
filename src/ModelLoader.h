@@ -44,6 +44,8 @@ public:
 		//textures
 		std::map<TextureType, TextureDataStruct> getTextureMap(const tinygltf::Mesh& mesh);
 	
+		//materials
+		MaterialDataStruct getMaterial(const tinygltf::Mesh& mesh);
 		
 		//animations
 		bool has_animation = false;
@@ -62,6 +64,7 @@ public:
 		std::vector<glm::vec4> getSkinWeights(const tinygltf::Mesh& mesh);
 		std::vector<glm::mat4> getInverseBindMatrices(const tinygltf::Mesh& mesh);
 		bool isBone(int node_index);
+		bool isArmature(int node_index);
 
 		/* helper functions */
 		int getMeshNodeIndex(const tinygltf::Mesh& mesh);
@@ -81,9 +84,6 @@ private:
 		GLuint metal_texture;
 		
 };
-
-
-
 
 
 

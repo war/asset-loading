@@ -59,6 +59,13 @@ struct TextureDataStruct{
 	GLuint tex_id {};
 };
 
+struct MaterialDataStruct{
+	bool has_material = false;
+	std::string name;
+	glm::vec4 base_color = glm::vec4(0.f);
+	float metalness = 0.f;
+	float roughness = 0.f;
+};
 
 struct MeshDataStruct{
 	int node_index = -1;//index in the node array
@@ -85,8 +92,7 @@ struct MeshDataStruct{
 	std::map<TextureType, TextureDataStruct> texture_map;
 	
 	//materials
-	bool has_material = false;
-	tinygltf::Material material;
+	MaterialDataStruct material_data;
 	
 	//animation data FOR THIS MESH
 	AnimationDataStruct animation_data {};
@@ -200,6 +206,10 @@ inline void PRINT_COLOR(const std::string& message, short red, short green, shor
 
 inline void printGlmVec3(const glm::vec3& v){
 	std::cout << "[x: " << v.x << ", y: " << v.y << ", z: " << v.z << "]" << std::endl;
+}
+
+inline void printGlmVec4(const glm::vec4& v){
+	std::cout << "[x: " << v.x << ", y: " << v.y << ", z: " << v.z << ", w: " << v.w << "]" << std::endl;
 }
 
 inline void printGlmMat4(const glm::mat4& m){
