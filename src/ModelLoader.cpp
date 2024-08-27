@@ -132,6 +132,7 @@ ModelLoader::ModelLoader(const std::string& path){
 		///////////////////////////
 		mesh_data_struct.animation_data = getMeshAnimationData(mesh);
 		
+		
 		/////////////////
 		//MATERIALS
 		/////////////////
@@ -198,8 +199,6 @@ ModelLoader::ModelLoader(const std::string& path){
 		empties_array.emplace_back(empty);
 	}
 	
-	/*
-	*/
 	////////////////
 	//get skinned anims
 	////////////////
@@ -351,6 +350,9 @@ std::map<TextureType, TextureDataStruct> ModelLoader::getTextureMap(const tinygl
 		
 	int mat_idx = prim.material;
 	
+	if(mat_idx == -1)
+		return texture_data_array;
+	
 	tinygltf::Material mat = model.materials[mat_idx];
 	
 	int diff_tex_idx = mat.pbrMetallicRoughness.baseColorTexture.index;
@@ -466,7 +468,7 @@ MaterialDataStruct ModelLoader::getMaterial(const tinygltf::Mesh& mesh){
 	
 	int mat_idx = prim.material;
 	
-	if(model.materials.empty() && model.materials.size() >= mat_idx)
+	if(model.materials.empty() || mat_idx == -1)
 		return material_data;
 	
 	tinygltf::Material mat = model.materials[mat_idx];

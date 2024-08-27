@@ -98,6 +98,8 @@ void AnimationPlayer::update(){
 							//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
 							child_child_msh.modelMatrix = child_child_empty.modelMatrix * mesh_model_matrix;
 							
+							//mark this as inheriting animation from its root empty objects
+							child_child_msh.inherits_animation = true;
 							
 							for(Mesh* m : *mesh_array)
 								if(m->mesh_data.node_index == child_child_msh.node_index){
@@ -123,6 +125,9 @@ void AnimationPlayer::update(){
 					//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
 					//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
 					child_msh.modelMatrix = child_empty.modelMatrix * mesh_model_matrix;
+					
+					//mark this as inheriting animation from its root empty objects
+					child_msh.inherits_animation = true;
 					
 					for(Mesh* m : *mesh_array)
 						if(m->mesh_data.node_index == child_msh.node_index){

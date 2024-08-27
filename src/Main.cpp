@@ -10,7 +10,7 @@
 #include "Mesh.h"
 #include "Map.h"
 
-std::vector<Mesh*> mesh_array;
+std::vector<Mesh*> mesh_array;//stores all meshes
 
 int main(int argc, char* argv[]) {
     //Window
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 		DirectionalLight direct_light {};
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/scene1.glb");
+    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
 
 		///////////////
 		//mesh loading
@@ -72,8 +72,6 @@ int main(int argc, char* argv[]) {
 	
 		//add AnimationPlayer system
 		AnimationPlayer animation_player(model, &mesh_array, &windowManager);
-	
-
 	
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);

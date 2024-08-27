@@ -96,6 +96,7 @@ struct MeshDataStruct{
 	
 	//animation data FOR THIS MESH
 	AnimationDataStruct animation_data {};
+	bool inherits_animation = false;
 	
 	//skinning data
 	bool has_skin = false;

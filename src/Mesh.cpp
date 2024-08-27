@@ -220,12 +220,6 @@ Mesh::~Mesh(){
 
 void Mesh::update(){
 	
-	//update animations
-	updateAnimation();
-	
-	//bind VAO
-	glBindVertexArray(vao.vao);
-	
 	//apply translation
 	modelMatrix = glm::translate(glm::mat4(1.f), position);
 
@@ -235,10 +229,17 @@ void Mesh::update(){
 	modelMatrix = glm::translate(glm::mat4(1.f), position) * glm::mat4(rotation);
 
 	//finally apply scale
-//	if(mesh_data.animation_data.has_animation)
+	modelMatrix = glm::scale(modelMatrix, scale);
+	
+	//if this mesh is a child of an empty, the use the calculated modelMatrix [calculated inside AnimationPlayer.cpp, based off of root empty animations]
+	if(mesh_data.inherits_animation)
 		modelMatrix = mesh_data.modelMatrix;
-//	else
-//		modelMatrix = glm::scale(modelMatrix, scale);
+	
+	//update animations
+	updateAnimation();
+	
+	//bind VAO
+	glBindVertexArray(vao.vao);
 	
 	//send camera and model matrices
 	shader->use();
@@ -337,9 +338,11 @@ void Mesh::updateAnimation(){
 		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
 	
 	//apply lerping between frame to set current pos/rot/scale
-	position = calculateCurrentTranslation(animation_data);
-	rotation = calculateCurrentRotation(animation_data);
-	scale = calculateCurrentScale(animation_data);
+	glm::vec3 anim_position = calculateCurrentTranslation(animation_data);
+	glm::quat anim_rotation = calculateCurrentRotation(animation_data);
+	glm::vec3 anim_scale = calculateCurrentScale(animation_data);
+	
+	modelMatrix = createTRSmatrix(anim_position, anim_rotation, anim_scale);
 	
 //	std::cout << animation_data.translation_anim_array.size() << std::endl;
 		
