@@ -59,7 +59,6 @@ public:
 	
 		//skinning
 		bool has_skin = false;
-		tinygltf::Skin skin;
 		std::vector<glm::vec4> getSkinJoints(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec4> getSkinWeights(const tinygltf::Mesh& mesh);
 		std::vector<glm::mat4> getInverseBindMatrices(const tinygltf::Mesh& mesh);
@@ -73,11 +72,8 @@ public:
 private:
     tinygltf::TinyGLTF tiny_gltf;
     tinygltf::Model model;
-		tinygltf::Mesh mesh;
 	
 		std::string mesh_name;
-		
-		unsigned int vertex_count {};
 		
 		GLuint diffuse_texture;
 		GLuint normal_texture;

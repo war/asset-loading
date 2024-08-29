@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     }
 		
     //Camera
-    Camera camera(glm::vec3(0.0f, 15.0f, 25.0f));
+    Camera camera(glm::vec3(0.f, 69.6417f, 103.036f));
 
     //Shaders
     Shader gridShader("grid.vert", "grid.frag");
@@ -59,14 +59,15 @@ int main(int argc, char* argv[]) {
 		DirectionalLight direct_light {};
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+    ModelLoader* model = new ModelLoader("res/models/pistol/BLENDER-EXPORT.gltf");
 
 		///////////////
 		//mesh loading
 		///////////////
 		//spawn meshes
 		for(MeshDataStruct mesh_data : model->mesh_data_struct_array){
-			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager, &direct_light);//delete this once finished to avoid memory leaks
+			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager, &direct_light);//delete Mesh* once finished to avoid memory leaks
 			mesh_array.emplace_back(mesh);
 		}
 	
@@ -94,9 +95,9 @@ int main(int argc, char* argv[]) {
 
         windowManager.processInput(camera, msDeltaTime);
 
+				//must clear depth buffer as well
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			
 			
         glm::mat4 projection = glm::perspective(camera.FovRads, aspectRatio, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -111,15 +112,15 @@ int main(int argc, char* argv[]) {
 //
 //        model.Render();
 			
-				////////////////
-				//render meshes
-				////////////////
+				//////////////////////
+				//render glTF meshes
+				//////////////////////
 				{
 					for(Mesh* mesh : mesh_array)
 						mesh->update();
 				}
 			
-				//run animation system
+				//update animation system
 				animation_player.update();
 			
 				//reset animations if R pressed

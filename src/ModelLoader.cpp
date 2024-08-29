@@ -19,7 +19,6 @@ ModelLoader::ModelLoader(const std::string& path){
 	//check if successfully loaded
 	if(!load_resource){
 		throw std::logic_error( "Failed to load model with path: `" + path + "`. Error: " + error + ". Warning: " + warning );
-		return;
 	}
 	
 	if(model.buffers.size() > 1)
@@ -50,7 +49,6 @@ ModelLoader::ModelLoader(const std::string& path){
 		
 		if(mesh.primitives.size() > 1)
 			throw std::logic_error("Only 1 primitive per mesh is supported");
-		
 		//check to see if has sub-nodes
 		if(!node.children.empty()){
 			mesh_data_struct.has_childs = true;
@@ -64,6 +62,7 @@ ModelLoader::ModelLoader(const std::string& path){
 		if( isArmature(mesh_node_idx) ){
 			continue;
 		}
+		
 		/////////////////////
 		//VERTEX DATA
 		/////////////////////
@@ -101,7 +100,19 @@ ModelLoader::ModelLoader(const std::string& path){
 				mesh_data_struct.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
 			if(!node.scale.empty())//scale
 				mesh_data_struct.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+			
 		}
+		
+		/*
+		if(mesh.name == "lid_Mat_0"){
+			PRINT_WARN("###################");
+			PRINT_WARN("name " + mesh.name);
+			for(auto v : mesh_data_struct.vertex_positions_array)
+				printGlmVec3(v);
+			PRINT_WARN("###################");
+		}
+		
+		*/
 		
 		///////////////////////////
 		//SKINNING [JOINTS/WEIGHTS]
@@ -132,7 +143,6 @@ ModelLoader::ModelLoader(const std::string& path){
 		///////////////////////////
 		mesh_data_struct.animation_data = getMeshAnimationData(mesh);
 		
-		
 		/////////////////
 		//MATERIALS
 		/////////////////
@@ -141,10 +151,12 @@ ModelLoader::ModelLoader(const std::string& path){
 		//add to MeshDataStruct array
 		mesh_data_struct_array.emplace_back(mesh_data_struct);
 	}
-
+	
+	/*
 	///////////////////
 	//LOAD ALL EMPTIES
 	///////////////////
+	*/
 	for(int n{}; n<model.nodes.size(); n++){
 		Empty empty;
 		
@@ -178,8 +190,6 @@ ModelLoader::ModelLoader(const std::string& path){
 		//GLOBAL POS/ROT/SCALE
 		///////////////////////////
 		{
-			PRINT_WARN("empty" + empty.name);
-			
 			//find node this mesh is assigned to
 			if(!node.translation.empty())//translation
 				empty.position = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
@@ -187,6 +197,7 @@ ModelLoader::ModelLoader(const std::string& path){
 				empty.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
 			if(!node.scale.empty())//scale
 				empty.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+			
 		}
 		
 		/////////////
@@ -203,13 +214,18 @@ ModelLoader::ModelLoader(const std::string& path){
 	//get skinned anims
 	////////////////
 	getSkinnedAnimation();
-
+	
 }
 
 ModelLoader::~ModelLoader() {
-	glDeleteTextures(1, &diffuse_texture);
-	glDeleteTextures(1, &normal_texture);
-	glDeleteTextures(1, &metal_texture);
+	
+	//delete all GL texture's once finished
+	for(const MeshDataStruct& mesh_data : mesh_data_struct_array){
+		for(const auto& tex_data : mesh_data.texture_map){
+			glDeleteTextures(1, &tex_data.second.tex_id);
+		}
+	}
+
 	
 	PRINT_COLOR( "ModelLoader object destroyed", 40, 220, 90);
 }
@@ -251,7 +267,13 @@ std::vector<glm::vec3> ModelLoader::getVertexPositions(const tinygltf::Mesh& mes
 
 	int vertex_count = vert_pos_accessor.count;
 	int byteOffset = model.bufferViews[vert_pos_accessor.bufferView].byteOffset;
+	
+	if(vert_pos_accessor.byteOffset != 0)
+		byteOffset = vert_pos_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/sizeof(float);
+//	std::cout << mesh.name << " byteoffset ACCESSOR  " << vert_pos_accessor.byteOffset << std::endl;
+//	std::cout << mesh.name << " byteoffset  BUFVIEW " << model.bufferViews[vert_pos_accessor.bufferView].byteOffset << std::endl;
 	
 	//get vertex positions
 	for(std::size_t i{}; i<vertex_count; i++){
@@ -276,6 +298,10 @@ std::vector<glm::vec3> ModelLoader::getVertexNormals(const tinygltf::Mesh& mesh)
 	
 	int normal_count = vert_norm_accessor.count;
 	int byteOffset = model.bufferViews[vert_norm_accessor.bufferView].byteOffset;
+	
+	if(vert_norm_accessor.byteOffset != 0)
+		byteOffset = vert_norm_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/sizeof(float);
 	
 	//get vertex normals
@@ -301,6 +327,10 @@ std::vector<glm::vec2> ModelLoader::getVertexUVs(const tinygltf::Mesh& mesh){
 	
 	int uvs_count = vert_uv_accessor.count;
 	int byteOffset = model.bufferViews[vert_uv_accessor.bufferView].byteOffset;
+	
+	if(vert_uv_accessor.byteOffset != 0)
+		byteOffset = vert_uv_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/getSizeOfComponentType(vert_uv_accessor.componentType);//REPLACE SIZEOF WITH REAL DATA TYPE
 	
 	//get vertex UV's
@@ -325,6 +355,10 @@ std::vector<unsigned int> ModelLoader::getIndices(const tinygltf::Mesh& mesh){
 	
 	int index_count = vert_index_accessor.count;
 	int byteOffset = model.bufferViews[vert_index_accessor.bufferView].byteOffset;
+	
+	if(vert_index_accessor.byteOffset != 0)
+		byteOffset = vert_index_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/getSizeOfComponentType(vert_index_accessor.componentType);
 	
 	//get vertex indices
@@ -586,6 +620,10 @@ AnimationDataStruct ModelLoader::getMeshAnimationData(const tinygltf::Mesh& mesh
 		tinygltf::Accessor& accessor = model.accessors[output_idx];
 		int frame_count = model.accessors[output_idx].count;
 		int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
+		
+		if(accessor.byteOffset != 0)
+			byteOffset = accessor.byteOffset + byteOffset;
+		
 		int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
 		for(int i{}; i<frame_count; i++){
 			
@@ -656,7 +694,7 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 	//index in the node array
 	int node_idx = std::distance(model.nodes.begin(), std::find(model.nodes.begin(), model.nodes.end(), node));
 	
-	//MAKE SURE ITS NOT BONE
+	//MAKE SURE IT'S NOT A BONE
 	if(isBone(node_idx)){
 		return animation_data;
 	}
@@ -680,11 +718,7 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 	
 	animation_data.has_animation = true;
 	
-	static int current_target_node = animation.channels[0].target_node;
-	
 	for(int c{}; c<animation.channels.size(); c++){
-		
-		
 		/////////////////////
 		//fetch times
 		/////////////////////
@@ -700,7 +734,6 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 		
 		//detect different animations within the same channel
 		if(input_idx != node_idx){
-			PRINT_WARN("NEW ANIMS" + std::to_string(node_idx));
 			continue;
 		}
 		animation_data.has_animation = true;
@@ -718,6 +751,10 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 		tinygltf::Accessor& accessor = model.accessors[output_idx];
 		int frame_count = model.accessors[output_idx].count;
 		int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
+		
+		if(accessor.byteOffset != 0)
+			byteOffset = accessor.byteOffset + byteOffset;
+		
 		int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
 		
 		
@@ -730,7 +767,6 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 				float z = float_array[(i*3) + 2 + offset];
 				animation_data.translation_anim_array.emplace_back( glm::vec3(x, y, z) );
 //					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
-				
 				animation_data.trans_time_array = getTimelineArray(sampler);
 			}
 			
@@ -790,13 +826,12 @@ void ModelLoader::getSkinnedAnimation(){
 	}
 		
 	
-	
 	//more than 1 animation?
 	tinygltf::Animation anim;
 	
 	//find animation for this skin
-	for(tinygltf::Animation a : model.animations){
-		for(tinygltf::AnimationChannel c : a.channels){
+	for(const tinygltf::Animation& a : model.animations){
+		for(const tinygltf::AnimationChannel& c : a.channels){
 			if(std::find(skin_node_indices.begin(), skin_node_indices.end(), c.target_node) != skin_node_indices.end()){
 				anim = a;
 				break;
@@ -807,29 +842,27 @@ void ModelLoader::getSkinnedAnimation(){
 	
 	animation_name = anim.name;
 	
-	static std::size_t idx {};//used to keep track of individual bones
+	/*
+	for(auto s : skin_node_indices)
+		PRINT_COLOR("BONE " + std::to_string(s) + "  " + model.nodes[s].name, 0, 0, 255);
+	*/
+	
+	//stores timeline array for EACH bone
+	std::map<int, std::vector<float>> timeline_map;
+	
+	//stores anim data for EACH bone
+	std::map<int, AnimationDataStruct> bone_anim_map;
+	
+	/////////////////////////////////////////
+	//fetch animation timeline for each bone
+	/////////////////////////////////////////
 	for(int c{}; c<anim.channels.size(); c++){
 		
-		
-		/////////////////////
-		//fetch times
-		/////////////////////
-		tinygltf::AnimationSampler& time_sampler = anim.samplers[0];
-		std::vector<float> times = getTimelineArray(time_sampler);
-		
-		///////////////////////
-		//fetch translations/rots/scale
-		///////////////////////
 		tinygltf::AnimationChannel& channel = anim.channels[c];
 		tinygltf::AnimationSampler& sampler = anim.samplers[channel.sampler];
 		
 		//the node it belongs to
 		int node_idx = channel.target_node;
-		
-//		//checks to make sure this is NOT a mesh
-//		if(node.mesh != -1){
-//			continue;
-//		}
 		//checks to make sure this is NOT an armature
 		if( isArmature(node_idx) ){
 			continue;
@@ -839,16 +872,317 @@ void ModelLoader::getSkinnedAnimation(){
 			continue;
 		}
 		
+		/////////////////////
+		//fetch times
+		/////////////////////
+		tinygltf::AnimationSampler& time_sampler = anim.samplers[0];
+		std::vector<float> times = getTimelineArray(time_sampler);
+		
+		int output_idx = sampler.output;
+		
+		std::string target_path = channel.target_path;
+		tinygltf::Accessor& accessor = model.accessors[output_idx];
+		int frame_count = model.accessors[output_idx].count;
+		int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
+		
+		if(accessor.byteOffset != 0)
+			byteOffset = accessor.byteOffset + byteOffset;
+		
+		int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
+		
+		for(int i{}; i<frame_count; i++){
+			//translations
+			if(target_path == "translation"){
+				float x = float_array[(i*3) + 0 + offset];
+				float y = float_array[(i*3) + 1 + offset];
+				float z = float_array[(i*3) + 2 + offset];
+				
+				//add to map
+				timeline_map.emplace(getTimelineArray(sampler).size(), getTimelineArray(sampler));
+			}
+			
+			//rotations
+			if(target_path == "rotation"){
+				float x = float_array[(i*4) + 0 + offset];
+				float y = float_array[(i*4) + 1 + offset];
+				float z = float_array[(i*4) + 2 + offset];
+				float w = float_array[(i*4) + 3 + offset];
+				
+				//add to map
+				timeline_map.emplace(getTimelineArray(sampler).size(), getTimelineArray(sampler));
+			}
+			
+			//scale
+			if(target_path == "scale"){
+				float x = float_array[(i*3) + 0 + offset];
+				float y = float_array[(i*3) + 1 + offset];
+				float z = float_array[(i*3) + 2 + offset];
+				
+				//add to map
+				timeline_map.emplace(getTimelineArray(sampler).size(), getTimelineArray(sampler));
+			}
+			
+		}
+		
+		
+	}
+	
+	//get max timeline
+	std::vector<float> max_time_array = timeline_map.rbegin()->second;
+	
+	//add anim for each bone [will be filled in later]
+	for(int joint_idx : skin.joints){
+		AnimationDataStruct animation_data;
+		animation_data.node_index = joint_idx;
+		animation_data.time_array = max_time_array;
+		bone_anim_map.emplace(joint_idx, animation_data);
+	}
+		
+	/////////////////////////////////////////
+	//fetch animation trans/rot/scale for each bone
+	/////////////////////////////////////////
+	static std::size_t idx {};//used to keep track of individual bones
+	for(int c{}; c<anim.channels.size(); c++){
+		
+		tinygltf::AnimationChannel& channel = anim.channels[c];
+		tinygltf::AnimationSampler& sampler = anim.samplers[channel.sampler];
+		
+		//the node it belongs to
+		int node_idx = channel.target_node;
+		//checks to make sure this is NOT an armature
+		if( isArmature(node_idx) ){
+			continue;
+		}
+		//MAKE SURE ITS A BONE
+		if(!isBone(node_idx)){
+			continue;
+		}
+	
+	///////////////////////
+	//fetch translations/rots/scale
+	///////////////////////
+	AnimationDataStruct& animation_data = bone_anim_map[node_idx];
+	
+	animation_data.has_animation = true;
+	
+	///////////////
+	///////////////
+	///////////////
+	//FIND ROOT BONE
+	for(std::size_t n{}; n<model.nodes.size(); n++){
+		std::vector<int> childs_vec = model.nodes[n].children;
+		
+		if( std::find(childs_vec.begin(), childs_vec.end(), node_idx) != childs_vec.end() ){
+			animation_data.has_root = true;
+			animation_data.root_idx = n;
+			break;
+		}
+		
+	}
+	///////////////////////////
+	///////////////////////////
+	///////////////////////////
+	
+	
+	int output_idx = sampler.output;
+	
+	std::string target_path = channel.target_path;
+	tinygltf::Accessor& accessor = model.accessors[output_idx];
+	int frame_count = model.accessors[output_idx].count;
+	int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
+	
+	if(accessor.byteOffset != 0)
+		byteOffset = accessor.byteOffset + byteOffset;
+	
+	int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
+	
+	for(int i{}; i<frame_count; i++){
+		//translations
+		if(target_path == "translation"){
+			float x = float_array[(i*3) + 0 + offset];
+			float y = float_array[(i*3) + 1 + offset];
+			float z = float_array[(i*3) + 2 + offset];
+			animation_data.translation_anim_array.emplace_back( glm::vec3(x, y, z) );
+//					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+			
+			animation_data.trans_time_array = getTimelineArray(sampler);
+			
+			animation_data.time_array = max_time_array;
+		}
+		
+		//rotations
+		if(target_path == "rotation"){
+			float x = float_array[(i*4) + 0 + offset];
+			float y = float_array[(i*4) + 1 + offset];
+			float z = float_array[(i*4) + 2 + offset];
+			float w = float_array[(i*4) + 3 + offset];
+			animation_data.rotation_anim_array.emplace_back( glm::quat(w, x, y, z) );
+//					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+			
+			animation_data.rot_time_array = getTimelineArray(sampler);
+			
+			animation_data.time_array = max_time_array;
+		}
+		
+		//scale
+		if(target_path == "scale"){
+			float x = float_array[(i*3) + 0 + offset];
+			float y = float_array[(i*3) + 1 + offset];
+			float z = float_array[(i*3) + 2 + offset];
+			animation_data.scale_anim_array.emplace_back( glm::vec3(x, y, z) );
+//					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
+			
+			animation_data.scale_time_array = getTimelineArray(sampler);
+			
+			animation_data.time_array = max_time_array;
+		}
+		
+	}
+	
+}
+	
+	
+	
+	
+	for(auto& v : bone_anim_map){
+		if(!v.second.has_animation){
+			AnimationDataStruct& anim = v.second;
+			anim.has_animation = true;
+//			PRINT_COLOR("no anim: " + model.nodes[v.first].name,255,0,0);
+			
+		}
+	}
+	
+	//equalize empty arrays
+	for(auto& v : bone_anim_map){
+		AnimationDataStruct& anim = v.second;
+		
+		//pos
+		if(anim.translation_anim_array.empty())
+			for(auto t : max_time_array)
+				anim.translation_anim_array.emplace_back(glm::vec3(0.f));
+		
+		//rots
+		if(anim.rotation_anim_array.empty())
+			for(auto t : max_time_array)
+				anim.rotation_anim_array.emplace_back(glm::quat(1.f, 0.f, 0.f, 0.f));
+		
+		//scales
+		if(anim.scale_anim_array.empty())
+			for(auto t : max_time_array)
+				anim.scale_anim_array.emplace_back(glm::vec3(1.f));
+			
+	}
+	
+	//match up array sizes
+	for(auto& v : bone_anim_map){
+		AnimationDataStruct& anim = v.second;
+		
+		int max_size = anim.time_array.size();
+		
+		//equalize translation array
+		if(anim.translation_anim_array.size() != max_size){
+			//if few frames short, calc difference and apply
+			int diff = max_size - anim.translation_anim_array.size();
+			glm::vec3 last_pos = anim.translation_anim_array.back();
+			for(int i{}; i<diff; i++)
+				anim.translation_anim_array.emplace_back( last_pos );
+		}
+		
+		//equalize rot array
+		if(anim.rotation_anim_array.size() != max_size){
+			//if few frames short, calc difference and apply
+			int diff = max_size - anim.rotation_anim_array.size();
+			glm::quat last_rot = anim.rotation_anim_array.back();
+			for(int i{}; i<diff; i++)
+				anim.rotation_anim_array.emplace_back( last_rot );
+		}
+		
+		//equalize scale array
+		if(anim.scale_anim_array.size() != max_size){
+			//if few frames short, calc difference and apply
+			int diff = max_size - anim.scale_anim_array.size();
+			glm::vec3 last_scale = anim.scale_anim_array.back();
+			for(int i{}; i<diff; i++)
+				anim.scale_anim_array.emplace_back( last_scale );
+		}
+		
+	}
+	
+	
+	
+	
+	
+	for(auto& v : bone_anim_map){
+		PRINT_WARN("##############");
+		AnimationDataStruct& anim = v.second;
+		
+		std::cout << "time len " << anim.time_array.size()<<std::endl;
+		std::cout << "pos len " << anim.translation_anim_array.size()<<std::endl;
+		std::cout << "rot len " << anim.rotation_anim_array.size()<<std::endl;
+		std::cout << "sca len " << anim.scale_anim_array.size()<<std::endl;
+		
+		bone_animation_array.emplace_back(anim);
+	}
+	
+//	
+//	for(auto v : bone_anim_map){
+//		AnimationDataStruct& anim = v.second;
+//		if( anim.translation_anim_array.size() != anim.rotation_anim_array.size() || anim.translation_anim_array.size() != anim.scale_anim_array.size() || anim.rotation_anim_array.size() != anim.scale_anim_array.size() ){
+//			PRINT_WARN("''''''''''''''''");
+//			PRINT_COLOR("no anim: " + model.nodes[v.first].name,255,0,0);
+//			std::cout << "time len " << anim.time_array.size()<<std::endl;
+//			std::cout << "pos len " << anim.translation_anim_array.size()<<std::endl;
+//			std::cout << "rot len " << anim.rotation_anim_array.size()<<std::endl;
+//			std::cout << "sca len " << anim.scale_anim_array.size()<<std::endl;
+//		}
+//	}
+	
+	
+	
+	
+	/*
+	/////////////////////
+	/////////////////////
+	//BLENDER WORKING VERSION
+	////////////////////////
+	////////////////////////
+	
+	static std::size_t idx {};//used to keep track of individual bones
+	for(int c{}; c<anim.channels.size(); c++){
+		
+		tinygltf::AnimationChannel& channel = anim.channels[c];
+		tinygltf::AnimationSampler& sampler = anim.samplers[channel.sampler];
+		
+		//the node it belongs to
+		int node_idx = channel.target_node;
+		//checks to make sure this is NOT an armature
+		if( isArmature(node_idx) ){
+			continue;
+		}
+		//MAKE SURE ITS A BONE
+		if(!isBone(node_idx)){
+			continue;
+		}
+		
+		/////////////////////
+		//fetch times
+		/////////////////////
+		tinygltf::AnimationSampler& time_sampler = anim.samplers[0];
+		std::vector<float> times = getTimelineArray(time_sampler);
+
+		
 		///////////////////
 		///////ADDING TO ARRAY
 		if(idx != node_idx){
 			bone_animation_array.emplace_back(AnimationDataStruct{}); 
 			idx = node_idx;
+//			PRINT_COLOR("new bone added " + std::to_string(idx) + "  " + model.nodes[idx].name, 255, 0, 0);
 		}
 		if(bone_animation_array.empty())
 			bone_animation_array.emplace_back(AnimationDataStruct{}); 
 		
-		AnimationDataStruct& animation_data = bone_animation_array.back();
+		AnimationDataStruct& animation_data = bone_animation_array.back();//CHANGE THIS TO USE CURR INDEX AND NOT LAST EELEMNT
 		
 		animation_data.time_array = times;
 		
@@ -884,10 +1218,13 @@ void ModelLoader::getSkinnedAnimation(){
 		tinygltf::Accessor& accessor = model.accessors[output_idx];
 		int frame_count = model.accessors[output_idx].count;
 		int byteOffset = model.bufferViews[accessor.bufferView].byteOffset;
+		
+		if(accessor.byteOffset != 0)
+			byteOffset = accessor.byteOffset + byteOffset;
+		
 		int offset = byteOffset/getSizeOfComponentType(accessor.componentType);
 		
 		for(int i{}; i<frame_count; i++){
-			
 			//translations
 			if(target_path == "translation"){
 				float x = float_array[(i*3) + 0 + offset];
@@ -897,6 +1234,9 @@ void ModelLoader::getSkinnedAnimation(){
 //					std::cout << "translation data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
 				
 				animation_data.trans_time_array = getTimelineArray(sampler);
+				
+				//add to map
+				timeline_map.emplace(getTimelineArray(sampler).size(), getTimelineArray(sampler));
 			}
 			
 			//rotations
@@ -909,6 +1249,9 @@ void ModelLoader::getSkinnedAnimation(){
 //					std::cout << "rotation data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
 				
 				animation_data.rot_time_array = getTimelineArray(sampler);
+				
+				//add to map
+				timeline_map.emplace(getTimelineArray(sampler).size(), getTimelineArray(sampler));
 			}
 			
 			//scale
@@ -920,13 +1263,17 @@ void ModelLoader::getSkinnedAnimation(){
 //					std::cout << "scale data [x: " << x << ", y: " << y << ", z: " << z << "]" << std::endl;
 				
 				animation_data.scale_time_array = getTimelineArray(sampler);
+				
+				//add to map
+				timeline_map.emplace(getTimelineArray(sampler).size(), getTimelineArray(sampler));
 			}
 			
 		}
 		
+		
 	}
 	
-	
+*/
 	
 }
 
@@ -945,17 +1292,36 @@ std::vector<glm::vec4> ModelLoader::getSkinJoints(const tinygltf::Mesh& mesh){
 	
 	//joints
 	int byteOffset = model.bufferViews[joints_accessor.bufferView].byteOffset;
+	
+	if(joints_accessor.byteOffset != 0)
+		byteOffset = joints_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/getSizeOfComponentType(joints_accessor.componentType);
+	
+	std::cout << joints_accessor.componentType << " COMPONENTYYY" << std::endl;
 	
 	int count = joints_accessor.count;
 	
 	for(std::size_t i{}; i<count; i++){
-		unsigned char x = uchar_array[(i*4) + 0 + offset];
-		unsigned char y = uchar_array[(i*4) + 1 + offset];
-		unsigned char z = uchar_array[(i*4) + 2 + offset];
-		unsigned char w = uchar_array[(i*4) + 3 + offset];
-//				std::cout << "joint data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
-		joints_array.emplace_back( glm::vec4(x, y, z, w) );
+		if(joints_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE){
+			unsigned char x = uchar_array[(i*4) + 0 + offset];
+			unsigned char y = uchar_array[(i*4) + 1 + offset];
+			unsigned char z = uchar_array[(i*4) + 2 + offset];
+			unsigned char w = uchar_array[(i*4) + 3 + offset];
+			joints_array.emplace_back( glm::vec4(x, y, z, w) );
+			
+//			std::cout << "joint data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+		}
+		else if(joints_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT){
+			unsigned short x = ushort_array[(i*4) + 0 + offset];
+			unsigned short y = ushort_array[(i*4) + 1 + offset];
+			unsigned short z = ushort_array[(i*4) + 2 + offset];
+			unsigned short w = ushort_array[(i*4) + 3 + offset];
+			joints_array.emplace_back( glm::vec4(x, y, z, w) );
+			
+//			std::cout << "joint data [x: " << x << ", y: " << y << ", z: " << z << ", w: " << w << "]" << std::endl;
+		}
+		
 	}
 	
 	return joints_array;
@@ -977,10 +1343,13 @@ std::vector<glm::vec4> ModelLoader::getSkinWeights(const tinygltf::Mesh& mesh){
 	
 	//weights
 	int byteOffset = model.bufferViews[weights_accessor.bufferView].byteOffset;
+	
+	if(weights_accessor.byteOffset != 0)
+		byteOffset = weights_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/getSizeOfComponentType(weights_accessor.componentType);
 	
 	int count = weights_accessor.count;
-	
 	for(std::size_t i{}; i<count; i++){
 		float x = float_array[(i*4) + 0 + offset];
 		float y = float_array[(i*4) + 1 + offset];
@@ -997,9 +1366,9 @@ std::vector<glm::mat4> ModelLoader::getInverseBindMatrices(const tinygltf::Mesh&
 	std::vector<glm::mat4> inverse_bind_matrix_array;
 	
 	if(model.skins.size() > 1)
-		throw std::logic_error("Only 1 skin is currently supported");
+		throw std::logic_error("Only 1 skin is supported");
 	
-	skin = model.skins.front();//.front()
+	tinygltf::Skin& skin = model.skins.front();//.front()
 	
 	int skin_idx = skin.inverseBindMatrices;
 	
@@ -1009,6 +1378,10 @@ std::vector<glm::mat4> ModelLoader::getInverseBindMatrices(const tinygltf::Mesh&
 	
 	//inverse bind matrices [i.e. the bones/their transformation matrices]
 	int byteOffset = model.bufferViews[skin_accessor.bufferView].byteOffset;
+	
+	if(skin_accessor.byteOffset != 0)
+		byteOffset = skin_accessor.byteOffset + byteOffset;
+	
 	int offset = byteOffset/getSizeOfComponentType(skin_accessor.componentType);
 	
 	int bone_count = skin.joints.size();
@@ -1065,7 +1438,6 @@ std::vector<glm::mat4> ModelLoader::getInverseBindMatrices(const tinygltf::Mesh&
 		inverse_bind_matrix_array.emplace_back(inv_bind_mat);
 		
 	}
-		
 	
 	return inverse_bind_matrix_array;
 }
@@ -1100,7 +1472,6 @@ void ModelLoader::equalizeTRSanimationArrays(AnimationDataStruct& animation_data
 			animation_data.translation_anim_array.emplace_back( last_pos );
 		}
 	}
-	
 	
 	/////////////////////////////
 	//equalize rotations array
@@ -1148,6 +1519,10 @@ std::vector<float> ModelLoader::getTimelineArray(const tinygltf::AnimationSample
 		int frame_count = time_accessor.count;
 		
 		int byteOffset = model.bufferViews[time_accessor.bufferView].byteOffset;
+		
+		if(time_accessor.byteOffset != 0)
+			byteOffset = time_accessor.byteOffset + byteOffset;
+		
 		int offset = byteOffset/sizeof(float);
 		
 		for(int t{}; t<frame_count; t++){

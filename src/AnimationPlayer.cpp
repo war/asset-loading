@@ -13,7 +13,6 @@ void AnimationPlayer::update(){
 	
 //	std::cout << empty_array.front().animation_data.translation_anim_array.size() << std::endl;
 	
-	
 	for(Empty& empty : empty_array){
 		
 		AnimationDataStruct& animation_data = empty.animation_data;
@@ -31,7 +30,6 @@ void AnimationPlayer::update(){
 		}
 		*/
 
-		
 		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
 		
 		//UPDATE EMPTY ANIMATED POS/ROT/SCALE
@@ -41,8 +39,6 @@ void AnimationPlayer::update(){
 		
 		glm::mat4 parent_empty_trs = createTRSmatrix(empty_position, empty_rotation, empty_scale);
 		
-		
-		std::cout << getChildEmptyArray(empty).size() << std::endl;
 		
 		/*
 		*/
@@ -365,8 +361,6 @@ void AnimationPlayer::equalizeAllAnimationDurations(){
 	
 	std::vector<float> max_timeline_array = size_sorted_timelines.rbegin()->second;
 	
-	int max_size = max_timeline_array.size();
-
 	for(Empty& empty : empty_array){
 		AnimationDataStruct& animation_data = empty.animation_data;
 		animation_data.time_array = max_timeline_array;

@@ -44,8 +44,7 @@ struct AnimationDataStruct{
 	
 	std::vector<int> child_array;
 	
-	std::vector<float> time_array;//should be a time for each of trans/rot/scale
-	std::vector<float> time_array_MAX;
+	std::vector<float> time_array;//largest time array
 	std::vector<float> trans_time_array;
 	std::vector<float> rot_time_array;
 	std::vector<float> scale_time_array;
@@ -86,9 +85,6 @@ struct MeshDataStruct{
 	std::vector<unsigned int> vertex_indices_array;
 	
 	//textures
-	GLuint diffuse_texture {};
-	GLuint normal_texture {};
-	GLuint metal_texture {};
 	std::map<TextureType, TextureDataStruct> texture_map;
 	
 	//materials
@@ -123,10 +119,12 @@ inline void equalizeTRSanimationArrays(AnimationDataStruct& animation_data){
 //	std::vector<int> anim_array_sizes = {animation_data.translation_anim_array.size(), animation_data.rotation_anim_array.size(), animation_data.scale_anim_array.size()};
 //	std::sort(anim_array_sizes.begin(), anim_array_sizes.end());
 	
+	/*
 	std::map<int, std::vector<float>> size_sorted_timelines;
 	size_sorted_timelines.emplace(animation_data.trans_time_array.size(), animation_data.trans_time_array);
 	size_sorted_timelines.emplace(animation_data.rot_time_array.size(), animation_data.rot_time_array);
 	size_sorted_timelines.emplace(animation_data.scale_time_array.size(), animation_data.scale_time_array);
+	*/
 	
 	int max_size = animation_data.time_array.size();
 	

@@ -220,6 +220,17 @@ Mesh::~Mesh(){
 
 void Mesh::update(){
 	
+	///////////////////
+	//REMOVE THIS CHECK
+	///////////////////
+	if(mesh_data.animation_data.trans_time_array.size() != mesh_data.animation_data.time_array.size()){
+		std::cout << "time " << mesh_data.animation_data.time_array.size() << std::endl;
+		std::cout << "trasn " << mesh_data.animation_data.trans_time_array.size() << std::endl;
+		std::cout << "rot " << mesh_data.animation_data.rotation_anim_array.size() << std::endl;
+		std::cout << "scale " << mesh_data.animation_data.scale_anim_array.size() << std::endl;
+		throw std::logic_error("incorrect sizes");
+	}
+	
 	//apply translation
 	modelMatrix = glm::translate(glm::mat4(1.f), position);
 
@@ -234,6 +245,7 @@ void Mesh::update(){
 	//if this mesh is a child of an empty, the use the calculated modelMatrix [calculated inside AnimationPlayer.cpp, based off of root empty animations]
 	if(mesh_data.inherits_animation)
 		modelMatrix = mesh_data.modelMatrix;
+	
 	
 	//update animations
 	updateAnimation();
@@ -359,6 +371,7 @@ glm::vec3 Mesh::calculateCurrentTranslation(const AnimationDataStruct& animation
 	/////////////////////////////////
 	glm::vec3 final_mesh_pos = glm::vec3(0.f);
 	std::vector<glm::vec3> trans_array = animation_data.translation_anim_array;
+	
 	for (int i{}; i < time_array.size(); i++) {
 		float new_t = time_array[i + 1];
 		float old_t = time_array[i];
@@ -467,6 +480,8 @@ void Mesh::updateSkinnedAnimation(){
 	
 	std::vector<AnimationDataStruct> bone_animations_vec = model->bone_animation_array;
 	
+	std::cout << bone_animations_vec.size() << std::endl;
+	
 	for (const AnimationDataStruct& bone_anim : bone_animations_vec) {
 		glm::vec3 bone_pos = calculateCurrentTranslation(bone_anim);
 		glm::quat bone_rot = calculateCurrentRotation(bone_anim);
@@ -492,6 +507,14 @@ void Mesh::updateSkinnedAnimation(){
 	
 	//FETCH AND SEND ALL inverseBindMatrices
 	std::vector<glm::mat4> inverse_bind_mat_array = mesh_data.inverse_bind_matrix_array;
+	
+	////////////
+	////////////
+	//remove	
+	if(bone_transform_matrix_array.size() != inverse_bind_mat_array.size()){
+		PRINT_COLOR("craaaaaaaaaash ", 255, 0, 0);
+		throw std::logic_error("baaaaaaaaaad");
+	}
 	
 	for (std::size_t m{}; m < inverse_bind_mat_array.size(); m++) {
 		

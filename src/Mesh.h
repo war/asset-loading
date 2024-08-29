@@ -65,7 +65,7 @@ public:
 	glm::quat getRotation() const {	return rotation;	}
 	glm::vec3 getScale() const {	return scale;	}
 	
-	MeshDataStruct getMeshData()	{	return mesh_data; }
+	MeshDataStruct getMeshData() const	{	return mesh_data; }
 	
 	glm::vec3 calculateCurrentTranslation(const AnimationDataStruct& animation_data);
 	glm::quat calculateCurrentRotation(const AnimationDataStruct& animation_data);
