@@ -29,11 +29,17 @@ struct AnimationDataStruct{
 	std::string name;
 	
 	int node_index = -1;
+	tinygltf::Node node;
 	
 	bool has_root = false;
 	int root_idx = -1;
 	
+	
 	bool has_animation = false;
+	
+	glm::vec3 translation = glm::vec3(0.f);//relative to parent bone
+	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);//relative to parent bone
+	glm::vec3 scale = glm::vec3(1.f);//relative to parent bone
 	
 	bool is_mesh = false;
 	bool is_empty = false;

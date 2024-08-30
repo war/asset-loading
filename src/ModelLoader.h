@@ -53,7 +53,13 @@ public:
 		std::vector<AnimationDataStruct> bone_animation_array;//contains list of all animations for this model, with key being the animation name
 		AnimationDataStruct getMeshAnimationData(const tinygltf::Mesh& mesh);
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
+		AnimationDataStruct getBLENDER_NODE_ANIMATION_DATA(const tinygltf::Node& node);
+		void getAllNodeAnimationTimelines();
+		std::map<int, std::vector<float>> node_timelines_map;
+	
+		
 		void getSkinnedAnimation();
+		void GET_SKINNED_ANIMATION_BLENDER();
 		void equalizeTRSanimationArrays(AnimationDataStruct& animation_data);	
 		std::vector<float> getTimelineArray(const tinygltf::AnimationSampler& sampler);
 	

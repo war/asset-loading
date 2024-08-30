@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
 		DirectionalLight direct_light {};
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-//    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
-    ModelLoader* model = new ModelLoader("res/models/pistol/BLENDER-EXPORT.gltf");
+    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/BLENDER-EXPORT.gltf");
 
 		///////////////
 		//mesh loading
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 				}
 			
 				//update animation system
-				animation_player.update();
+//				animation_player.update();
 			
 				//reset animations if R pressed
 				if(windowManager.isRKeyPressed())

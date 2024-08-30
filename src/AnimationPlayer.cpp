@@ -46,6 +46,7 @@ void AnimationPlayer::update(){
 //		Empty child_empty = getFirstChildEmpty(empty);
 		for(Empty& child_empty : getChildEmptyArray(empty)){
 			
+			
 			if(child_empty.node_index != -1){
 
 				//////////// NEED TO MULTIPLY MODELMATRIX BY PARENT TRANSFORMS
@@ -126,9 +127,8 @@ void AnimationPlayer::update(){
 					child_msh.inherits_animation = true;
 					
 					for(Mesh* m : *mesh_array)
-						if(m->mesh_data.node_index == child_msh.node_index){
+						if(m->mesh_data.node_index == child_msh.node_index)
 							m->mesh_data = child_msh;
-						}
 				}
 				
 			}
@@ -341,8 +341,6 @@ void AnimationPlayer::resetAnimations(){
 	*/
 	
 }
-
-
 
 void AnimationPlayer::equalizeAllAnimationDurations(){
 	
