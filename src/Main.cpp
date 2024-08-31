@@ -119,13 +119,13 @@ int main(int argc, char* argv[]) {
 					for(Mesh* mesh : mesh_array)
 						mesh->update();
 				}
-			
 				//update animation system
-//				animation_player.update();
+				animation_player.update();
 			
 				//reset animations if R pressed
-				if(windowManager.isRKeyPressed())
+				if(windowManager.isRKeyPressed()){
 					animation_player.resetAnimations();
+				}
 			
 			
         windowManager.swapBuffers();

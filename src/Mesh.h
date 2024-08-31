@@ -41,7 +41,7 @@ public:
 	
 	int current_animation_frame {};
 	float current_animation_time {};
-	float playback_speed = 1.f;
+	float playback_speed = .3f;
 	
 	std::vector<glm::mat4> bone_transform_matrix_array;//stores bone animated transform [pos/rot/scale] for EACH BONE.
 	std::vector<glm::mat4> bone_skinned_matrix_array;//store the FINAL skinned matrix which will be sent directly to shader

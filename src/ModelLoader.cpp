@@ -1201,7 +1201,7 @@ void ModelLoader::getSkinnedAnimation(){
 		if(!v.second.has_animation){
 			AnimationDataStruct& anim = v.second;
 			anim.has_animation = true;
-			PRINT_COLOR("bone with no anim data -> " + model.nodes[anim.node_index].name,255,0,0);
+//			PRINT_COLOR("bone with no anim data -> " + model.nodes[anim.node_index].name,255,0,0);
 		}
 	}
 	
@@ -1224,13 +1224,10 @@ void ModelLoader::getSkinnedAnimation(){
 	for(auto& v : bone_anim_map){
 		AnimationDataStruct& anim = v.second;
 		
-		
 		//pos
 		if(anim.translation_anim_array.empty())
-			for(auto t : max_time_array){
+			for(auto t : max_time_array)
 				anim.translation_anim_array.emplace_back(anim.translation);
-					
-			}
 		
 		//rots
 		if(anim.rotation_anim_array.empty())
@@ -1240,7 +1237,7 @@ void ModelLoader::getSkinnedAnimation(){
 		//scales
 		if(anim.scale_anim_array.empty())
 			for(auto t : max_time_array)
-				anim.scale_anim_array.emplace_back(glm::vec3(1.f));
+				anim.scale_anim_array.emplace_back(anim.scale);
 			
 	}
 	
@@ -1283,11 +1280,11 @@ void ModelLoader::getSkinnedAnimation(){
 	for(auto& v : bone_anim_map){
 		AnimationDataStruct& anim = v.second;
 		
+		/*
 		if(model.nodes[anim.node_index].name == "Joint_3_06"){
 			PRINT_WARN("ROOT ->" + model.nodes[anim.root_idx].name);
 		}
 		
-		/*
 		PRINT_WARN("##############");
 		std::cout << "time len " << anim.time_array.size()<<std::endl;
 		std::cout << "pos len " << anim.translation_anim_array.size()<<std::endl;
