@@ -4,9 +4,6 @@
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model(_model), mesh_array(_mesh_array), window_manager(win_manager){
 	
 	//ensures all empty animations have the same duration (required for full animation playback)
-	equalizeAllAnimationDurations();
-	
-	
 	
 	std::vector<Empty>& empty_array = model->empties_array;
 	std::vector<MeshDataStruct>& mesh_data_struct_array = model->mesh_data_struct_array;
@@ -17,32 +14,108 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 		if(!animation_data.has_animation)
 			continue;
 		
-		/*
-		PRINT_WARN("name " + empty.name);
-		std::cout << "trasn array " << animation_data.translation_anim_array.size() << std::endl;
-		std::cout << "rot array " << animation_data.rotation_anim_array.size() << std::endl;
-		std::cout << "scale array " << animation_data.scale_anim_array.size() << std::endl;
-		*/
 		
-		if(empty.name == "bullet_1"){
+		
+			/*
+		if( empty.name == "clip"){
+			std::cout << "clip rots " << animation_data.rotation_anim_array.size() << std::endl;
+			std::cout << "clip trans " << animation_data.translation_anim_array.size() << std::endl;
+			std::cout << "clip scales " << animation_data.scale_anim_array.size() << std::endl;
+//			throw std::logic_error("zzzzzzzzzzzzzzz");
 			
-			for(int t{}; t<animation_data.translation_anim_array.size(); t++){
-				std::cout << "time  " << animation_data.time_array[t] << " " << std::flush;
-				printGlmVec3(animation_data.translation_anim_array[t]);
+			animation_data.trans_time_array.insert(animation_data.trans_time_array.begin() + 11, 0.4);
+			animation_data.trans_time_array.insert(animation_data.trans_time_array.begin() + 12, 0.4333333);
+			animation_data.trans_time_array.insert(animation_data.trans_time_array.begin() + 13, 0.4666666);
+			
+			animation_data.translation_anim_array.insert(animation_data.translation_anim_array.begin() + 11, animation_data.translation_anim_array[11]);
+			animation_data.translation_anim_array.insert(animation_data.translation_anim_array.begin() + 12, animation_data.translation_anim_array[11]);
+			animation_data.translation_anim_array.insert(animation_data.translation_anim_array.begin() + 13, animation_data.translation_anim_array[11]);
+			
+			PRINT_WARN("///////////////////////////");
+			for(int y{}; y<animation_data.translation_anim_array.size() - 1; y++){
+//				if(animation_data.trans_time_array[y+1]-animation_data.trans_time_array[y] > animation_data.trans_time_array[1]-animation_data.trans_time_array[0])
+				std::cout << "time " << y <<std::flush;
+				printGlmVec3(animation_data.translation_anim_array[y]);
 			}
 			
-			
-			break;
 		}
+			*/
+//		if( empty.name == "L_arm_Pole"){
+//
+			std::cout << "clip rots " << animation_data.rotation_anim_array.size() << std::endl;
+			std::cout << "clip trans " << animation_data.translation_anim_array.size() << std::endl;
+			std::cout << "clip scales " << animation_data.scale_anim_array.size() << std::endl;
+	
+			//////////////////////////////////
+			//TRANSLATION GAPS
+			//////////////////////////////////
+			//first find indices where gaps occur
+			
+			if(!animation_data.translation_anim_array.empty())
+			{
+
+				std::map<int, int> gap_idx_trans_array ;
+				for(int y{}; y<animation_data.translation_anim_array.size() - 1; y++){
+					float curr_delta = animation_data.trans_time_array[y+1]-animation_data.trans_time_array[y];
+					float delta_time = animation_data.trans_time_array[1]-animation_data.trans_time_array[0];
+					int gap_steps = floor(curr_delta/delta_time);
+					if(curr_delta >= delta_time*1.9f){
+	//					std::cout << "count: " << y << ", time " << curr_delta << std::endl;  
+						gap_idx_trans_array.emplace(y, gap_steps);
+					}
+				}
+				//fill in gaps at indices
+				for(auto y : gap_idx_trans_array){
+					int gap_steps = y.second;
+					for(int t{}; t<gap_steps; t++){
+						glm::vec3 last_pos = animation_data.translation_anim_array[y.first];
+						animation_data.translation_anim_array.insert(animation_data.translation_anim_array.begin() + y.first + 1, last_pos);
+					}
+				}
+				
+			}
+			
+			//////////////////////////////////
+			//ROTATION GAPS
+			//////////////////////////////////
+			if(!animation_data.rotation_anim_array.empty())
+			{
+				
+				std::map<int, int> gap_idx_rot_array ;
+				for(int y{}; y<animation_data.rotation_anim_array.size() - 1; y++){
+					float curr_delta = animation_data.rot_time_array[y+1]-animation_data.rot_time_array[y];
+					float delta_time = animation_data.rot_time_array[1]-animation_data.rot_time_array[0];
+					int gap_steps = floor(curr_delta/delta_time);
+					if(curr_delta >= delta_time*1.9f){
+						std::cout << "count: " << y << ", time " << curr_delta << ", gap: "  << gap_steps << std::endl;  
+						gap_idx_rot_array.emplace(y, gap_steps);
+					}
+				}
+				//fill in gaps at indices
+				for(auto y : gap_idx_rot_array){
+					int gap_steps = y.second;
+					for(int t{}; t<gap_steps; t++){
+						glm::quat last_rot = animation_data.rotation_anim_array[y.first];
+						animation_data.rotation_anim_array.insert(animation_data.rotation_anim_array.begin() + y.first + 1, last_rot);
+					}
+				}
+				
+			}
+			
+			/*
+			for(int y{}; y<animation_data.rotation_anim_array.size() - 1; y++){
+				std::cout << "count: " << y << ", time " << animation_data.rot_time_array[y] << std::endl;
+				printGlmVec3(animation_data.translation_anim_array[y]);
+			}
+			*/
+			
+//		}
+		
+		//sloppy call
+		model->equalizeTRSanimationArrays(animation_data);
 		
 	}
-	
-	
-	
-	
-	
-	
-	
+	equalizeAllAnimationDurations();
 	
 	
 	
@@ -180,9 +253,9 @@ void AnimationPlayer::update(){
 		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
 		
 		//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-		auto empty_position = calculateCurrentTranslation(animation_data);
-		auto empty_rotation = calculateCurrentRotation(animation_data);
-		auto empty_scale = calculateCurrentScale(animation_data);
+		glm::vec3 empty_position = calculateCurrentTranslation(animation_data);
+		glm::quat empty_rotation = calculateCurrentRotation(animation_data);
+		glm::vec3 empty_scale = calculateCurrentScale(animation_data);
 		
 		glm::mat4 parent_empty_trs = createTRSmatrix(empty_position, empty_rotation, empty_scale);
 		
@@ -200,9 +273,9 @@ void AnimationPlayer::update(){
 			child_animation_data.current_animation_time += window_manager->GetDeltaTime() * child_animation_data.playback_speed;
 			
 			//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-			auto child_empty_position = calculateCurrentTranslation(child_animation_data);
-			auto child_empty_rotation = calculateCurrentRotation(child_animation_data);
-			auto child_empty_scale = calculateCurrentScale(child_animation_data);
+			glm::vec3 child_empty_position = calculateCurrentTranslation(child_animation_data);
+			glm::quat child_empty_rotation = calculateCurrentRotation(child_animation_data);
+			glm::vec3 child_empty_scale = calculateCurrentScale(child_animation_data);
 			
 			glm::mat4 child_anim_model_matrix = createTRSmatrix(child_empty_position, child_empty_rotation, child_empty_scale);
 			
@@ -218,28 +291,28 @@ void AnimationPlayer::update(){
 			
 			///////////////
 			//NODE LAYER 3
-			for(Empty& child_2_empty : getChildEmptyArray(child_empty)){
-				AnimationDataStruct& child_2_animation_data = child_2_empty.animation_data;
+			for(Empty& child_3_empty : getChildEmptyArray(child_empty)){
+				AnimationDataStruct& child_3_animation_data = child_3_empty.animation_data;
 				
-				child_2_animation_data.current_animation_time += window_manager->GetDeltaTime() * child_2_animation_data.playback_speed;
+				child_3_animation_data.current_animation_time += window_manager->GetDeltaTime() * child_3_animation_data.playback_speed;
 				
 				//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-				auto child_2_empty_position = calculateCurrentTranslation(child_2_animation_data);
-				auto child_2_empty_rotation = calculateCurrentRotation(child_2_animation_data);
-				auto child_2_empty_scale = calculateCurrentScale(child_2_animation_data);
+				glm::vec3 child_3_empty_position = calculateCurrentTranslation(child_3_animation_data);
+				glm::quat child_3_empty_rotation = calculateCurrentRotation(child_3_animation_data);
+				glm::vec3 child_3_empty_scale = calculateCurrentScale(child_3_animation_data);
 				
-				glm::mat4 child_2_anim_model_matrix = createTRSmatrix(child_2_empty_position, child_2_empty_rotation, child_2_empty_scale);
+				glm::mat4 child_3_anim_model_matrix = createTRSmatrix(child_3_empty_position, child_3_empty_rotation, child_3_empty_scale);
 				
-				glm::mat4 child_2_model_matrix = createTRSmatrix(child_2_empty.position, child_2_empty.rotation, child_2_empty.scale);//model matrix of static pos/rot/scale
+				glm::mat4 child_3_model_matrix = createTRSmatrix(child_3_empty.position, child_3_empty.rotation, child_3_empty.scale);//model matrix of static pos/rot/scale
 				
 				//final model matrix
-				if(child_2_empty.animation_data.has_animation)
-					child_2_empty.modelMatrix = child_empty.modelMatrix * child_2_anim_model_matrix;
+				if(child_3_empty.animation_data.has_animation)
+					child_3_empty.modelMatrix = child_empty.modelMatrix * child_3_anim_model_matrix;
 				else
-					child_2_empty.modelMatrix = child_empty.modelMatrix * child_2_model_matrix;
+					child_3_empty.modelMatrix = child_empty.modelMatrix * child_3_model_matrix;
 				
 				//update any child meshes
-				updateChildMeshes(child_2_empty, parent_empty_trs);
+				updateChildMeshes(child_3_empty, parent_empty_trs);
 			}
 			
 			
@@ -252,7 +325,6 @@ void AnimationPlayer::update(){
 		updateChildMeshes(empty, parent_empty_trs);
 		
 	}
-		
 		
 		
 		/*
@@ -271,7 +343,6 @@ void AnimationPlayer::update(){
 		
 
 }
-	
 	
 void AnimationPlayer::updateChildMeshes(const Empty& parent_empty, const glm::mat4& parent_trs){
 	MeshDataStruct child_msh = getFirstChildMesh(parent_empty);
@@ -298,7 +369,6 @@ void AnimationPlayer::updateChildMeshes(const Empty& parent_empty, const glm::ma
 	mesh_index_map[child_msh.node_index]->mesh_data = child_msh;
 }
 	
-
 std::vector<MeshDataStruct> AnimationPlayer::getChildMeshArray(const Empty& empty){
 	std::vector<MeshDataStruct> child_mesh_array;
 	
@@ -316,10 +386,6 @@ std::vector<MeshDataStruct> AnimationPlayer::getChildMeshArray(const Empty& empt
 	//WARNING - RETURNS A USELESS OBJECT
 	return child_mesh_array;
 }
-
-	
-	
-	
 
 glm::vec3 AnimationPlayer::calculateCurrentTranslation(AnimationDataStruct& animation_data){
 	

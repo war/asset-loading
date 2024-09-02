@@ -46,7 +46,8 @@ struct AnimationDataStruct{
 	bool is_bone = false;
 	
 	float current_animation_time {};
-	float playback_speed = .3f;
+	int current_animation_frame {};
+	float playback_speed = .5f;
 	
 	std::vector<int> child_array;
 	

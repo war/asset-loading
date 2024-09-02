@@ -741,14 +741,13 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 		int input_idx = channel.target_node;
 		int output_idx = sampler.output;
 		
-		
 		//detect different animations within the same channel
 		if(input_idx != node_idx){
 			continue;
 		}
 		animation_data.has_animation = true;
 		
-		animation_data.time_array = times;
+//		animation_data.time_array = times;
 		
 		animation_data.name = animation.name;
 		
@@ -811,12 +810,11 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 			
 		}
 		
-		
 	}
 	
 	//adds check to ensure all arrays are equal [will be fixed soon]
 	if( animation_data.translation_anim_array.size() != animation_data.rotation_anim_array.size() || animation_data.translation_anim_array.size() != animation_data.scale_anim_array.size() || animation_data.rotation_anim_array.size() != animation_data.scale_anim_array.size() ){
-		equalizeTRSanimationArrays(animation_data);
+//		ModelLoader::equalizeTRSanimationArrays(animation_data);
 //		PRINT_WARN("Translation, scale and rotation animation durations must be equal.");
 //		throw std::logic_error("Translation, scale and rotation animation durations must be equal.");
 	}
