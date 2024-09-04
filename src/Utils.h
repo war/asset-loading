@@ -24,7 +24,6 @@ enum TextureType{
 	ROUGHNESS = 4
 };
 
-
 struct AnimationDataStruct{
 	std::string name;
 	
@@ -84,6 +83,7 @@ struct MeshDataStruct{
 	glm::vec3 scale = glm::vec3(1.f);
 	
 	glm::mat4 modelMatrix = glm::mat4(1.f);
+	glm::mat4 base_matrix = glm::mat4(1.f);//base matrix loaded in from gltf [if it exists]
 	
 	//vertex norm/uv etc data
 	std::vector<glm::vec3> vertex_positions_array;

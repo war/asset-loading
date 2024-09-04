@@ -52,14 +52,17 @@ int main(int argc, char* argv[]) {
 		//turn on Vsync
 		windowManager.SetVSyncMode(true);
 
-    SDL_ShowCursor(SDL_DISABLE);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+//    SDL_ShowCursor(SDL_DISABLE);
+//    SDL_SetRelativeMouseMode(SDL_TRUE);
 
 		//add directional light
 		DirectionalLight direct_light {};
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
     ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/cube.glb");
+//    ModelLoader* model = new ModelLoader("res/models/m16/BLENDER-EXPORT.gltf");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/BLENDER-EXPORT.gltf");
 
 		///////////////

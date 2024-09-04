@@ -17,6 +17,8 @@
 #include "Empty.h"
 #include "Utils.h"
 
+inline constexpr float DELTA_TIME_CHANGE_THIS = 0.03333333333333333f;
+
 class ModelLoader {
 public:
     ModelLoader(const std::string& path);
@@ -55,6 +57,7 @@ public:
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
 		AnimationDataStruct getBLENDER_NODE_ANIMATION_DATA(const tinygltf::Node& node);
 		void getAllNodeAnimationTimelines();
+		void fillAnimationGaps(AnimationDataStruct& animation_data);
 		std::map<int, std::vector<float>> node_timelines_map;
 	
 		
@@ -74,6 +77,8 @@ public:
 		/* helper functions */
 		int getMeshNodeIndex(const tinygltf::Mesh& mesh);
 		tinygltf::Model& getTinyGltfModel() {	return model;	}
+		void getHierarchy(const tinygltf::Node& node_in);
+		int getNodeIndex(const tinygltf::Node& node);
 	
 private:
     tinygltf::TinyGLTF tiny_gltf;

@@ -17,6 +17,7 @@ public:
 	Empty();
 
 	int node_index = -1;
+	tinygltf::Node node;
 	
 	std::string name;
 	
@@ -25,12 +26,14 @@ public:
 	glm::vec3 scale = glm::vec3(1.f);
 	
 	glm::mat4 modelMatrix = glm::mat4(1.f);
+	glm::mat4 base_matrix = glm::mat4(1.f);//base matrix loaded in from gltf [if it exists]
 	
 	bool has_childs = false;
 	std::vector<int> child_array;
 	
 	bool has_animation = false;
 	std::string animation_name;
+	bool inherits_animation = false;
 	
 	tinygltf::Animation anim_gltf;
 	

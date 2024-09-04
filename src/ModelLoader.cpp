@@ -92,7 +92,7 @@ ModelLoader::ModelLoader(const std::string& path){
 		mesh_data_struct.texture_map = getTextureMap(mesh);
 		
 		///////////////////////////
-		//GLOBAL POS/ROT/SCALE
+		//GLOBAL POS/ROT/SCALE/MATRIX
 		///////////////////////////
 		{
 			//find node this mesh is assigned to
@@ -103,6 +103,14 @@ ModelLoader::ModelLoader(const std::string& path){
 				mesh_data_struct.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
 			if(!node.scale.empty())//scale
 				mesh_data_struct.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+			if(!node.matrix.empty()){//matrix
+				mesh_data_struct.base_matrix = glm::mat4(
+					node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
+					node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
+					node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
+					node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]
+					);
+			}
 			
 		}
 		
@@ -160,18 +168,14 @@ ModelLoader::ModelLoader(const std::string& path){
 	//LOAD ALL EMPTIES
 	///////////////////
 	*/
-	
-//	getAllNodeAnimationTimelines();
-	
-//	std::vector<float> max_node_timeline = node_timelines_map.rbegin()->second;
-//	
-	
 	for(int n{}; n<model.nodes.size(); n++){
 		Empty empty;
 		
 		tinygltf::Node& node = model.nodes[n];
 		
 		empty.node_index = n;
+		
+		empty.node = node;
 		
 		empty.name = node.name;
 		
@@ -196,7 +200,7 @@ ModelLoader::ModelLoader(const std::string& path){
 		}
 		
 		///////////////////////////
-		//GLOBAL POS/ROT/SCALE
+		//GLOBAL POS/ROT/SCALE/MATRICES
 		///////////////////////////
 		{
 			//find node this mesh is assigned to
@@ -206,6 +210,15 @@ ModelLoader::ModelLoader(const std::string& path){
 				empty.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
 			if(!node.scale.empty())//scale
 				empty.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+			if(!node.matrix.empty()){//matrix
+				empty.base_matrix = glm::mat4(
+					node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
+					node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
+					node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
+					node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]
+					);
+			}
+				
 			
 		}
 		
@@ -224,6 +237,7 @@ ModelLoader::ModelLoader(const std::string& path){
 	////////////////
 	getSkinnedAnimation();
 //	GET_SKINNED_ANIMATION_BLENDER();
+	
 	
 }
 
@@ -1060,13 +1074,13 @@ void ModelLoader::getSkinnedAnimation(){
 	}
 	
 	//get max timeline
-	std::vector<float> max_time_array = timeline_map.rbegin()->second;
+//	std::vector<float> max_time_array = timeline_map.rbegin()->second;
 	
 	//add anim for each bone [will be filled in later]
 	for(int joint_idx : skin.joints){
 		AnimationDataStruct animation_data;
 		animation_data.node_index = joint_idx;
-		animation_data.time_array = max_time_array;
+//		animation_data.time_array = max_time_array;
 		bone_anim_map.emplace(joint_idx, animation_data);
 	}
 		
@@ -1140,7 +1154,7 @@ void ModelLoader::getSkinnedAnimation(){
 				
 				animation_data.trans_time_array = getTimelineArray(sampler);
 				
-				animation_data.time_array = max_time_array;
+//				animation_data.time_array = max_time_array;
 			}
 			
 			//rotations
@@ -1154,7 +1168,7 @@ void ModelLoader::getSkinnedAnimation(){
 				
 				animation_data.rot_time_array = getTimelineArray(sampler);
 				
-				animation_data.time_array = max_time_array;
+//				animation_data.time_array = max_time_array;
 			}
 			
 			//scale
@@ -1167,12 +1181,72 @@ void ModelLoader::getSkinnedAnimation(){
 				
 				animation_data.scale_time_array = getTimelineArray(sampler);
 				
-				animation_data.time_array = max_time_array;
+//				animation_data.time_array = max_time_array;
 			}
 		
 	}
 	
 }
+	
+	
+	
+	
+	//////////////////////////////////////////////
+	//////////////////////////////////////////////
+
+	
+	//unused
+	for(auto itr : bone_anim_map){
+		AnimationDataStruct& anim = itr.second;
+		
+		//L_pink2_021 - both rot and pos
+		//L_pink1_020 - just rot
+		//L_ring2_017 - both rot and pos
+		//L_ring1_016 - rot
+		//L_palm_015 - pos
+		//L_middle1_011 -rot
+		//L_point3_09 -rot y pos
+		//L_point2_08 -rot y pos
+		//L_point1_07 -rot
+		//L_middle3_013
+		//L_middle2_012
+		//L_thumb3_05 -rot and pos
+		//L_thumb2_04 -rot and pos
+		//L_thumb1_03 -rot
+		//L_wrist_02 -rot y pos
+		//L_elbow_00 -rot y pos
+		//L_arm_01 -rot y pos
+		//R_arm_024
+		
+//		for(auto v :anim.rot_time_array){
+//				std::cout << v << std::endl;
+//			printGlmVec3(v);
+//		}
+//		fillAnimationGaps(anim);
+		
+		
+			/*
+		if(!anim.rot_time_array.empty()){//&& model.nodes[anim.node_index].name == "L_pink2_021"
+//			std::cout << anim.rotation_anim_array.size() << ", " << anim.rot_time_array.size() << std::endl;
+			for(int y{}; y<anim.rot_time_array.size() - 1; y++){
+				float curr_delta = anim.rot_time_array[y+1]-anim.rot_time_array[y];
+				
+				float start_delta_time = DELTA_TIME_CHANGE_THIS;
+				int gap_steps = floor(curr_delta/start_delta_time);
+				
+				std::cout << anim.rot_time_array[y] << ", " << y << std::endl;
+				
+				if(curr_delta > start_delta_time*2)
+					std::cout << "index " << y << ", delta: " << curr_delta << ", steps " << gap_steps << ", " << model.nodes[anim.node_index].name << std::endl;
+			}
+			
+			for(auto v : anim.translation_anim_array)
+				printGlmVec3(v);
+		}
+			*/
+		
+	}
+	
 	
 	
 	//get static translations/rots/scales for each bone
@@ -1194,7 +1268,7 @@ void ModelLoader::getSkinnedAnimation(){
 		}
 	}
 	
-	//
+	//mark all non-anim bones as being animated
 	for(auto& v : bone_anim_map){
 		if(!v.second.has_animation){
 			AnimationDataStruct& anim = v.second;
@@ -1218,23 +1292,80 @@ void ModelLoader::getSkinnedAnimation(){
 		}
 	}
 	
+	/*
+	*/
+	
+	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	//fill in empty gaps in bone animations
+	std::vector<int> size_sorted_timeline_sizes;
+	std::map<int, std::vector<float>> timeline_map_;//only used to calc delta time
+	for(auto& bone_itr : bone_anim_map){
+		AnimationDataStruct& animation_data = bone_itr.second;
+		
+//		PRINT_WARN(model.nodes[animation_data.node_index].name);
+		fillAnimationGaps(animation_data);
+//		std::cout<< "before: " << model.nodes[animation_data.node_index].name << ", " << animation_data.rotation_anim_array.size() << std::endl;
+
+		size_sorted_timeline_sizes.emplace_back(animation_data.translation_anim_array.size());
+		size_sorted_timeline_sizes.emplace_back(animation_data.rotation_anim_array.size());
+		size_sorted_timeline_sizes.emplace_back(animation_data.scale_anim_array.size());
+		
+		timeline_map_.emplace(animation_data.translation_anim_array.size(), animation_data.trans_time_array);
+		timeline_map_.emplace(animation_data.rotation_anim_array.size(), animation_data.rot_time_array);
+		timeline_map_.emplace(animation_data.scale_anim_array.size(), animation_data.scale_time_array);
+	}
+	std::sort(size_sorted_timeline_sizes.begin(), size_sorted_timeline_sizes.end());
+	
+	int max_timeline_size = size_sorted_timeline_sizes.back();
+	
+	std::vector<float> max_timeline_array;
+	
+//	float delta = timeline_map_.rbegin()->second[1] - timeline_map_.rbegin()->second[0];	
+	
+	
+	float time_cnt {};
+	
+	//get delta time [bad method]
+	//get delta time [bad method]
+	float delta_time = timeline_map.rbegin()->second.back()/max_timeline_size;
+	delta_time = DELTA_TIME_CHANGE_THIS;
+//		std::cout << "t: " << i << std::endl;
+	
+	
+	for(int i{}; i<max_timeline_size; i++){
+		max_timeline_array.emplace_back(time_cnt);
+		time_cnt += delta_time;
+	}
+	
+	for(auto& bone_itr : bone_anim_map){
+		AnimationDataStruct& animation_data = bone_itr.second;
+		animation_data.time_array = max_timeline_array;
+	}
+	
+	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	
+	
+	
+	
 	//equalize empty arrays
 	for(auto& v : bone_anim_map){
 		AnimationDataStruct& anim = v.second;
 		
 		//pos
 		if(anim.translation_anim_array.empty())
-			for(auto t : max_time_array)
+			for(auto t : max_timeline_array)
 				anim.translation_anim_array.emplace_back(anim.translation);
 		
 		//rots
 		if(anim.rotation_anim_array.empty())
-			for(auto t : max_time_array)
+			for(auto t : max_timeline_array)
 				anim.rotation_anim_array.emplace_back(anim.rotation);
 		
 		//scales
 		if(anim.scale_anim_array.empty())
-			for(auto t : max_time_array)
+			for(auto t : max_timeline_array)
 				anim.scale_anim_array.emplace_back(anim.scale);
 			
 	}
@@ -1277,18 +1408,18 @@ void ModelLoader::getSkinnedAnimation(){
 	//add to array
 	for(auto& v : bone_anim_map){
 		AnimationDataStruct& anim = v.second;
+	
 		
-		/*
-		if(model.nodes[anim.node_index].name == "Joint_3_06"){
-			PRINT_WARN("ROOT ->" + model.nodes[anim.root_idx].name);
-		}
+//		if(model.nodes[anim.node_index].name == "Joint_3_06"){
+//			PRINT_WARN("ROOT ->" + model.nodes[anim.root_idx].name);
+//		}
+//		
+//		PRINT_WARN("##############");
+//		std::cout << "time len " << anim.time_array.size()<<std::endl;
+//		std::cout << "pos len " << anim.translation_anim_array.size()<<std::endl;
+//		std::cout << "rot len " << anim.rotation_anim_array.size()<<std::endl;
+//		std::cout << "sca len " << anim.scale_anim_array.size()<<std::endl;
 		
-		PRINT_WARN("##############");
-		std::cout << "time len " << anim.time_array.size()<<std::endl;
-		std::cout << "pos len " << anim.translation_anim_array.size()<<std::endl;
-		std::cout << "rot len " << anim.rotation_anim_array.size()<<std::endl;
-		std::cout << "sca len " << anim.scale_anim_array.size()<<std::endl;
-		*/
 		
 		bone_animation_array.emplace_back(anim);
 	}
@@ -1466,6 +1597,95 @@ void ModelLoader::GET_SKINNED_ANIMATION_BLENDER(){
 		
 		
 	}
+	
+	
+}
+
+void ModelLoader::fillAnimationGaps(AnimationDataStruct& animation_data){
+	//////////////////////////////////
+	//TRANSLATION GAPS
+	//////////////////////////////////
+	//first find indices where gaps occur
+	if(!animation_data.translation_anim_array.empty())
+	{
+		
+		std::map<int, int> gap_idx_trans_array ;
+		for(int y{}; y<animation_data.translation_anim_array.size() - 1; y++){
+			float curr_delta = animation_data.trans_time_array[y+1]-animation_data.trans_time_array[y];
+//			float delta_time = animation_data.trans_time_array[1]-animation_data.trans_time_array[0];
+			float delta_time = DELTA_TIME_CHANGE_THIS;
+			int gap_steps = floor(curr_delta/delta_time);
+			if(curr_delta >= delta_time*2.f){
+//									std::cout << "count: " << y << ", time " << curr_delta << ", gaps " << gap_steps << std::endl;  
+				gap_idx_trans_array.emplace(y, gap_steps);
+			}
+		}
+		//fill in gaps at indices
+		for(const auto& y : gap_idx_trans_array){
+			int gap_steps = y.second;
+			for(int t{}; t<gap_steps; t++){
+				glm::vec3 last_pos = animation_data.translation_anim_array[y.first];
+				animation_data.translation_anim_array.insert(animation_data.translation_anim_array.begin() + y.first + 1, last_pos);
+			}
+		}
+	}
+	
+	//////////////////////////////////
+	//ROTATION GAPS
+	//////////////////////////////////
+	if(!animation_data.rotation_anim_array.empty())
+	{
+		std::map<int, int> gap_idx_rot_array ;
+		for(int y{}; y<animation_data.rotation_anim_array.size() - 1; y++){
+			float curr_delta = animation_data.rot_time_array[y+1]-animation_data.rot_time_array[y];
+//			float delta_time = animation_data.rot_time_array[1]-animation_data.rot_time_array[0];
+			float delta_time = DELTA_TIME_CHANGE_THIS;
+			int gap_steps = floor(curr_delta/delta_time);
+			if(curr_delta >= delta_time*2.f){
+//						std::cout << "count: " << y << ", time " << curr_delta << ", gap: "  << gap_steps << std::endl;  
+				gap_idx_rot_array.emplace(y, gap_steps);
+			}
+		}
+		//fill in gaps at indices
+		for(const auto& y : gap_idx_rot_array){
+			int gap_steps = y.second;
+			for(int t{}; t<gap_steps; t++){
+				glm::quat last_rot = animation_data.rotation_anim_array[y.first];
+				animation_data.rotation_anim_array.insert(animation_data.rotation_anim_array.begin() + y.first + 1, last_rot);
+			}
+		}
+		
+	}
+	
+	
+	//////////////////////////////////
+	//SCALE GAPS
+	//////////////////////////////////
+	//first find indices where gaps occur
+	if(!animation_data.scale_anim_array.empty())
+	{
+		
+		std::map<int, int> gap_idx_trans_array ;
+		for(int y{}; y<animation_data.scale_anim_array.size() - 1; y++){
+			float curr_delta = animation_data.scale_time_array[y+1]-animation_data.scale_time_array[y];
+//			float delta_time = animation_data.scale_time_array[1]-animation_data.scale_time_array[0];
+			float delta_time = DELTA_TIME_CHANGE_THIS;
+			int gap_steps = floor(curr_delta/delta_time);
+			if(curr_delta >= delta_time*2.f){
+//									std::cout << "count: " << y << ", time " << curr_delta << ", gaps " << gap_steps << std::endl;  
+				gap_idx_trans_array.emplace(y, gap_steps);
+			}
+		}
+		//fill in gaps at indices
+		for(const auto& y : gap_idx_trans_array){
+			int gap_steps = y.second;
+			for(int t{}; t<gap_steps; t++){
+				glm::vec3 last_pos = animation_data.scale_anim_array[y.first];
+				animation_data.scale_anim_array.insert(animation_data.scale_anim_array.begin() + y.first + 1, last_pos);
+			}
+		}
+	}
+	
 	
 	
 }
@@ -1737,10 +1957,14 @@ bool ModelLoader::isBone(int node_index){
 	
 	std::vector<int> skin_node_indices = skin.joints;
 	
-	if( std::find(skin_node_indices.begin(), skin_node_indices.end(), node_index) != skin_node_indices.end() ){
-//		std::cout << "bone found: " << model.nodes[node_index].name<< ", index: " << std::distance(skin_node_indices.begin(), skin_node_indices.begin()+node_index) << std::endl;
-		result = true;
-	}
+//	if( std::find(skin_node_indices.begin(), skin_node_indices.end(), node_index) != skin_node_indices.end() ){
+////		std::cout << "bone found: " << model.nodes[node_index].name<< ", index: " << std::distance(skin_node_indices.begin(), skin_node_indices.begin()+node_index) << std::endl;
+//		result = true;
+//	}
+
+	for(auto i : skin_node_indices)
+		if(i == node_index)
+			return true;
 	
 	return result;
 }
@@ -1761,4 +1985,37 @@ bool ModelLoader::isArmature(int node_index){
 	}
 	
 	return result;
+}
+
+void ModelLoader::getHierarchy(const tinygltf::Node& node_in){
+	
+	bool base_reached = false;
+	
+//	int idx = empty.node_index;
+	tinygltf::Node node = node_in;
+	
+	int tree_level {};
+	while(true){
+		if(node.children.empty()){
+			break;
+		}
+
+		node = model.nodes[ node.children[0] ];//first child BAD IDEA
+		//skip if bone
+		if(isBone(getNodeIndex(node)))
+			continue;
+		
+		PRINT_WARN("child -> " + node.name);
+		tree_level++;
+	}
+//	std::cout << "levels " <<  tree_level << ", " << node.name << std::endl;
+}
+
+int ModelLoader::getNodeIndex(const tinygltf::Node& node){
+
+	for(int i{}; i<model.nodes.size(); i++)
+		if(model.nodes[i] == node)
+			return i;
+	
+	return -1;
 }
