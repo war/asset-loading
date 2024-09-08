@@ -473,10 +473,14 @@ void Mesh::updateSkinnedAnimation(){
 		glm::quat bone_rot = calculateCurrentRotation(bone_anim);
 		glm::vec3 bone_scale = calculateCurrentScale(bone_anim);
 		
-
-//			if(model->getTinyGltfModel().nodes[bone_anim.node_index].name == "L_thumb3_05"){
-//				printGlmQuat(bone_rot);
+		
+		if( model->getTinyGltfModel().nodes[bone_anim.node_index].name == "R_arm_024"){
+//			if( bone_pos.y > 10 && bone_pos.z < -47 && bone_pos.z > -47.4 ){
 //			}
+//			bone_pos = glm::vec3(-2.45008, 9.14387, -48.5768);
+//			std::cout << current_animation_time << " , " << std::flush;
+//			printGlmVec3(bone_pos);
+		}
 		
 		//create TRS for each bone
 		glm::mat4 bone_transform = createTRSmatrix( bone_pos, bone_rot, bone_scale );
@@ -490,6 +494,8 @@ void Mesh::updateSkinnedAnimation(){
 				bone_transform = bone_transform_matrix_array[ root_mat_index ] * bone_transform;
 			}
 		}
+		
+
 		
 		
 		bone_transform_matrix_array.emplace_back( bone_transform );

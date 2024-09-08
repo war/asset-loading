@@ -16,6 +16,8 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 		if(!animation_data.has_animation)
 			continue;
 		
+		animation_data.time_array = model->bone_animation_array.front().time_array;
+		
 		//fills in discontinuity
 		model->fillAnimationGaps(animation_data);
 		
@@ -24,15 +26,14 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 		
 	}
 	
-	model->getHierarchy(empty_array[2].node);
+//	model->getHierarchy(empty_array[2].node);
 	
 	
 	//Equalizes all animation channels to match the MAX timeline duration
 //	equalizeAllAnimationDurations();
 	equalizeAllAnimationDurations2();
-	
-}
 
+}
 
 void AnimationPlayer::update(){
 	std::vector<Empty>& empty_array = model->empties_array;
@@ -586,8 +587,6 @@ void AnimationPlayer::equalizeAllAnimationDurations2(){
 	
 //	float delta_time = timeline_map.rbegin()->second.back()/max_timeline_size;
 	float delta_time = DELTA_TIME_CHANGE_THIS;
-	
-		
 	
 	for(int i{}; i<max_timeline_size; i++){
 		
