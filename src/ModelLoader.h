@@ -17,8 +17,6 @@
 #include "Empty.h"
 #include "Utils.h"
 
-inline constexpr float DELTA_TIME_CHANGE_THIS = 0.03333333333333333f;
-
 class ModelLoader {
 public:
     ModelLoader(const std::string& path);
@@ -49,6 +47,8 @@ public:
 		//materials
 		MaterialDataStruct getMaterial(const tinygltf::Mesh& mesh);
 		
+		float DELTA_TIME_CHANGE_THIS = 0.03333333333333333f;
+	
 		//animations
 		bool has_animation = false;
 		std::string animation_name;
@@ -57,14 +57,18 @@ public:
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
 		AnimationDataStruct getBLENDER_NODE_ANIMATION_DATA(const tinygltf::Node& node);
 		void getAllNodeAnimationTimelines();
-		void fillAnimationGaps(AnimationDataStruct& animation_data);
 		std::map<int, std::vector<float>> node_timelines_map;
-	
+		std::vector<float> getMaxNodeTimeline();
+		std::vector<float> getMaxSkinnedTimeline(const std::map<int, AnimationDataStruct>& bone_anim_map);
+		void equalizeAndMatchNodeAnimations();
+		std::vector<float> max_node_timeline;//stores the largest time array
 		
 		void getSkinnedAnimation();
 		void GET_SKINNED_ANIMATION_BLENDER();
 		void equalizeTRSanimationArrays(AnimationDataStruct& animation_data);	
 		std::vector<float> getTimelineArray(const tinygltf::AnimationSampler& sampler);
+		void fillInSkinnedAnimationGaps(AnimationDataStruct& animation_data);
+		float getAveragedAnimationFps(const std::map<int, AnimationDataStruct>& bone_animation_map);
 	
 		//skinning
 		bool has_skin = false;

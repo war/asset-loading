@@ -18,21 +18,11 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 		
 		animation_data.time_array = model->bone_animation_array.front().time_array;
 		
-		//fills in discontinuity
-		model->fillAnimationGaps(animation_data);
-		
-		//sloppy call. Equalizes pos/rot/scale arrays to be of equal length
-		model->equalizeTRSanimationArrays(animation_data);
-		
 	}
 	
 //	model->getHierarchy(empty_array[2].node);
 	
 	
-	//Equalizes all animation channels to match the MAX timeline duration
-//	equalizeAllAnimationDurations();
-	equalizeAllAnimationDurations2();
-
 }
 
 void AnimationPlayer::update(){
@@ -517,89 +507,5 @@ void AnimationPlayer::resetAnimations(){
 		bone_anim_data.current_animation_time = 0.f;//not being used currently
 	}
 	*/
-	
-}
-
-void AnimationPlayer::equalizeAllAnimationDurations(){
-	
-	std::vector<Empty>& empty_array = model->empties_array;
-	
-	//break out if no empties
-	if(empty_array.empty())
-		return;
-	
-	std::map<int, std::vector<float>> size_sorted_timelines;
-	
-	for(Empty& empty : empty_array){
-		AnimationDataStruct& animation_data = empty.animation_data;
-		size_sorted_timelines.emplace(animation_data.time_array.size(), animation_data.time_array);
-	}
-	
-	std::vector<float> max_timeline_array = size_sorted_timelines.rbegin()->second;
-	
-	for(Empty& empty : empty_array){
-		AnimationDataStruct& animation_data = empty.animation_data;
-		animation_data.time_array = max_timeline_array;
-		
-		equalizeTRSanimationArrays(animation_data);
-	}
-	
-}
-
-
-void AnimationPlayer::equalizeAllAnimationDurations2(){
-	
-	std::vector<Empty>& empty_array = model->empties_array;
-	
-	//break out if no empties
-	if(empty_array.empty())
-		return;
-	
-	std::vector<int> size_sorted_timeline_sizes;
-	std::map<int, std::vector<float>> timeline_map;//only used to calc delta time
-	
-	for(Empty& empty : empty_array){
-		AnimationDataStruct& animation_data = empty.animation_data;
-		size_sorted_timeline_sizes.emplace_back(animation_data.translation_anim_array.size());
-		size_sorted_timeline_sizes.emplace_back(animation_data.rotation_anim_array.size());
-		size_sorted_timeline_sizes.emplace_back(animation_data.scale_anim_array.size());
-		
-		timeline_map.emplace(animation_data.translation_anim_array.size(), animation_data.trans_time_array);
-		timeline_map.emplace(animation_data.rotation_anim_array.size(), animation_data.rot_time_array);
-		timeline_map.emplace(animation_data.scale_anim_array.size(), animation_data.scale_time_array);
-	}
-	
-	if(timeline_map.empty() || size_sorted_timeline_sizes.empty())
-		return;
-	
-	std::sort(size_sorted_timeline_sizes.begin(), size_sorted_timeline_sizes.end());
-	
-	int max_timeline_size = size_sorted_timeline_sizes.back();
-	
-	std::vector<float> max_timeline_array;
-	
-	float time_cnt {};
-	
-	//get delta time [bad method]
-	//get delta time [bad method]
-	if(timeline_map.rbegin()->second.empty())
-		throw std::logic_error("bad delta_time, empty array FIX");
-	
-//	float delta_time = timeline_map.rbegin()->second.back()/max_timeline_size;
-	float delta_time = DELTA_TIME_CHANGE_THIS;
-	
-	for(int i{}; i<max_timeline_size; i++){
-		
-		max_timeline_array.emplace_back(time_cnt);
-		
-		time_cnt += delta_time;
-	}
-	
-	for(Empty& empty : empty_array){
-		AnimationDataStruct& animation_data = empty.animation_data;
-		animation_data.time_array = max_timeline_array;
-		
-		equalizeTRSanimationArrays(animation_data);
-	}
 	
 }

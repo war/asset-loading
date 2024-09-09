@@ -31,11 +31,6 @@ public:
 	
 	void updateChildMeshes(const Empty& parent_empty, const glm::mat4& parent_trs);
 	
-	void equalizeAllAnimationDurations();
-	void equalizeAllAnimationDurations2();
-	
-	void fillAnimationGaps(AnimationDataStruct& animation_data);
-	
 	void resetAnimations();
 	
 };
