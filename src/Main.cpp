@@ -45,22 +45,23 @@ int main(int argc, char* argv[]) {
 		}
 
     //Scene
-    Map gridMap(5, 2.f);
+    Map gridMap(40, 2.f);
 
     std::string windowTitle = "";
 
 		//turn on Vsync
 		windowManager.SetVSyncMode(true);
 
-//    SDL_ShowCursor(SDL_DISABLE);
-//    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_ShowCursor(SDL_DISABLE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
 		//add directional light
 		DirectionalLight direct_light {};
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
-//    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/untitled.glb");
+    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
 //    ModelLoader* model = new ModelLoader("res/models/cube.glb");
 //    ModelLoader* model = new ModelLoader("res/models/m16/BLENDER-EXPORT.gltf");
 //    ModelLoader* model = new ModelLoader("res/models/pistol/BLENDER-EXPORT.gltf");
@@ -77,7 +78,6 @@ int main(int argc, char* argv[]) {
 		//add AnimationPlayer system
 		AnimationPlayer animation_player(model, &mesh_array, &windowManager);
 	
-    glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
@@ -105,15 +105,18 @@ int main(int argc, char* argv[]) {
         glm::mat4 projection = glm::perspective(camera.FovRads, aspectRatio, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-			  glEnable(GL_BLEND);
-		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        gridShader.use();
-        gridShader.setMat4("projection", projection);
-        gridShader.setMat4("view", view);
-        gridMap.draw(gridShader);
-				glDisable(GL_BLEND);
-//
-//        model.Render();
+				//render grid (if LCtrl pressed)
+				if(windowManager.isLShiftPressed())
+				{
+					glDisable(GL_CULL_FACE);
+				  glEnable(GL_BLEND);
+			    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	        gridShader.use();
+	        gridShader.setMat4("projection", projection);
+	        gridShader.setMat4("view", view);
+	        gridMap.draw(gridShader);
+					glDisable(GL_BLEND);
+				}
 			
 				//////////////////////
 				//render glTF meshes
@@ -129,8 +132,7 @@ int main(int argc, char* argv[]) {
 				if(windowManager.isRKeyPressed()){
 					animation_player.resetAnimations();
 				}
-			
-			
+				
         windowManager.swapBuffers();
         windowManager.updateFPS();
 			

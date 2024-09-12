@@ -135,12 +135,24 @@ void WindowManager::processInput(Camera& camera, float deltaTime)
 					//R key pressed
 					if(event.key.keysym.sym == SDLK_r)
 						isRpressed = true;
+					//LShift key pressed
+					if(event.key.keysym.sym == SDLK_LSHIFT)
+						m_isLShiftPressed = true;
+					//LCtrl key pressed
+					if(event.key.keysym.sym == SDLK_LCTRL)
+						m_isLCtrlPressed = true;
         }
 				else if (event.type == SDL_KEYUP)//key released
 				{
 					//R key released
 					if(event.key.keysym.sym == SDLK_r)
 						isRpressed = false;
+					//LShift key released
+					if(event.key.keysym.sym == SDLK_LSHIFT)
+						m_isLShiftPressed = false;
+					//LCtrl key released
+					if(event.key.keysym.sym == SDLK_LCTRL)
+						m_isLCtrlPressed = false;
 				}
         else if (event.type == SDL_MOUSEMOTION && mouseCaptured)
         {

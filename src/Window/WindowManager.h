@@ -27,6 +27,8 @@ public:
     void setShouldClose(bool close) { quit = close; }
     bool isShiftKeyPressed() const { return isShiftPressed; }
     bool isRKeyPressed() const { return isRpressed; }
+    bool isLCtrlPressed() const { return m_isLCtrlPressed; }
+    bool isLShiftPressed() const { return m_isLShiftPressed; }
     void ShowWireframe(bool isShiftPressed);
 
     int getWidth() { return width; }
@@ -74,4 +76,7 @@ private:
     bool isShiftPressed;
 	
 		bool isRpressed = false;
+	
+		bool m_isLCtrlPressed = false;
+		bool m_isLShiftPressed = false;
 };

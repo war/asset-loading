@@ -3,10 +3,6 @@
 
 Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager), direct_light(_direct_light){
 	
-	
-	
-	
-	
 	std::vector<glm::vec3> tangent_array;
 	std::vector<glm::vec3> bitangent_array;
 	
@@ -89,18 +85,12 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		
 		//tang
 		glm::vec3 tangent = tangent_array[i];
-//		tri_vertices.emplace_back( (GLfloat)tangent.x );
-//		tri_vertices.emplace_back( (GLfloat)tangent.y );
-//		tri_vertices.emplace_back( (GLfloat)tangent.z );
 		tri_vertices.emplace_back( 0.f );
 		tri_vertices.emplace_back( 1.f );
 		tri_vertices.emplace_back( 0.f );
 		
 		//bitang
 		glm::vec3 bitangent = bitangent_array[i];
-//		tri_vertices.emplace_back( (GLfloat)bitangent.x );
-//		tri_vertices.emplace_back( (GLfloat)bitangent.y );
-//		tri_vertices.emplace_back( (GLfloat)bitangent.z );
 		tri_vertices.emplace_back( 1.f );
 		tri_vertices.emplace_back( 0.f );
 		tri_vertices.emplace_back( 0.f );
@@ -294,6 +284,10 @@ void Mesh::update(){
 	//send isSkinned var
 	shader->setInt("isSkinned", (int)mesh_data.has_skin);
 	
+	//backface culling (if enabled)
+	(enable_backface_culling) ? glCullFace(GL_BACK) : glCullFace(GL_BACK);
+	(enable_backface_culling) ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+	
 	//render mesh
 	glDrawElements(GL_TRIANGLES, tri_indices.size(), GL_UNSIGNED_INT, 0);//rendering part
 	
@@ -302,8 +296,6 @@ void Mesh::update(){
 }
 
 void Mesh::updateAnimation(){
-	
-
 	
 	//old step interpolation method
 
@@ -517,9 +509,6 @@ void Mesh::updateSkinnedAnimation(){
 		glm::mat4 skinned_mat = inverse_bind_mat * glm::transpose( bone_transform_matrix_array[m] );
 		bone_skinned_matrix_array.emplace_back( glm::transpose( skinned_mat ) );
 	}
-
-//	if(model->)
-	
 	
 	
 }

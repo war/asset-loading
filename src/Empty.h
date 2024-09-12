@@ -26,10 +26,16 @@ public:
 	glm::vec3 scale = glm::vec3(1.f);
 	
 	glm::mat4 modelMatrix = glm::mat4(1.f);
-	glm::mat4 base_matrix = glm::mat4(1.f);//base matrix loaded in from gltf [if it exists]
+	glm::mat4 matrix_transform = glm::mat4(1.f);//base matrix loaded in from gltf [if it exists]
+	bool has_matrix_transform = false;
 	
 	bool has_childs = false;
 	std::vector<int> child_array;
+	
+	bool has_parent = false;
+	int parent_idx = -1;
+	
+	bool is_root = false;
 	
 	bool has_animation = false;
 	std::string animation_name;

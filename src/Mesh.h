@@ -46,6 +46,7 @@ public:
 	std::vector<glm::mat4> bone_transform_matrix_array;//stores bone animated transform [pos/rot/scale] for EACH BONE.
 	std::vector<glm::mat4> bone_skinned_matrix_array;//store the FINAL skinned matrix which will be sent directly to shader
 	
+	bool enable_backface_culling = true;
 	
 public:
 	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light);
@@ -70,6 +71,9 @@ public:
 	glm::vec3 calculateCurrentTranslation(const AnimationDataStruct& animation_data);
 	glm::quat calculateCurrentRotation(const AnimationDataStruct& animation_data);
 	glm::vec3 calculateCurrentScale(const AnimationDataStruct& animation_data);
+	
+	
+	inline void enableBackFaceCulling(bool mode) {	enable_backface_culling = mode;	}
 };
 
 

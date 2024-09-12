@@ -12,7 +12,7 @@
 class AnimationPlayer{
 public:
 	
-	ModelLoader* model;
+	ModelLoader* model_loader;
 	std::vector<Mesh*>* mesh_array;
 	WindowManager* window_manager;
 	
@@ -25,11 +25,10 @@ public:
 	glm::vec3 calculateCurrentScale(AnimationDataStruct& animation_data);
 	
 	MeshDataStruct getFirstChildMesh(const Empty& empty);
-	std::vector<MeshDataStruct> getChildMeshArray(const Empty& empty);
 	Empty getFirstChildEmpty(const Empty& parent_empty);
 	std::vector<Empty> getChildEmptyArray(const Empty& parent_empty);
 	
-	void updateChildMeshes(const Empty& parent_empty, const glm::mat4& parent_trs);
+	void updateChildMeshes(const Empty& parent_empty);
 	
 	void resetAnimations();
 	

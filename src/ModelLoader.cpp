@@ -5,7 +5,6 @@
 #include <map>
 
 
-
 ModelLoader::ModelLoader(const std::string& path){
 	
 	std::string error;
@@ -104,26 +103,17 @@ ModelLoader::ModelLoader(const std::string& path){
 			if(!node.scale.empty())//scale
 				mesh_data_struct.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
 			if(!node.matrix.empty()){//matrix
-				mesh_data_struct.base_matrix = glm::mat4(
+				mesh_data_struct.matrix_transform = glm::mat4(
 					node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
 					node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
 					node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
 					node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]
 					);
+				mesh_data_struct.has_matrix_transform = true;
+				
+				mesh_data_struct.modelMatrix = mesh_data_struct.matrix_transform;
 			}
-			
 		}
-		
-		/*
-		if(mesh.name == "lid_Mat_0"){
-			PRINT_WARN("###################");
-			PRINT_WARN("name " + mesh.name);
-			for(auto v : mesh_data_struct.vertex_positions_array)
-				printGlmVec3(v);
-			PRINT_WARN("###################");
-		}
-		
-		*/
 		
 		///////////////////////////
 		//SKINNING [JOINTS/WEIGHTS]
@@ -162,7 +152,7 @@ ModelLoader::ModelLoader(const std::string& path){
 		//add to MeshDataStruct array
 		mesh_data_struct_array.emplace_back(mesh_data_struct);
 	}
-	
+
 	///////////////////
 	//LOAD ALL EMPTIES
 	///////////////////
@@ -185,10 +175,10 @@ ModelLoader::ModelLoader(const std::string& path){
 		if( isBone(empty.node_index) ){
 			continue;
 		}
-		//checks to make sure this is NOT an armature
-		if( isArmature(empty.node_index) ){
-			continue;
-		}
+//		//checks to make sure this is NOT an armature
+//		if( isArmature(empty.node_index) ){
+//			continue;
+//		}
 		
 		//check to see if has sub-nodes
 		if(!node.children.empty()){
@@ -196,39 +186,28 @@ ModelLoader::ModelLoader(const std::string& path){
 			empty.child_array = node.children;
 		}
 		
-		///////////////////////////
-		//GLOBAL POS/ROT/SCALE/MATRICES
-		///////////////////////////
-		{
-			//find node this mesh is assigned to
-			if(!node.translation.empty())//translation
-				empty.position = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
-			if(!node.rotation.empty())//rotation
-				empty.rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
-			if(!node.scale.empty())//scale
-				empty.scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
-			if(!node.matrix.empty()){//matrix
-				empty.base_matrix = glm::mat4(
-					node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
-					node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
-					node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
-					node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]
-					);
-			}
-				
-			
-		}
-		
 		/////////////
 		//ANIMATIONS
 		/////////////
 		empty.animation_data = getNodeAnimationData(node);
 		
-		//////////////////////////
-		//fill in animation gaps
-		//////////////////////////
-		fillInSkinnedAnimationGaps( empty.animation_data );
-
+		empty.is_root = isRootNode(node);
+		
+		
+		///////////////////////////
+		//GLOBAL POS/ROT/SCALE/MATRICES
+		///////////////////////////
+		{
+			empty.position = empty.animation_data.translation = getTranslation(node);
+			empty.rotation = empty.animation_data.rotation = getRotation(node);
+			empty.scale = empty.animation_data.scale = getScale(node);
+			if(!node.matrix.empty()){
+				empty.matrix_transform = getTransformMatrix(node);
+				empty.has_matrix_transform = true;
+				empty.modelMatrix = empty.matrix_transform;
+			}
+		}
+		
 		//add to array
 		empties_array.emplace_back(empty);
 	}
@@ -240,6 +219,11 @@ ModelLoader::ModelLoader(const std::string& path){
 			node_anim_map.emplace(empty.node_index, empty.animation_data);
 		DELTA_TIME_CHANGE_THIS = getAveragedAnimationFps(node_anim_map);
 	}
+	//////////////////////////
+	//fill in Node animation gaps
+	//////////////////////////
+	for(Empty& empty : empties_array)
+		fillInAnimationGaps( empty.animation_data );
 	
 	//get max Node timeline
 	max_node_timeline = getMaxNodeTimeline();
@@ -251,12 +235,15 @@ ModelLoader::ModelLoader(const std::string& path){
 	equalizeAndMatchNodeAnimations();
 	
 	////////////////
-	//get skinned anims
+	//SKINNED ANIMS
 	////////////////
 	getSkinnedAnimation();
 //	GET_SKINNED_ANIMATION_BLENDER();
-	
 
+	//check to see if skin and model anims are synced
+	if(!bone_animation_array.empty() && !max_node_timeline.empty())
+		if(bone_animation_array.front().time_array.size() != max_node_timeline.size())
+			PRINT_WARN("Warning: detected possible desync between skinned and model animations.");
 	
 	
 }
@@ -767,7 +754,7 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 		//fetch times
 		/////////////////////
 		tinygltf::AnimationSampler& time_sampler = animation.samplers[0];
-		std::vector<float> times = getTimelineArray(time_sampler);
+//		std::vector<float> times = getTimelineArray(time_sampler);
 		
 		tinygltf::AnimationChannel& channel = animation.channels[c];
 		tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
@@ -861,16 +848,15 @@ std::vector<float> ModelLoader::getMaxNodeTimeline(){
 	
 	std::vector<float> max_timeline;
 	
+	//return empty array if no anims
 	if(sorted_timelines.empty())
 		return max_timeline;
 	
 	max_timeline = sorted_timelines.rbegin()->second;
 	
-
-//	std::cout << "max " << max_timeline.size() << std::endl;
-//	for(int t{}; t<max_timeline.size(); t++)
-//		std::cout << "idx " << t << "   time " << max_timeline[t] << std::endl;
-	
+	//return empty array if no anims
+	if(max_timeline.empty())
+		return max_timeline;
 	
 	//check for any time gaps and fill in
 		std::map<int, int> gap_idx_trans_array;
@@ -969,7 +955,6 @@ void ModelLoader::equalizeAndMatchNodeAnimations(){
 		if(animation_data.scale_anim_array.empty())
 			for(float t : max_node_timeline)
 				animation_data.scale_anim_array.emplace_back(animation_data.scale);
-		
 	}
 	
 	////////////////////////////////////
@@ -1159,6 +1144,10 @@ void ModelLoader::getSkinnedAnimation(){
 		return;
 	}
 	
+	//remove this/////////////////////////
+	if(DELTA_TIME_CHANGE_THIS == 0.f)//reminder for me to implement delta time calc fallback for bones, in case mdoels anims dont exist
+		throw std::logic_error("[Fallback reminder] delta time calculated incorrectly. Must be calculated from bones and not non-existent model animations.");
+	
 	//more than 1 animation?
 	tinygltf::Animation anim;
 	
@@ -1203,7 +1192,7 @@ void ModelLoader::getSkinnedAnimation(){
 		//fetch times
 		/////////////////////
 		tinygltf::AnimationSampler& time_sampler = anim.samplers[0];
-		std::vector<float> times = getTimelineArray(time_sampler);
+//		std::vector<float> times = getTimelineArray(time_sampler);
 		
 		int output_idx = sampler.output;
 		
@@ -1355,20 +1344,20 @@ void ModelLoader::getSkinnedAnimation(){
 	
 	//get static translations/rots/scales for each bone
 	for(auto& itr : bone_anim_map){
-		AnimationDataStruct& anim = itr.second;
-		const tinygltf::Node& bone_node = model.nodes[ anim.node_index ];
+		AnimationDataStruct& animation_data = itr.second;
+		const tinygltf::Node& bone_node = model.nodes[ animation_data.node_index ];
 		
 		//trans
 		if(!bone_node.translation.empty()){
-			anim.translation = glm::vec3( bone_node.translation[0], bone_node.translation[1], bone_node.translation[2] ) ;
+			animation_data.translation = glm::vec3( bone_node.translation[0], bone_node.translation[1], bone_node.translation[2] ) ;
 		}
 		//rot
 		if(!bone_node.rotation.empty()){
-			anim.rotation = glm::quat( bone_node.rotation[3], bone_node.rotation[0], bone_node.rotation[1], bone_node.rotation[2] ) ;
+			animation_data.rotation = glm::quat( bone_node.rotation[3], bone_node.rotation[0], bone_node.rotation[1], bone_node.rotation[2] ) ;
 		}
 		//scale
 		if(!bone_node.scale.empty()){
-			anim.scale = glm::vec3( 1.f ) ;
+			animation_data.scale = glm::vec3( 1.f ) ;
 		}
 	}
 	
@@ -1377,12 +1366,7 @@ void ModelLoader::getSkinnedAnimation(){
 	/////////////////////////////
 	for(auto& itr : bone_anim_map){
 		AnimationDataStruct& animation_data = itr.second;
-		
-//		if(model.nodes[animation_data.node_index].name != "L_thumb3_05")
-//			continue;
-		
-		fillInSkinnedAnimationGaps(animation_data);
-		
+		fillInAnimationGaps(animation_data);
 	}
 	
 	//get max timeline array
@@ -1390,27 +1374,27 @@ void ModelLoader::getSkinnedAnimation(){
 
 	//update time_array with max timeline for each bone
 	for(auto& itr : bone_anim_map){
-		AnimationDataStruct& anim = itr.second;
-		anim.time_array = max_timeline;
+		AnimationDataStruct& animation_data = itr.second;
+		animation_data.time_array = max_timeline;
 	}
 	
 	//mark all non-anim bones as being animated [not-needed?]
 	for(auto& v : bone_anim_map){
 		if(!v.second.has_animation){
-			AnimationDataStruct& anim = v.second;
-			anim.has_animation = true;
+			AnimationDataStruct& animation_data = v.second;
+			animation_data.has_animation = true;
 //			PRINT_COLOR("bone with no anim data -> " + model.nodes[anim.node_index].name,255,0,0);
 		}
 	}
 	
 	//find root bones 
 	for(auto& v : bone_anim_map){
-		AnimationDataStruct& anim = v.second;
+		AnimationDataStruct& animation_data = v.second;
 		for(std::size_t n{}; n<model.nodes.size(); n++){
 			std::vector<int> childs_vec = model.nodes[n].children;
-			if( std::find(childs_vec.begin(), childs_vec.end(), anim.node_index) != childs_vec.end() ){
-				anim.has_root = true;
-				anim.root_idx = n;
+			if( std::find(childs_vec.begin(), childs_vec.end(), animation_data.node_index) != childs_vec.end() ){
+				animation_data.has_root = true;
+				animation_data.root_idx = n;
 				
 				break;
 			}
@@ -1420,56 +1404,56 @@ void ModelLoader::getSkinnedAnimation(){
 	
 	//equalize empty arrays
 	for(auto& v : bone_anim_map){
-		AnimationDataStruct& anim = v.second;
+		AnimationDataStruct& animation_data = v.second;
 		
 		//pos
-		if(anim.translation_anim_array.empty())
+		if(animation_data.translation_anim_array.empty())
 			for(float t : max_timeline)
-				anim.translation_anim_array.emplace_back(anim.translation);
+				animation_data.translation_anim_array.emplace_back(animation_data.translation);
 		
 		//rots
-		if(anim.rotation_anim_array.empty())
+		if(animation_data.rotation_anim_array.empty())
 			for(float t : max_timeline)
-				anim.rotation_anim_array.emplace_back(anim.rotation);
+				animation_data.rotation_anim_array.emplace_back(animation_data.rotation);
 		
 		//scales
-		if(anim.scale_anim_array.empty())
+		if(animation_data.scale_anim_array.empty())
 			for(float t : max_timeline)
-				anim.scale_anim_array.emplace_back(anim.scale);
+				animation_data.scale_anim_array.emplace_back(animation_data.scale);
 		
 	}
 	
 	//match up array sizes to be as large as max timeline
 	for(auto& v : bone_anim_map){
-		AnimationDataStruct& anim = v.second;
+		AnimationDataStruct& animation_data = v.second;
 		
 		int max_size = max_timeline.size();
 		
 		//equalize translation array
-		if(anim.translation_anim_array.size() != max_size){
+		if(animation_data.translation_anim_array.size() != max_size){
 			//if few frames short, calc difference and apply
-			int diff = max_size - anim.translation_anim_array.size();
-			glm::vec3 last_pos = anim.translation_anim_array.back();
+			int diff = max_size - animation_data.translation_anim_array.size();
+			glm::vec3 last_pos = animation_data.translation_anim_array.back();
 			for(int i{}; i<diff; i++)
-				anim.translation_anim_array.emplace_back( last_pos );
+				animation_data.translation_anim_array.emplace_back( last_pos );
 		}
 		
 		//equalize rot array
-		if(anim.rotation_anim_array.size() != max_size){
+		if(animation_data.rotation_anim_array.size() != max_size){
 			//if few frames short, calc difference and apply
-			int diff = max_size - anim.rotation_anim_array.size();
-			glm::quat last_rot = anim.rotation_anim_array.back();
+			int diff = max_size - animation_data.rotation_anim_array.size();
+			glm::quat last_rot = animation_data.rotation_anim_array.back();
 			for(int i{}; i<diff; i++)
-				anim.rotation_anim_array.emplace_back( last_rot );
+				animation_data.rotation_anim_array.emplace_back( last_rot );
 		}
 		
 		//equalize scale array
-		if(anim.scale_anim_array.size() != max_size){
+		if(animation_data.scale_anim_array.size() != max_size){
 			//if few frames short, calc difference and apply
-			int diff = max_size - anim.scale_anim_array.size();
-			glm::vec3 last_scale = anim.scale_anim_array.back();
+			int diff = max_size - animation_data.scale_anim_array.size();
+			glm::vec3 last_scale = animation_data.scale_anim_array.back();
 			for(int i{}; i<diff; i++)
-				anim.scale_anim_array.emplace_back( last_scale );
+				animation_data.scale_anim_array.emplace_back( last_scale );
 		}
 	}
 
@@ -1654,7 +1638,7 @@ void ModelLoader::GET_SKINNED_ANIMATION_BLENDER(){
 }
 
 //fills in discontinuities in animation timelines (position/rotation/scale) 
-void ModelLoader::fillInSkinnedAnimationGaps(AnimationDataStruct& animation_data){
+void ModelLoader::fillInAnimationGaps(AnimationDataStruct& animation_data){
 	//////////////////////////////////
 	//TRANSLATION GAPS
 	//////////////////////////////////
@@ -1778,18 +1762,21 @@ float ModelLoader::getAveragedAnimationFps(const std::map<int, AnimationDataStru
 		averaged_delta_times_array.emplace_back(delta_time);
 	}
 	
-	//check to see if empty [should not be]
-	if(averaged_delta_times_array.empty()){
-		return 0.033333333f;
-		PRINT_COLOR("Error. `averaged_delta_times_array` is empty, returning 0.03f", 255, 0, 0);
+	//if no anims found, loop below prevents crashes 
+	if(averaged_delta_times_array.empty())
+		return 0.f;
+	
+	//pick smallest delta time as that should be the value used [better way to do this?]
+	std::sort(averaged_delta_times_array.begin(), averaged_delta_times_array.end());
+	float smallest_delta = averaged_delta_times_array.front();
+	
+	//make sure smallest_delta is sensible
+	if(smallest_delta == 0.f || smallest_delta > .05f){
+		PRINT_WARN("Delta time cannot be 0 or large.");
+		smallest_delta = 0.f;
 	}
 	
-	//sum and average
-	float average_delta_time {};
-	for(float t : averaged_delta_times_array)
-		average_delta_time += t;
-	
-	return average_delta_time/averaged_delta_times_array.size();
+	return smallest_delta;
 }
 
 std::vector<glm::vec4> ModelLoader::getSkinJoints(const tinygltf::Mesh& mesh){
@@ -1955,6 +1942,52 @@ std::vector<glm::mat4> ModelLoader::getInverseBindMatrices(const tinygltf::Mesh&
 	return inverse_bind_matrix_array;
 }
 
+glm::vec3 ModelLoader::getTranslation(const tinygltf::Node& node) const{
+	
+	glm::vec3 translation = glm::vec3(0.f);
+	
+	if(!node.translation.empty())
+		translation = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
+	
+	return translation;
+}
+
+glm::quat ModelLoader::getRotation(const tinygltf::Node& node) const{
+	
+	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+	
+	if(!node.rotation.empty())
+		rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
+	
+	return rotation;
+}
+
+glm::vec3 ModelLoader::getScale(const tinygltf::Node& node) const{
+	
+	glm::vec3 scale = glm::vec3(1.f);
+	
+	if(!node.scale.empty())
+		scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+	
+	return scale;
+}
+
+glm::mat4 ModelLoader::getTransformMatrix(const tinygltf::Node& node) const{
+	
+	glm::mat4 matrix = glm::mat4(1.f);
+	
+	if(!node.matrix.empty()){
+		matrix = glm::mat4(
+			node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
+			node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
+			node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
+			node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]
+			);
+	}
+	
+	return matrix;
+}
+
 void ModelLoader::equalizeTRSanimationArrays(AnimationDataStruct& animation_data){
 //	std::vector<int> anim_array_sizes = {animation_data.translation_anim_array.size(), animation_data.rotation_anim_array.size(), animation_data.scale_anim_array.size()};
 //	std::sort(anim_array_sizes.begin(), anim_array_sizes.end());
@@ -2064,7 +2097,7 @@ bool ModelLoader::isBone(int node_index){
 //		result = true;
 //	}
 
-	for(auto i : skin_node_indices)
+	for(int i : skin_node_indices)
 		if(i == node_index)
 			return true;
 	
@@ -2079,9 +2112,13 @@ bool ModelLoader::isArmature(int node_index){
 
 	tinygltf::Node& node = model.nodes[node_index];
 	
-	tinygltf::Skin& skin = model.skins.front();
+	tinygltf::Skin& skin = model.skins.front();//dont use front
 	
-	//not a good way of checking, but sufficient for now since no way to get skin/node index [tinygltf issue?]
+	if(model.skins.size() > 1){
+		PRINT_COLOR("use an index instead of .front() for getting skin", 255, 0, 0);
+	}
+	
+	//not a good way of checking, but adequate for now since no way to get skin/node index [tinygltf issue?]
 	if(node.name == skin.name){
 		result = true;
 	}
@@ -2091,23 +2128,25 @@ bool ModelLoader::isArmature(int node_index){
 
 void ModelLoader::getHierarchy(const tinygltf::Node& node_in){
 	
-	bool base_reached = false;
+//	bool base_reached = false;
 	
 //	int idx = empty.node_index;
 	tinygltf::Node node = node_in;
 	
 	int tree_level {};
 	while(true){
-		if(node.children.empty()){
+		if(node.children.empty())
 			break;
-		}
-
+		
+		if(isBone(getNodeIndex(node)))
+			break;
+		
 		node = model.nodes[ node.children[0] ];//first child BAD IDEA
+		
 		//skip if bone
 		if(isBone(getNodeIndex(node)))
-			continue;
+			break;
 		
-		PRINT_WARN("child -> " + node.name);
 		tree_level++;
 	}
 //	std::cout << "levels " <<  tree_level << ", " << node.name << std::endl;
@@ -2120,4 +2159,64 @@ int ModelLoader::getNodeIndex(const tinygltf::Node& node){
 			return i;
 	
 	return -1;
+}
+
+bool ModelLoader::isRootNode(const tinygltf::Node& node){
+	
+	std::vector<tinygltf::Node> node_with_childs_array;
+	std::vector<tinygltf::Node> all_child_nodes_array;
+	
+	for(const tinygltf::Node& n : model.nodes)
+		if(!n.children.empty())
+			node_with_childs_array.emplace_back(n);
+	
+	for(const tinygltf::Node& n : node_with_childs_array){
+		for(int sub : n.children)
+			all_child_nodes_array.emplace_back(model.nodes[sub]);
+	}
+	
+	const auto is_a_subnode = std::find(all_child_nodes_array.begin(), all_child_nodes_array.end(), node);
+		
+	if(!node.children.empty() && is_a_subnode == all_child_nodes_array.end())
+//		if(!isBone(getNodeIndex(node)) && !isArmature(getNodeIndex(node)))
+		return true;
+	
+	return false;
+}
+
+int ModelLoader::getParentNodeIndex(const tinygltf::Node& node){
+	
+	int node_idx = getNodeIndex(node);
+	int parent_idx = -1;
+	
+	for(tinygltf::Node n : model.nodes){
+		
+		if(n.children.empty())
+			continue;
+		
+		auto search = std::find( n.children.begin(), n.children.end(), node_idx );
+		
+		if(search != n.children.end()){
+			parent_idx = getNodeIndex(n);
+			break;
+		}
+			
+		
+	}
+	
+	
+	return parent_idx;
+}
+
+std::vector<MeshDataStruct> ModelLoader::getChildMeshArray(const tinygltf::Node& node){
+	std::vector<MeshDataStruct> child_mesh_array;
+	
+	for(int c : node.children){
+		for(const MeshDataStruct& msh : mesh_data_struct_array){
+			if(msh.node_index == c)
+				child_mesh_array.emplace_back(msh);
+		}
+	}
+	//WARNING - RETURNS A USELESS OBJECT
+	return child_mesh_array;
 }

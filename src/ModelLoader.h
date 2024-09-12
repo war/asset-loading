@@ -35,6 +35,12 @@ public:
 		std::vector<glm::vec2> getVertexUVs(const tinygltf::Mesh& mesh);
 		std::vector<unsigned int> getIndices(const tinygltf::Mesh& mesh);
 		
+		//get global translation/pos/rot
+		glm::vec3 getTranslation(const tinygltf::Node& node) const; 
+		glm::quat getRotation(const tinygltf::Node& node) const; 
+		glm::vec3 getScale(const tinygltf::Node& node) const; 
+		glm::mat4 getTransformMatrix(const tinygltf::Node& node) const; 
+	
 		//the raw data cast into float/int arrays
 		float* float_array = nullptr;
 		unsigned short* ushort_array = nullptr;
@@ -47,7 +53,7 @@ public:
 		//materials
 		MaterialDataStruct getMaterial(const tinygltf::Mesh& mesh);
 		
-		float DELTA_TIME_CHANGE_THIS = 0.03333333333333333f;
+		float DELTA_TIME_CHANGE_THIS = 0.f;
 	
 		//animations
 		bool has_animation = false;
@@ -67,7 +73,7 @@ public:
 		void GET_SKINNED_ANIMATION_BLENDER();
 		void equalizeTRSanimationArrays(AnimationDataStruct& animation_data);	
 		std::vector<float> getTimelineArray(const tinygltf::AnimationSampler& sampler);
-		void fillInSkinnedAnimationGaps(AnimationDataStruct& animation_data);
+		void fillInAnimationGaps(AnimationDataStruct& animation_data);
 		float getAveragedAnimationFps(const std::map<int, AnimationDataStruct>& bone_animation_map);
 	
 		//skinning
@@ -83,6 +89,10 @@ public:
 		tinygltf::Model& getTinyGltfModel() {	return model;	}
 		void getHierarchy(const tinygltf::Node& node_in);
 		int getNodeIndex(const tinygltf::Node& node);
+		bool isRootNode(const tinygltf::Node& node);
+		int getParentNodeIndex(const tinygltf::Node& node);
+		std::vector<MeshDataStruct> getChildMeshArray(const tinygltf::Node& node);
+	
 	
 private:
     tinygltf::TinyGLTF tiny_gltf;
