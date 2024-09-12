@@ -2,28 +2,10 @@
 
 #include <algorithm>
 
-std::map<std::string, Empty*> e_map;
-
-std::vector<std::pair<Empty*, Empty*>> root_and_child_array;
-
-
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model_loader(_model), mesh_array(_mesh_array), window_manager(win_manager){
-	
-	//ensures all empty animations have the same duration (required for full animation playback)
 	
 	std::vector<Empty>& empty_array = model_loader->empties_array;
 	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->mesh_data_struct_array;
-	for(Empty& empty : empty_array){
-		
-		AnimationDataStruct& animation_data = empty.animation_data;
-		
-		if(!animation_data.has_animation)
-			continue;
-		
-		animation_data.time_array = model_loader->bone_animation_array.front().time_array;
-		
-	}
-	
 	
 	//gather all root nodes
 	std::vector<tinygltf::Node> root_nodes;
@@ -32,64 +14,94 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 			root_nodes.emplace_back(empty.node);
 	
 	
-	std::map<std::string, Empty> empty_map;
 	for(Empty& e : model_loader->empties_array){
-		e_map.emplace(e.name, &e);
+		empties_map.emplace(e.name, &e);
 	}
 	
 	//fill in root-subnode relationship array
 	for(Empty& empty : model_loader->empties_array){
 		
-		if(!model_loader->isBone(empty.node_index)){
-			int idx = model_loader->getParentNodeIndex(empty.node);
-			if(idx == -1)
-				continue;
-			
-			std::pair<Empty*, Empty*> pair;
-			
-			//find root empty for the child
-			for(Empty& e2 : model_loader->empties_array){
-				if(e2.node_index == idx){
-					pair.first = &e2;
-					break;
-				}
+		//skip if bone
+		if(model_loader->isBone(empty.node_index))
+			continue;
+		
+		int idx = model_loader->getParentNodeIndex(empty.node);
+		if(idx == -1)
+			continue;
+		
+		std::pair<Empty*, Empty*> pair;
+		
+		//find root empty for the child
+		for(Empty& e2 : model_loader->empties_array){
+			if(e2.node_index == idx){
+				pair.first = &e2;
+				break;
 			}
-			
-			//child empty
-			pair.second = &empty;
-			
-			//add to array
-			root_and_child_array.emplace_back(pair);
-			
 		}
+		
+		//child empty
+		pair.second = &empty;
+		
+		//add to array
+		root_and_child_array.emplace_back(pair);
 	}
+
+	//FOR EDGE CASES -- fill in all root nodes
+	for(Empty& empty : model_loader->empties_array){
+		//skip if bone
+		if(model_loader->isBone(empty.node_index))
+			continue;
+		
+		int idx = model_loader->getParentNodeIndex(empty.node);
+		if(idx == -1)//MUST be == -1 for it to be a root node
+			root_array.emplace_back(&empty);
+	}
+		
+	
 	
 }
 
+AnimationPlayer::~AnimationPlayer(){}
+
 void AnimationPlayer::update(){
+	
 	std::vector<Empty>& empty_array = model_loader->empties_array;
 	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->mesh_data_struct_array;
 	
 	const tinygltf::Model& model_tinygltf = model_loader->getTinyGltfModel();
 	
-	std::map<std::string, Empty> empty_map;
-	for(Empty& e : empty_array){
-		empty_map.emplace(e.name, e);
-	}
-	std::map<std::string, Mesh*> mesh_map;
+	//map key = node index
 	std::map<int, Mesh*> mesh_index_map;
-	for(Mesh* m  : *mesh_array){
-		mesh_map.emplace(m->mesh_data.name, m);
+	for(Mesh* m  : *mesh_array)
 		mesh_index_map.emplace(m->mesh_data.node_index, m);
+	
+	////////////////////////////////////////
+	//EDGE CASE -- update animated ROOT nodes
+	////////////////////////////////////////
+	for(Empty* root_empty : root_array){
+		AnimationDataStruct& animation_data = root_empty->animation_data;
+		
+		//only interested in animated root nodes
+		if(!animation_data.has_animation)
+			continue;
+		
+		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
+		
+		//UPDATE EMPTY ANIMATIONS POS/ROT/SCALE [if they exist]
+		glm::vec3 anim_position = calculateCurrentTranslation(animation_data);
+		glm::quat anim_rotation = calculateCurrentRotation(animation_data);
+		glm::vec3 anim_scale = calculateCurrentScale(animation_data);
+		
+		//animated TRS matrix [if animated]
+		glm::mat4 anim_matrix = createTRSmatrix(anim_position, anim_rotation, anim_scale);
+		
+		root_empty->modelMatrix = anim_matrix;//if this node is animated, its final matrix will be = root matrix * animted TRS matrix
 	}
 	
-	///////////////////////////////////////
-	/////////////// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@///////////////////////
-	/////////////// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@///////////////////////
-//	std::vector<std::pair<Empty*, Empty*>> root_and_child_array = {  {e_map["RootNode"], e_map["Object_4"]}, {e_map["Object_4"], e_map["BPpistol"]}, {e_map["BPpistol"], e_map["base"]}, {e_map["BPpistol"], e_map["slide"]} };
-//	std::vector<std::pair<Empty*, Empty*>> root_and_child_array = { {e_map["Sketchfab_model"], e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"]}, {e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"], e_map["Object_2"]}, {e_map["Object_2"], e_map["RootNode"]}, {e_map["RootNode"], e_map["m16a2_base"]}, {e_map["m16a2_base"], e_map["m16a2_chargehandle"]}, {e_map["m16a2_chargehandle"], e_map["m16a2_chargehandle2"]}, {e_map["m16a2_base"], e_map["m16a2_trigger"]}, {e_map["m16a2_base"], e_map["m16a2_bolt"]}, {e_map["m16a2_base"], e_map["m16a2_boltcatch"]}, {e_map["m16a2_base"], e_map["m16a2_release"]}, {e_map["m16a2_base"], e_map["magazine"]}, {e_map["m16a2_base"], e_map["m16a2_ejection_port_cover"]} };
-//	std::vector<std::pair<Empty*, Empty*>> root_and_child_array = { {e_map["Sketchfab_model"], e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"]}, {e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"], e_map["Object_2"]}, {e_map["Object_2"], e_map["RootNode"]}, {e_map["RootNode"], e_map["m16a2_base"]}, {e_map["m16a2_base"], e_map["m16a2_ejection_port_cover"]} };
-	for(auto& pair_itr : root_and_child_array){
+	//////////////////////////////////////////////
+	//update all model animations [nodes-subnodes]
+	//////////////////////////////////////////////
+	for(const auto& pair_itr : root_and_child_array){
 		Empty* empty_root = pair_itr.first;
 		Empty* empty_child = pair_itr.second;
 		AnimationDataStruct& anim_data_child = empty_child->animation_data;
@@ -103,11 +115,6 @@ void AnimationPlayer::update(){
 		glm::quat child_anim_rotation = calculateCurrentRotation(anim_data_child);
 		glm::vec3 child_anim_scale = calculateCurrentScale(anim_data_child);
 		
-//		if(empty_child->name == "m16a2_ejection_port_cover"){
-//			child_anim_position = empty_child->position;
-//		}
-			
-		
 		//animated TRS matrix [if animated]
 		glm::mat4 child_anim_matrix = createTRSmatrix(child_anim_position, child_anim_rotation, child_anim_scale);
 		
@@ -116,21 +123,11 @@ void AnimationPlayer::update(){
 		}
 		else{
 			//if uses matrix instead of raw pos/rot/scale data supplied from gltf
-			if(empty_child->has_matrix_transform){
+			if(empty_child->has_matrix_transform)
 				empty_child->modelMatrix = root_matrix * empty_child->matrix_transform;
-			}
 			else
 				empty_child->modelMatrix = root_matrix * createTRSmatrix(empty_child->position, empty_child->rotation, empty_child->scale);//if this node is NOT animated, its final matrix will be = root matrix * static TRS matrix
 		}
-		
-		///////////////////////////REMOVE -- scaling up model for now bc its so small
-		///////////////////////////REMOVE -- scaling up model for now bc its so small
-		///////////////////////////REMOVE -- scaling up model for now bc its so small
-		///////////////////////////REMOVE -- scaling up model for now bc its so small
-//		if(empty_child->name == "m16a2_base"){
-//			empty_child->modelMatrix = glm::scale(e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"]->matrix_transform, glm::vec3(100.f)) * e_map["Sketchfab_model"]->matrix_transform * child_anim_matrix;
-//		}
-			
 		
 		const std::vector<MeshDataStruct>& child_mesh_array = model_loader->getChildMeshArray(model_tinygltf.nodes[empty_child->node_index]);
 		
@@ -145,279 +142,10 @@ void AnimationPlayer::update(){
 				mesh_index_map[msh_data.node_index]->mesh_data.modelMatrix = mesh_model_matrix * empty_child->modelMatrix;
 				mesh_index_map[msh_data.node_index]->mesh_data.inherits_animation = true;
 			}
-			
 		}
-		
-		
 	}
-	
-	
-	/*
-	//update skin pos
-	glm::mat4 null_matrix = createTRSmatrix(e_map["Null"]->position, e_map["Null"]->rotation, e_map["Null"]->scale);//model_loader matrix of static pos/rot/scale
-	mesh_map["armmesh_arms_0"]->mesh_data.modelMatrix = glm::scale(e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"]->matrix_transform, glm::vec3(100.f)) * e_map["Sketchfab_model"]->matrix_transform * null_matrix;
-	mesh_map["armmesh_arms_0"]->mesh_data.inherits_animation = true;
-	*/
-	
-	/*
-	Empty* c769c5abf1f401eac90b76f4b765ba0 = e_map["1c769c5abf1f401eac90b76f4b765ba0.fbx"];
-	Empty* Sketchfab_model = e_map["Sketchfab_model"];
-	
-	//BPPISTOL EMPTY
-//	Empty& bppistol = empty_map["BPpistol"];
-	Empty* bppistol = e_map["m16a2_base"];
-//	Empty& bppistol = empty_array[10];
-	AnimationDataStruct& bppistol_animation = bppistol->animation_data;
-	bppistol_animation.current_animation_time += window_manager->GetDeltaTime() * bppistol_animation.playback_speed;
-	//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-	auto bppistol_position = calculateCurrentTranslation(bppistol_animation);
-	auto bppistol_rotation = calculateCurrentRotation(bppistol_animation);
-	auto bppistol_scale = calculateCurrentScale(bppistol_animation);
-	glm::mat4 bppistol_trs = Sketchfab_model->matrix_transform* glm::scale(c769c5abf1f401eac90b76f4b765ba0->matrix_transform, glm::vec3(100.f))*createTRSmatrix(bppistol_position, bppistol_rotation, bppistol_scale);
-	
-	
-	//BPPISTOL BASE MESH
-	Mesh* bppistol_mesh = mesh_map["m16a2_base_m16a2_0"];
-	MeshDataStruct& child_msh = bppistol_mesh->mesh_data;
-	glm::mat4 mesh_model_matrix = createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model_loader matrix of static pos/rot/scale
-	child_msh.modelMatrix = bppistol_trs * mesh_model_matrix;
-	bppistol_mesh->mesh_data.inherits_animation = true;
-	
-	//BPPISTOL EMPTY
-//	Empty& bppistol = empty_map["BPpistol"];
-	Empty& bppistol = empty_array[6];
-//	Empty& bppistol = empty_array[10];
-	AnimationDataStruct& bppistol_animation = bppistol.animation_data;
-	bppistol_animation.current_animation_time += window_manager->GetDeltaTime() * bppistol_animation.playback_speed;
-	//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-	auto bppistol_position = calculateCurrentTranslation(bppistol_animation);
-	auto bppistol_rotation = calculateCurrentRotation(bppistol_animation);
-	auto bppistol_scale = calculateCurrentScale(bppistol_animation);
-	glm::mat4 bppistol_trs = createTRSmatrix(bppistol_position, bppistol_rotation, bppistol_scale);
-
-	//BASE EMPTY
-//	Empty& base = empty_map["base"];
-	Empty& base = empty_array[7];
-//	Empty& base = empty_array[1];
-	AnimationDataStruct& base_animation = base.animation_data;
-	base_animation.current_animation_time += window_manager->GetDeltaTime() * base_animation.playback_speed;
-	//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-	auto base_position = calculateCurrentTranslation(base_animation);
-	auto base_rotation = calculateCurrentRotation(base_animation);
-	auto base_scale = calculateCurrentScale(base_animation);
-	glm::mat4 base_anim_trs = createTRSmatrix(base_position, base_rotation, base_scale);
-	
-	glm::mat4 base_trs = createTRSmatrix(base.position, base.rotation, base.scale);
-	
-	glm::mat4 base_FINAL_trs = glm::mat4(1.f);
-	(base.animation_data.has_animation) ? base_FINAL_trs = bppistol_trs * base_anim_trs : base_FINAL_trs = bppistol_trs * base_trs;
-	
-	//BPPISTOL BASE MESH
-	Mesh* bppistol_mesh = mesh_map["base_Mat_0"];
-	MeshDataStruct& child_msh = bppistol_mesh->mesh_data;
-	glm::mat4 mesh_model_matrix = createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model_loader matrix of static pos/rot/scale
-	child_msh.modelMatrix = base_FINAL_trs * mesh_model_matrix;
-	bppistol_mesh->mesh_data.inherits_animation = true;
-	
-	/////////////////////////////
-	/////////////////////////////
-	//CLIP EMPTY
-	Empty& clip = empty_array[8];
-//	Empty& clip = empty_array[4];
-	AnimationDataStruct& clip_animation = clip.animation_data;
-	clip_animation.current_animation_time += window_manager->GetDeltaTime() * clip_animation.playback_speed;
-	//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-	auto clip_position = calculateCurrentTranslation(clip_animation);
-	auto clip_rotation = calculateCurrentRotation(clip_animation);
-	auto clip_scale = calculateCurrentScale(clip_animation);
-	glm::mat4 clip_anim_trs = createTRSmatrix(clip_position, clip_rotation, clip_scale);
-	
-	glm::mat4 clip_trs = createTRSmatrix(clip.position, clip.rotation, clip.scale);
-	
-	glm::mat4 clip_FINAL_trs = glm::mat4(1.f);
-	(clip.animation_data.has_animation) ? clip_FINAL_trs = bppistol_trs * clip_anim_trs : clip_FINAL_trs = bppistol_trs * clip_trs;
-	
-	//CLIP [MAG] MESH
-	Mesh* clip_mesh = mesh_map["clip_Mat_0"];
-	MeshDataStruct& clip_msh = clip_mesh->mesh_data;
-	glm::mat4 clip_model_matrix = createTRSmatrix(clip_msh.translation, clip_msh.rotation, clip_msh.scale);//model_loader matrix of static pos/rot/scale
-	clip_msh.modelMatrix = clip_FINAL_trs * clip_model_matrix;
-	clip_mesh->mesh_data.inherits_animation = true;
-	
-	/////////////////////
-	/////////////////////
-	//BULLET EMPTY
-	{
-		Empty& bullet = empty_array[10];
-	//	Empty& bullet = empty_array[2];
-		AnimationDataStruct& bullet_animation = bullet.animation_data;
-		bullet_animation.current_animation_time += window_manager->GetDeltaTime() * bullet_animation.playback_speed;
-		//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-		auto bullet_position = calculateCurrentTranslation(bullet_animation);
-		auto bullet_rotation = calculateCurrentRotation(bullet_animation);
-		auto bullet_scale = calculateCurrentScale(bullet_animation);
-		glm::mat4 bullet_anim_trs = createTRSmatrix(bullet_position, bullet_rotation, bullet_scale);
-		glm::mat4 bullet_trs = createTRSmatrix(bullet.position, bullet.rotation, bullet.scale);
-		glm::mat4 bullet_FINAL_trs = glm::mat4(1.f);
-		(bullet.animation_data.has_animation) ? bullet_FINAL_trs = clip_FINAL_trs * bullet_anim_trs : bullet_FINAL_trs = clip_FINAL_trs * bullet_trs;
-		
-		//BULLET MESH
-		Mesh* bullet_mesh = mesh_map["bullet_Mat_0"];
-		MeshDataStruct& bullet_msh = bullet_mesh->mesh_data;
-		glm::mat4 bullet_model_matrix = createTRSmatrix(bullet_msh.translation, bullet_msh.rotation, bullet_msh.scale);//model_loader matrix of static pos/rot/scale
-		bullet_msh.modelMatrix = bullet_FINAL_trs * bullet_model_matrix;
-		bullet_mesh->mesh_data.inherits_animation = true;
-	}
-	/////////////////////
-	/////////////////////
-	//BULLET_1
-	{
-		//BULLET_1 MESH
-		Mesh* bullet_mesh = mesh_map["bullet_1_Mat_0"];
-		MeshDataStruct& bullet_msh = bullet_mesh->mesh_data;
-		glm::mat4 bullet_model_matrix = createTRSmatrix(bullet_msh.translation, bullet_msh.rotation, bullet_msh.scale);//model_loader matrix of static pos/rot/scale
-		bullet_msh.modelMatrix = clip_FINAL_trs * bullet_model_matrix;
-		bullet_mesh->mesh_data.inherits_animation = true;
-	}
-	*/
-	
-
-	
-	
-	
-	
-	/*
-	for(Empty& empty : empty_array){
-		
-		AnimationDataStruct& animation_data = empty.animation_data;
-		
-		//skip for current empty if no anims or subnodes found
-		if(!empty.animation_data.has_animation || empty.child_array.empty())
-			continue;
-		
-		animation_data.current_animation_time += window_manager->GetDeltaTime() * animation_data.playback_speed;
-		
-		//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-		glm::vec3 empty_position = calculateCurrentTranslation(animation_data);
-		glm::quat empty_rotation = calculateCurrentRotation(animation_data);
-		glm::vec3 empty_scale = calculateCurrentScale(animation_data);
-		
-		glm::mat4 parent_empty_trs = createTRSmatrix(empty_position, empty_rotation, empty_scale);
-		
-		
-		///////////////
-		//REMOVE
-//		if(empty.name != "m16a2_base")
-		if(empty.name != "BPpistol")
-			continue;
-		
-		///////////////
-		//NODE LAYER 1
-		for(Empty& child_1_empty : getChildEmptyArray(empty)){
-			AnimationDataStruct& child_animation_data = child_1_empty.animation_data;
-			
-			child_1_empty.inherits_animation = true;
-			
-			child_animation_data.current_animation_time += window_manager->GetDeltaTime() * child_animation_data.playback_speed;
-			
-			//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-			glm::vec3 child_1_empty_position = calculateCurrentTranslation(child_animation_data);
-			glm::quat child_1_empty_rotation = calculateCurrentRotation(child_animation_data);
-			glm::vec3 child_1_empty_scale = calculateCurrentScale(child_animation_data);
-			
-			glm::mat4 child_1_anim_model_matrix = createTRSmatrix(child_1_empty_position, child_1_empty_rotation, child_1_empty_scale);
-			
-			glm::mat4 child_1_model_matrix = createTRSmatrix(child_1_empty.position, child_1_empty.rotation, child_1_empty.scale);//model_loader matrix of static pos/rot/scale
-			
-			//final model_loader matrix
-			if(child_1_empty.animation_data.has_animation)
-				child_1_empty.modelMatrix = parent_empty_trs * child_1_anim_model_matrix;
-			else
-				child_1_empty.modelMatrix = parent_empty_trs * child_1_model_matrix;
-			
-			
-			
-			///////////////
-			//NODE LAYER 2
-			for(Empty& child_2_empty : getChildEmptyArray(child_1_empty)){
-				AnimationDataStruct& child_2_animation_data = child_2_empty.animation_data;
-				
-				child_2_empty.inherits_animation = true;
-				
-				child_2_animation_data.current_animation_time += window_manager->GetDeltaTime() * child_2_animation_data.playback_speed;
-				
-				//UPDATE EMPTY ANIMATED POS/ROT/SCALE
-				glm::vec3 child_2_empty_position = calculateCurrentTranslation(child_2_animation_data);
-				glm::quat child_2_empty_rotation = calculateCurrentRotation(child_2_animation_data);
-				glm::vec3 child_2_empty_scale = calculateCurrentScale(child_2_animation_data);
-				
-				glm::mat4 child_2_anim_model_matrix = createTRSmatrix(child_2_empty_position, child_2_empty_rotation, child_2_empty_scale);
-				
-				glm::mat4 child_2_model_matrix = createTRSmatrix(child_2_empty.position, child_2_empty.rotation, child_2_empty.scale);//model_loader matrix of static pos/rot/scale
-				
-				//final model_loader matrix
-				if(child_2_empty.animation_data.has_animation)
-					child_2_empty.modelMatrix = child_1_empty.modelMatrix * child_2_anim_model_matrix;
-				else
-					child_2_empty.modelMatrix = child_1_empty.modelMatrix * child_2_model_matrix;
-				
-				//update any child meshes
-				updateChildMeshes(child_2_empty, parent_empty_trs);
-			}
-			
-			
-			//update any child meshes
-			updateChildMeshes(child_1_empty, parent_empty_trs);
-		}
-		
-		
-		//update any child meshes
-		updateChildMeshes(empty, parent_empty_trs);
-	}
-	*/
-
-	
-	/*
-	bool base_reached = false;
-	tinygltf::Node node = model_loader->getTinyGltfModel().nodes[ empty.node_index ];
-	int tree_level {};
-	while(!base_reached){
-	if(node.children.empty()){
-	break;
-	}
-	node = model_loader->getTinyGltfModel().nodes[ node.children[0] ];//first child BAD IDEA
-	tree_level++;
-	}
-	std::cout << "levels " <<  tree_level << ", " << empty.name << std::endl;
-	*/
-		
-
 }
 	
-void AnimationPlayer::updateChildMeshes(const Empty& parent_empty){
-	MeshDataStruct child_msh = getFirstChildMesh(parent_empty);
-	if(child_msh.node_index == -1)
-		return;
-	
-	std::map<int, Mesh*> mesh_index_map;
-	for(Mesh* m  : *mesh_array){
-		mesh_index_map.emplace(m->mesh_data.node_index, m);
-	}
-	
-	glm::mat4 mesh_model_matrix = createTRSmatrix(child_msh.translation, child_msh.rotation, child_msh.scale);//model_loader matrix of static pos/rot/scale
-	//////////////////
-	//NEED TO MULTIPLY BY MESH TRANSFORM
-	//NEED TO MULTIPLY BY MESH TRANSFORM
-	
-	//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
-	//ADD MESH ANIMS X MULTPLY BY TRANSFORMS
-	child_msh.modelMatrix = parent_empty.modelMatrix * mesh_model_matrix;
-	
-	//mark this as inheriting animation from its root empty objects
-	child_msh.inherits_animation = true;
-	
-	mesh_index_map[child_msh.node_index]->mesh_data = child_msh;
-}
 	
 glm::vec3 AnimationPlayer::calculateCurrentTranslation(AnimationDataStruct& animation_data){
 	

@@ -233,7 +233,7 @@ ModelLoader::ModelLoader(const std::string& path){
 	
 	//equalize all Node animations (fill blank arrays, match sizes)
 	equalizeAndMatchNodeAnimations();
-	
+
 	////////////////
 	//SKINNED ANIMS
 	////////////////
@@ -244,7 +244,6 @@ ModelLoader::ModelLoader(const std::string& path){
 	if(!bone_animation_array.empty() && !max_node_timeline.empty())
 		if(bone_animation_array.front().time_array.size() != max_node_timeline.size())
 			PRINT_WARN("Warning: detected possible desync between skinned and model animations.");
-	
 	
 }
 
@@ -1144,6 +1143,7 @@ void ModelLoader::getSkinnedAnimation(){
 		return;
 	}
 	
+	//remove this/////////////////////////
 	//remove this/////////////////////////
 	if(DELTA_TIME_CHANGE_THIS == 0.f)//reminder for me to implement delta time calc fallback for bones, in case mdoels anims dont exist
 		throw std::logic_error("[Fallback reminder] delta time calculated incorrectly. Must be calculated from bones and not non-existent model animations.");

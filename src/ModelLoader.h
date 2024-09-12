@@ -19,7 +19,7 @@
 
 class ModelLoader {
 public:
-    ModelLoader(const std::string& path);
+    explicit ModelLoader(const std::string& path);
     ~ModelLoader();
 
 //    void Render();

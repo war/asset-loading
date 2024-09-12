@@ -10,13 +10,10 @@
 #include "Mesh.h"
 
 class AnimationPlayer{
+	
 public:
-	
-	ModelLoader* model_loader;
-	std::vector<Mesh*>* mesh_array;
-	WindowManager* window_manager;
-	
-	AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager);
+	explicit AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager);
+	~AnimationPlayer();
 	
 	void update();
 	
@@ -28,9 +25,16 @@ public:
 	Empty getFirstChildEmpty(const Empty& parent_empty);
 	std::vector<Empty> getChildEmptyArray(const Empty& parent_empty);
 	
-	void updateChildMeshes(const Empty& parent_empty);
-	
 	void resetAnimations();
+
+private:
+	ModelLoader* model_loader;
+	std::vector<Mesh*>* mesh_array;
+	WindowManager* window_manager;
+	
+	std::map<std::string, Empty*> empties_map;
+	std::vector<std::pair<Empty*, Empty*>> root_and_child_array;
+	std::vector<Empty*> root_array;//only will be used for edge cases where root has animations
 	
 };
 

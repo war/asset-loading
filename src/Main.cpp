@@ -59,12 +59,9 @@ int main(int argc, char* argv[]) {
 		DirectionalLight direct_light {};
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-//    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
-//    ModelLoader* model = new ModelLoader("res/models/pistol/untitled.glb");
-    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
-//    ModelLoader* model = new ModelLoader("res/models/cube.glb");
-//    ModelLoader* model = new ModelLoader("res/models/m16/BLENDER-EXPORT.gltf");
-//    ModelLoader* model = new ModelLoader("res/models/pistol/BLENDER-EXPORT.gltf");
+    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/EXPORTED.glb");
 
 		///////////////
 		//mesh loading
@@ -105,7 +102,7 @@ int main(int argc, char* argv[]) {
         glm::mat4 projection = glm::perspective(camera.FovRads, aspectRatio, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
 
-				//render grid (if LCtrl pressed)
+				//render grid (if LShift pressed)
 				if(windowManager.isLShiftPressed())
 				{
 					glDisable(GL_CULL_FACE);
@@ -121,17 +118,15 @@ int main(int argc, char* argv[]) {
 				//////////////////////
 				//render glTF meshes
 				//////////////////////
-				{
-					for(Mesh* mesh : mesh_array)
-						mesh->update();
-				}
+				for(Mesh* mesh : mesh_array)
+					mesh->update();
+			
 				//update animation system
 				animation_player.update();
 			
 				//reset animations if R pressed
-				if(windowManager.isRKeyPressed()){
+				if(windowManager.isRKeyPressed())
 					animation_player.resetAnimations();
-				}
 				
         windowManager.swapBuffers();
         windowManager.updateFPS();
@@ -139,12 +134,12 @@ int main(int argc, char* argv[]) {
 				windowManager.updateDeltaTime();
     }
 
-	//delete Mesh* objects
-	for(Mesh* mesh : mesh_array)
-		delete mesh;
-	
-	//delete ModelLoader class
-	delete model;
+		//delete Mesh* objects
+		for(Mesh* mesh : mesh_array)
+			delete mesh;
+		
+		//delete ModelLoader class
+		delete model;
 	
     return 0;
 }
