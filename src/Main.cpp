@@ -56,19 +56,18 @@ int main(int argc, char* argv[]) {
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
 		//add directional light
-		DirectionalLight direct_light {};
+		DirectionalLight* direct_light = new DirectionalLight;
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
     ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
 //    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
-//    ModelLoader* model = new ModelLoader("res/models/pistol/EXPORTED.glb");
 
 		///////////////
 		//mesh loading
 		///////////////
 		//spawn meshes
-		for(MeshDataStruct mesh_data : model->mesh_data_struct_array){
-			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager, &direct_light);//delete Mesh* once finished to avoid memory leaks
+		for(MeshDataStruct mesh_data : model->getMeshDataArray()){
+			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager, direct_light);//delete Mesh* once finished to avoid memory leaks
 			mesh_array.emplace_back(mesh);
 		}
 	
@@ -78,6 +77,7 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
+		glCullFace(GL_BACK);
 
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -118,8 +118,18 @@ int main(int argc, char* argv[]) {
 				//////////////////////
 				//render glTF meshes
 				//////////////////////
-				for(Mesh* mesh : mesh_array)
+				for(Mesh* mesh : mesh_array){
+					
+					//[optional] change render mode (triangles, point cloud, lines) if K or L pressed
+					if( windowManager.isKkeyPressed() )
+						mesh->setRenderingMode(GL_POINTS);
+					else if( windowManager.isLkeyPressed() )
+						mesh->setRenderingMode(GL_LINES);
+					else
+						mesh->setRenderingMode(GL_TRIANGLES);
+					
 					mesh->update();
+				}
 			
 				//update animation system
 				animation_player.update();
@@ -140,6 +150,9 @@ int main(int argc, char* argv[]) {
 		
 		//delete ModelLoader class
 		delete model;
+	
+		//delete directional light
+		delete direct_light;
 	
     return 0;
 }

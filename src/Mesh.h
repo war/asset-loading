@@ -30,8 +30,8 @@ public:
 	VBO vbo {};
 	EBO ebo {};
 	
-	std::vector<GLfloat> tri_vertices;
-	std::vector<GLuint> tri_indices;
+	std::vector<GLfloat> vertex_data_array;//holds all of vertex pos, normal uv, joints, etc
+	std::vector<GLuint> vertex_indices_array;//vertex indices used in the EBO for more optimized rendering
 	
 	glm::vec3 position = glm::vec3(0.f);
 	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
@@ -47,6 +47,8 @@ public:
 	std::vector<glm::mat4> bone_skinned_matrix_array;//store the FINAL skinned matrix which will be sent directly to shader
 	
 	bool enable_backface_culling = true;
+	
+	GLenum render_mode = GL_TRIANGLES;
 	
 public:
 	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light);
@@ -72,8 +74,8 @@ public:
 	glm::quat calculateCurrentRotation(const AnimationDataStruct& animation_data);
 	glm::vec3 calculateCurrentScale(const AnimationDataStruct& animation_data);
 	
-	
 	inline void enableBackFaceCulling(bool mode) {	enable_backface_culling = mode;	}
+	inline void setRenderingMode(GLenum mode)	{	render_mode = mode;	}
 };
 
 

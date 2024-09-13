@@ -24,6 +24,11 @@ enum TextureType{
 	ROUGHNESS = 4
 };
 
+struct TextureDataStruct{
+	TextureType type;
+	GLuint tex_id {};
+};
+
 struct AnimationDataStruct{
 	std::string name;
 	
@@ -57,11 +62,6 @@ struct AnimationDataStruct{
 	std::vector<glm::vec3> translation_anim_array;
 	std::vector<glm::quat> rotation_anim_array;
 	std::vector<glm::vec3> scale_anim_array;
-};
-
-struct TextureDataStruct{
-	TextureType type;
-	GLuint tex_id {};
 };
 
 struct MaterialDataStruct{
@@ -114,86 +114,46 @@ struct MeshDataStruct{
 	std::vector<int> childs_array;
 };
 
+struct Empty{
+	int node_index = -1;
+	tinygltf::Node node;
+	
+	std::string name;
+	
+	glm::vec3 translation = glm::vec3(0.f);
+	glm::quat rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+	glm::vec3 scale = glm::vec3(1.f);
+	
+	glm::mat4 modelMatrix = glm::mat4(1.f);
+	glm::mat4 matrix_transform = glm::mat4(1.f);//base matrix loaded in from gltf [if it exists]
+	bool has_matrix_transform = false;
+	
+	bool has_childs = false;
+	std::vector<int> child_array;
+	
+	bool has_parent = false;
+	int parent_idx = -1;
+	
+	bool is_root = false;
+	
+	bool has_animation = false;
+	std::string animation_name;
+	bool inherits_animation = false;
+	
+	tinygltf::Animation anim_gltf;
+	
+	AnimationDataStruct animation_data;
+	
+	bool has_root = false;
+	int root_idx = -1;
+};
+
 struct DirectionalLight{
 	float strength = 1.f;
 	float specular = 1.f;
 	glm::vec3 direction = glm::vec3(0.f, -1.f, 0.f);
 	glm::vec3 color = glm::vec3(1.f);
 };
-
-
-
-inline void equalizeTRSanimationArrays(AnimationDataStruct& animation_data){
-//	std::vector<int> anim_array_sizes = {animation_data.translation_anim_array.size(), animation_data.rotation_anim_array.size(), animation_data.scale_anim_array.size()};
-//	std::sort(anim_array_sizes.begin(), anim_array_sizes.end());
-	
-	/*
-	std::map<int, std::vector<float>> size_sorted_timelines;
-	size_sorted_timelines.emplace(animation_data.trans_time_array.size(), animation_data.trans_time_array);
-	size_sorted_timelines.emplace(animation_data.rot_time_array.size(), animation_data.rot_time_array);
-	size_sorted_timelines.emplace(animation_data.scale_time_array.size(), animation_data.scale_time_array);
-	*/
-	
-	int max_size = animation_data.time_array.size();
-	
-	/////////////////////////////
-	//equalize translation array
-	/////////////////////////////
-	if(animation_data.translation_anim_array.size() != max_size){
-		//if size 0, then fill will default values
-		if(animation_data.translation_anim_array.empty()){
-			for(int i{}; i<max_size; i++)
-				animation_data.translation_anim_array.emplace_back( glm::vec3(0.f) );
-		}
-		
-		//if few frames short, calc difference and apply
-		int diff = max_size - animation_data.translation_anim_array.size();
-		glm::vec3 last_pos = animation_data.translation_anim_array.back();
-		for(int i{}; i<diff; i++){
-			animation_data.translation_anim_array.emplace_back( last_pos );
-		}
-	}
-	
-	
-	/////////////////////////////
-	//equalize rotations array
-	/////////////////////////////
-	if(animation_data.rotation_anim_array.size() != max_size){
-		//if size 0, then fill will default values
-		if(animation_data.rotation_anim_array.empty()){
-			for(int i{}; i<max_size; i++)
-				animation_data.rotation_anim_array.emplace_back( glm::quat(1.f, 0.f, 0.f, 0.f) );
-		}
-		
-		//if few frames short, calc difference and apply
-		int diff = max_size - animation_data.rotation_anim_array.size();
-		glm::quat last_rot = animation_data.rotation_anim_array.back();
-		for(int i{}; i<diff; i++){
-			animation_data.rotation_anim_array.emplace_back( last_rot );
-		}
-	}
-	
-	/////////////////////////////
-	//equalize scale array
-	/////////////////////////////
-	if(animation_data.scale_anim_array.size() != max_size){
-		//if size 0, then fill will default values
-		if(animation_data.scale_anim_array.empty()){
-			for(int i{}; i<max_size; i++)
-				animation_data.scale_anim_array.emplace_back( glm::vec3(1.f) );
-		}
-		
-		//if few frames short, calc difference and apply
-		int diff = max_size - animation_data.scale_anim_array.size();
-		glm::vec3 last_pos = animation_data.scale_anim_array.back();
-		for(int i{}; i<diff; i++){
-			animation_data.scale_anim_array.emplace_back( last_pos );
-		}
-	}
-	
-}
-
-
 
 //basic print
 inline void PRINT(const std::string& message){
@@ -209,7 +169,6 @@ inline void PRINT_WARN(const std::string& message){
 inline void PRINT_COLOR(const std::string& message, short red, short green, short blue){
 	PRINT( std::string("\x1B[38;2;") + std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue) + "mLOG - \x1B[0m" + message);
 }
-
 
 inline void printGlmVec3(const glm::vec3& v){
 	std::cout << "[x: " << v.x << ", y: " << v.y << ", z: " << v.z << "]" << std::endl;
@@ -233,14 +192,10 @@ inline void printGlmQuat(const glm::quat& q){
 }
 
 inline glm::mat4 createTRSmatrix(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale){
-	glm::mat4 mat(1.f);
-	
 	//apply translation
-	mat = glm::translate(glm::mat4(1.f), position);
+	glm::mat4 mat = glm::translate(glm::mat4(1.f), position);
 	
 	//apply rotation
-	glm::mat4 rotate_mat = glm::mat4(rotation);
-	
 	mat = mat * glm::mat4(rotation);
 	
 	//finally apply scale

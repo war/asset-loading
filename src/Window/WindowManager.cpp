@@ -135,24 +135,48 @@ void WindowManager::processInput(Camera& camera, float deltaTime)
 					//R key pressed
 					if(event.key.keysym.sym == SDLK_r)
 						isRpressed = true;
+					//K key pressed
+					if(event.key.keysym.sym == SDLK_k)
+						isKpressed = true;
+					//L key pressed
+					if(event.key.keysym.sym == SDLK_l)
+						isLpressed = true;
 					//LShift key pressed
 					if(event.key.keysym.sym == SDLK_LSHIFT)
 						m_isLShiftPressed = true;
 					//LCtrl key pressed
 					if(event.key.keysym.sym == SDLK_LCTRL)
 						m_isLCtrlPressed = true;
+					//Up arrow key pressed
+					if(event.key.keysym.sym == SDLK_UP)
+						m_isUpArrowPressed = true;
+					//Down arrow key pressed
+					if(event.key.keysym.sym == SDLK_DOWN)
+						m_isDownArrowPressed = true;
         }
 				else if (event.type == SDL_KEYUP)//key released
 				{
 					//R key released
 					if(event.key.keysym.sym == SDLK_r)
 						isRpressed = false;
+					//K key released
+					if(event.key.keysym.sym == SDLK_k)
+						isKpressed = false;
+					//L key released
+					if(event.key.keysym.sym == SDLK_l)
+						isLpressed = false;
 					//LShift key released
 					if(event.key.keysym.sym == SDLK_LSHIFT)
 						m_isLShiftPressed = false;
 					//LCtrl key released
 					if(event.key.keysym.sym == SDLK_LCTRL)
 						m_isLCtrlPressed = false;
+					//Up arrow key released
+					if(event.key.keysym.sym == SDLK_UP)
+						m_isUpArrowPressed = false;
+					//Down arrow key released
+					if(event.key.keysym.sym == SDLK_DOWN)
+						m_isDownArrowPressed = false;
 				}
         else if (event.type == SDL_MOUSEMOTION && mouseCaptured)
         {

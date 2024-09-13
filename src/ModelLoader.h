@@ -2,7 +2,6 @@
 #define MODEL_LOADER_H
 
 
-#include <vector>
 #include "../external/tinygltf/tiny_gltf.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/glm.hpp>
@@ -12,9 +11,7 @@
 
 #include <glad/glad.h>
 
-
 #include "ErrorLogger.h"
-#include "Empty.h"
 #include "Utils.h"
 
 class ModelLoader {
@@ -24,28 +21,20 @@ public:
 
 //    void Render();
 		
-		long unsigned int getSizeOfComponentType(int component_type);
-		
-		std::vector<Empty> empties_array;
-		std::vector<MeshDataStruct> mesh_data_struct_array;
-
 		//vertex/index/normal/uv data
 		std::vector<glm::vec3> getVertexPositions(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec3> getVertexNormals(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec2> getVertexUVs(const tinygltf::Mesh& mesh);
 		std::vector<unsigned int> getIndices(const tinygltf::Mesh& mesh);
-		
+	
+		std::vector<MeshDataStruct>& getMeshDataArray() {	return mesh_data_struct_array;	}
+		std::vector<Empty>& getEmptiesArray() {	return empties_array;	}
+	
 		//get global translation/pos/rot
 		glm::vec3 getTranslation(const tinygltf::Node& node) const; 
 		glm::quat getRotation(const tinygltf::Node& node) const; 
 		glm::vec3 getScale(const tinygltf::Node& node) const; 
 		glm::mat4 getTransformMatrix(const tinygltf::Node& node) const; 
-	
-		//the raw data cast into float/int arrays
-		float* float_array = nullptr;
-		unsigned short* ushort_array = nullptr;
-		unsigned int* uint_array = nullptr;
-		unsigned char* uchar_array = nullptr;
 	
 		//textures
 		std::map<TextureType, TextureDataStruct> getTextureMap(const tinygltf::Mesh& mesh);
@@ -53,15 +42,12 @@ public:
 		//materials
 		MaterialDataStruct getMaterial(const tinygltf::Mesh& mesh);
 		
-		float DELTA_TIME_CHANGE_THIS = 0.f;
-	
 		//animations
 		bool has_animation = false;
 		std::string animation_name;
 		std::vector<AnimationDataStruct> bone_animation_array;//contains list of all animations for this model, with key being the animation name
 		AnimationDataStruct getMeshAnimationData(const tinygltf::Mesh& mesh);
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
-		AnimationDataStruct getBLENDER_NODE_ANIMATION_DATA(const tinygltf::Node& node);
 		void getAllNodeAnimationTimelines();
 		std::map<int, std::vector<float>> node_timelines_map;
 		std::vector<float> getMaxNodeTimeline();
@@ -70,7 +56,6 @@ public:
 		std::vector<float> max_node_timeline;//stores the largest time array
 		
 		void getSkinnedAnimation();
-		void GET_SKINNED_ANIMATION_BLENDER();
 		void equalizeTRSanimationArrays(AnimationDataStruct& animation_data);	
 		std::vector<float> getTimelineArray(const tinygltf::AnimationSampler& sampler);
 		void fillInAnimationGaps(AnimationDataStruct& animation_data);
@@ -85,6 +70,7 @@ public:
 		bool isArmature(int node_index);
 
 		/* helper functions */
+		long unsigned int getSizeOfComponentType(int component_type);
 		int getMeshNodeIndex(const tinygltf::Mesh& mesh);
 		tinygltf::Model& getTinyGltfModel() {	return model;	}
 		void getHierarchy(const tinygltf::Node& node_in);
@@ -97,13 +83,23 @@ public:
 private:
     tinygltf::TinyGLTF tiny_gltf;
     tinygltf::Model model;
-	
 		std::string mesh_name;
-		
-		GLuint diffuse_texture;
-		GLuint normal_texture;
-		GLuint metal_texture;
-		
+	
+		//the raw data cast into float/int arrays
+		float* float_array = nullptr;
+		unsigned short* ushort_array = nullptr;
+		unsigned int* uint_array = nullptr;
+		unsigned char* uchar_array = nullptr;
+	
+		GLuint diffuse_texture {};
+		GLuint normal_texture {};
+		GLuint metal_texture {};
+	
+		std::vector<Empty> empties_array;
+		std::vector<MeshDataStruct> mesh_data_struct_array;
+	
+		float DELTA_TIME_STEP = 0.f;
+	
 };
 
 

@@ -55,13 +55,6 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		bitangent_array.emplace_back(bitang.second);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
 	//fill in the arrays with flattened GLfloat and GLuint vertex/index data
 	for(unsigned int i{}; i<mesh_data.vertex_positions_array.size(); i++){
 		
@@ -70,64 +63,61 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		glm::vec3& vert_norm = mesh_data.vertex_normals_array[i];
 		
 		//push vert positions
-		tri_vertices.emplace_back( (GLfloat)vert_pos.x );
-		tri_vertices.emplace_back( (GLfloat)vert_pos.y );
-		tri_vertices.emplace_back( (GLfloat)vert_pos.z );
+		vertex_data_array.emplace_back( (GLfloat)vert_pos.x );
+		vertex_data_array.emplace_back( (GLfloat)vert_pos.y );
+		vertex_data_array.emplace_back( (GLfloat)vert_pos.z );
 		
 		//push vert uvs
-		tri_vertices.emplace_back( (GLfloat)vert_uv.x );
-		tri_vertices.emplace_back( (GLfloat)vert_uv.y );
+		vertex_data_array.emplace_back( (GLfloat)vert_uv.x );
+		vertex_data_array.emplace_back( (GLfloat)vert_uv.y );
 		
 		//push vert normals
-		tri_vertices.emplace_back( (GLfloat)vert_norm.x );
-		tri_vertices.emplace_back( (GLfloat)vert_norm.y );
-		tri_vertices.emplace_back( (GLfloat)vert_norm.z );
+		vertex_data_array.emplace_back( (GLfloat)vert_norm.x );
+		vertex_data_array.emplace_back( (GLfloat)vert_norm.y );
+		vertex_data_array.emplace_back( (GLfloat)vert_norm.z );
 		
 		//tang
 		glm::vec3 tangent = tangent_array[i];
-		tri_vertices.emplace_back( 0.f );
-		tri_vertices.emplace_back( 1.f );
-		tri_vertices.emplace_back( 0.f );
+		vertex_data_array.emplace_back( 0.f );
+		vertex_data_array.emplace_back( 1.f );
+		vertex_data_array.emplace_back( 0.f );
 		
 		//bitang
 		glm::vec3 bitangent = bitangent_array[i];
-		tri_vertices.emplace_back( 1.f );
-		tri_vertices.emplace_back( 0.f );
-		tri_vertices.emplace_back( 0.f );
+		vertex_data_array.emplace_back( 1.f );
+		vertex_data_array.emplace_back( 0.f );
+		vertex_data_array.emplace_back( 0.f );
 		
 		if(mesh_data.has_skin){
 			//joints
 			{
 				glm::vec4 joint = mesh_data.joints_array[i];
 				
-				tri_vertices.emplace_back( joint.x );
-				tri_vertices.emplace_back( joint.y );
-				tri_vertices.emplace_back( joint.z );
-				tri_vertices.emplace_back( joint.w );
+				vertex_data_array.emplace_back( joint.x );
+				vertex_data_array.emplace_back( joint.y );
+				vertex_data_array.emplace_back( joint.z );
+				vertex_data_array.emplace_back( joint.w );
 			}
 			//weights
 			{
 				glm::vec4 weight = mesh_data.weights_array[i];
 				
-				tri_vertices.emplace_back( weight.x );
-				tri_vertices.emplace_back( weight.y );
-				tri_vertices.emplace_back( weight.z );
-				tri_vertices.emplace_back( weight.w );
+				vertex_data_array.emplace_back( weight.x );
+				vertex_data_array.emplace_back( weight.y );
+				vertex_data_array.emplace_back( weight.z );
+				vertex_data_array.emplace_back( weight.w );
 			}
 		}
-		
-
-		
 		
 	}
 	//indices
 	for(unsigned int v_idx : mesh_data.vertex_indices_array){
-		tri_indices.emplace_back( (GLuint)v_idx );
+		vertex_indices_array.emplace_back( (GLuint)v_idx );
 	}
 
 	vao.bind();
-	vbo = VBO(tri_vertices);
-	ebo = EBO(tri_indices);
+	vbo = VBO(vertex_data_array);
+	ebo = EBO(vertex_indices_array);
 	
 	//setup attributes
 	if(mesh_data.has_skin){
@@ -209,6 +199,7 @@ Mesh::~Mesh(){
 }
 
 void Mesh::update(){
+	std::cout << direct_light->strength << std::endl;
 	
 	//apply translation
 	modelMatrix = glm::translate(glm::mat4(1.f), position);
@@ -285,11 +276,10 @@ void Mesh::update(){
 	shader->setInt("isSkinned", (int)mesh_data.has_skin);
 	
 	//backface culling (if enabled)
-	(enable_backface_culling) ? glCullFace(GL_BACK) : glCullFace(GL_BACK);
 	(enable_backface_culling) ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 	
 	//render mesh
-	glDrawElements(GL_TRIANGLES, tri_indices.size(), GL_UNSIGNED_INT, 0);//rendering part
+	glDrawElements(render_mode, vertex_indices_array.size(), GL_UNSIGNED_INT, 0);//rendering part
 	
 	//checks for rendering errors
 	__GL_ERROR_THROW__("Failed to render Mesh.");
@@ -317,7 +307,7 @@ void Mesh::updateAnimation(){
 	
 	updateSkinnedAnimation();
 	
-	AnimationDataStruct& animation_data = mesh_data.animation_data;
+	const AnimationDataStruct& animation_data = mesh_data.animation_data;
 	
 	//quit if no animations for this mesh
 	if(!animation_data.has_animation){

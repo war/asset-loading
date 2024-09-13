@@ -4,22 +4,22 @@
 
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model_loader(_model), mesh_array(_mesh_array), window_manager(win_manager){
 	
-	std::vector<Empty>& empty_array = model_loader->empties_array;
-	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->mesh_data_struct_array;
+	std::vector<Empty>& empties_array = model_loader->getEmptiesArray();
+	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->getMeshDataArray();
 	
 	//gather all root nodes
 	std::vector<tinygltf::Node> root_nodes;
-	for(const Empty& empty : empty_array)
+	for(const Empty& empty : empties_array)
 		if(model_loader->isRootNode(empty.node))
 			root_nodes.emplace_back(empty.node);
 	
-	
-	for(Empty& e : model_loader->empties_array){
+	//fill in empties map
+	for(Empty& e : empties_array){
 		empties_map.emplace(e.name, &e);
 	}
 	
 	//fill in root-subnode relationship array
-	for(Empty& empty : model_loader->empties_array){
+	for(Empty& empty : empties_array){
 		
 		//skip if bone
 		if(model_loader->isBone(empty.node_index))
@@ -32,9 +32,9 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 		std::pair<Empty*, Empty*> pair;
 		
 		//find root empty for the child
-		for(Empty& e2 : model_loader->empties_array){
-			if(e2.node_index == idx){
-				pair.first = &e2;
+		for(Empty& e_sub : empties_array){
+			if(e_sub.node_index == idx){
+				pair.first = &e_sub;
 				break;
 			}
 		}
@@ -47,7 +47,7 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 	}
 
 	//FOR EDGE CASES -- fill in all root nodes
-	for(Empty& empty : model_loader->empties_array){
+	for(Empty& empty : empties_array){
 		//skip if bone
 		if(model_loader->isBone(empty.node_index))
 			continue;
@@ -65,8 +65,8 @@ AnimationPlayer::~AnimationPlayer(){}
 
 void AnimationPlayer::update(){
 	
-	std::vector<Empty>& empty_array = model_loader->empties_array;
-	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->mesh_data_struct_array;
+	std::vector<Empty>& empties_array = model_loader->getEmptiesArray();
+	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->getMeshDataArray();
 	
 	const tinygltf::Model& model_tinygltf = model_loader->getTinyGltfModel();
 	
@@ -126,7 +126,7 @@ void AnimationPlayer::update(){
 			if(empty_child->has_matrix_transform)
 				empty_child->modelMatrix = root_matrix * empty_child->matrix_transform;
 			else
-				empty_child->modelMatrix = root_matrix * createTRSmatrix(empty_child->position, empty_child->rotation, empty_child->scale);//if this node is NOT animated, its final matrix will be = root matrix * static TRS matrix
+				empty_child->modelMatrix = root_matrix * createTRSmatrix(empty_child->translation, empty_child->rotation, empty_child->scale);//if this node is NOT animated, its final matrix will be = root matrix * static TRS matrix
 		}
 		
 		const std::vector<MeshDataStruct>& child_mesh_array = model_loader->getChildMeshArray(model_tinygltf.nodes[empty_child->node_index]);
@@ -145,8 +145,7 @@ void AnimationPlayer::update(){
 		}
 	}
 }
-	
-	
+
 glm::vec3 AnimationPlayer::calculateCurrentTranslation(AnimationDataStruct& animation_data){
 	
 	std::vector<float> time_array = animation_data.time_array;
@@ -255,7 +254,7 @@ glm::vec3 AnimationPlayer::calculateCurrentScale(AnimationDataStruct& animation_
 
 MeshDataStruct AnimationPlayer::getFirstChildMesh(const Empty& empty){
 	MeshDataStruct mesh_data;
-	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->mesh_data_struct_array;
+	std::vector<MeshDataStruct>& mesh_data_struct_array = model_loader->getMeshDataArray();
 	
 	//get first child mesh (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
 	for(int c : empty.child_array){
@@ -274,11 +273,11 @@ MeshDataStruct AnimationPlayer::getFirstChildMesh(const Empty& empty){
 Empty AnimationPlayer::getFirstChildEmpty(const Empty& parent_empty){
 	Empty child_empty;
 	
-	std::vector<Empty>& empty_array = model_loader->empties_array;
+	std::vector<Empty>& empties_array = model_loader->getEmptiesArray();
 	
 	//get first child empty (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
 	for(int c : parent_empty.child_array){
-		for(const Empty& e : empty_array){
+		for(const Empty& e : empties_array){
 			if(e.node_index == c){
 				child_empty = e;
 				return child_empty;
@@ -293,11 +292,11 @@ Empty AnimationPlayer::getFirstChildEmpty(const Empty& parent_empty){
 std::vector<Empty> AnimationPlayer::getChildEmptyArray(const Empty& parent_empty){
 	std::vector<Empty> child_empty_array;
 	
-	std::vector<Empty>& empty_array = model_loader->empties_array;
+	std::vector<Empty>& empties_array = model_loader->getEmptiesArray();
 	
 	//get first child empty (if any). BAD IDEA, NEED TO TAKE INTO ACC MULTIPLE CHILDS
 	for(int c : parent_empty.child_array){
-		for(const Empty& e : empty_array){
+		for(const Empty& e : empties_array){
 			if(e.node_index == c){
 				child_empty_array.emplace_back( e );
 			}
@@ -310,12 +309,12 @@ std::vector<Empty> AnimationPlayer::getChildEmptyArray(const Empty& parent_empty
 
 void AnimationPlayer::resetAnimations(){
 	//reset for all Empties
-	for(Empty& empty : model_loader->empties_array){
+	for(Empty& empty : model_loader->getEmptiesArray()){
 		empty.animation_data.current_animation_time = 0.f;
 	}
 	
 	//reset for all Meshes
-	for(MeshDataStruct& mesh_data : model_loader->mesh_data_struct_array){
+	for(MeshDataStruct& mesh_data : model_loader->getMeshDataArray()){
 		mesh_data.animation_data.current_animation_time = 0.f;
 	}
 	

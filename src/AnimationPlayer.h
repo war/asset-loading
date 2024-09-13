@@ -6,7 +6,6 @@
 #include "./Window/WindowManager.h"
 #include "ModelLoader.h"
 #include "Utils.h"
-#include "Empty.h"
 #include "Mesh.h"
 
 class AnimationPlayer{
