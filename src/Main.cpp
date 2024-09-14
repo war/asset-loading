@@ -59,21 +59,23 @@ int main(int argc, char* argv[]) {
 		DirectionalLight* direct_light = new DirectionalLight;
 	
 		//load in glTF model (meshes, animations, skinning, textures etc)
-    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
-//    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
+    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
 
 		///////////////
 		//mesh loading
 		///////////////
 		//spawn meshes
-		for(MeshDataStruct mesh_data : model->getMeshDataArray()){
+		for(MeshDataStruct* mesh_data : model->getMeshDataArray()){
 			Mesh* mesh = new Mesh(&camera, model, mesh_data, &defaultShader, &windowManager, direct_light);//delete Mesh* once finished to avoid memory leaks
 			mesh_array.emplace_back(mesh);
 		}
 	
 		//add AnimationPlayer system
 		AnimationPlayer animation_player(model, &mesh_array, &windowManager);
-	
+		animation_player.setPlaybackSpeed(0.8f);//set play speed
+		
+		
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 		glFrontFace(GL_CCW);
@@ -85,6 +87,31 @@ int main(int argc, char* argv[]) {
 //    glm::vec3 objectColor = glm::vec3(0.5f, 0.5f, 0.5f);
     
     float aspectRatio = windowManager.getAspectRatio();
+	
+		//////////////////////////////
+		//set pos/rot/scale for models
+		//////////////////////////////
+		for(Empty* empty : model->getRootNodesArray()){
+			//set pos
+			empty->setTranslation( glm::vec3(0.f) );
+			//set rot
+			empty->setRotation( glm::quat(1.f, 0.f, 0.f, 0.f) );
+//			set scale
+			empty->setScale( glm::vec3(100.f) );
+		}
+		/*
+		//alternatively, you can also set the pos/rot/scale of each Mesh
+		//for example:
+		*/
+		for(Mesh* mesh : mesh_array){
+				//set pos
+				mesh->setTranslation( glm::vec3(0.f) );
+				//set rot
+				mesh->setRotation( glm::quat(1.f, 0.f, 0.f, 0.f) );
+				//set scale
+				mesh->setScale( glm::vec3(100.f) );
+		}
+	
 	
     while (!windowManager.shouldClose()) {
         windowManager.clear();
@@ -128,12 +155,15 @@ int main(int argc, char* argv[]) {
 					else
 						mesh->setRenderingMode(GL_TRIANGLES);
 					
+					//set mesh scale
+//					mesh->setScale( glm::vec3(5.f) );
+					
 					mesh->update();
 				}
 			
 				//update animation system
 				animation_player.update();
-			
+				
 				//reset animations if R pressed
 				if(windowManager.isRKeyPressed())
 					animation_player.resetAnimations();

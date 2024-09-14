@@ -21,7 +21,7 @@ class Mesh{
 public:
 	Camera* camera;
 	ModelLoader* model;
-	MeshDataStruct mesh_data;
+	MeshDataStruct* mesh_data;
 	Shader* shader;
 	WindowManager* window_manager;
 	DirectionalLight* direct_light;
@@ -41,7 +41,7 @@ public:
 	
 	int current_animation_frame {};
 	float current_animation_time {};
-	float playback_speed = .5f;
+	float playback_speed = 1.f;
 	
 	std::vector<glm::mat4> bone_transform_matrix_array;//stores bone animated transform [pos/rot/scale] for EACH BONE.
 	std::vector<glm::mat4> bone_skinned_matrix_array;//store the FINAL skinned matrix which will be sent directly to shader
@@ -51,24 +51,24 @@ public:
 	GLenum render_mode = GL_TRIANGLES;
 	
 public:
-	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light);
+	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct* _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light);
 	~Mesh();                                    
 	
 	void update();
 	void updateAnimation();
 	void updateSkinnedAnimation();
 	
-	void setModelMatrix(const glm::mat4& mat) {	modelMatrix = mat;	}
-	void setTranslation(const glm::vec3& pos) {	position = pos;	}
-	void setRotation(const glm::quat& rot) {	rotation = rot;	}
-	void setScale(const glm::vec3& _scale) {	scale = _scale;	}
+	void setModelMatrix(const glm::mat4& mat) {	modelMatrix = mat; mesh_data->modelMatrix = mat;	}
+	void setTranslation(const glm::vec3& pos) {	position = pos; mesh_data->translation = pos;	}
+	void setRotation(const glm::quat& rot) {	rotation = rot; mesh_data->rotation = rot;	}
+	void setScale(const glm::vec3& _scale) {	scale = _scale; mesh_data->scale = _scale;	}
 	
-	glm::mat4 getModelMatrix() const	{ return modelMatrix;		}
-	glm::vec3 getTranslation() const {	return position;	}
-	glm::quat getRotation() const {	return rotation;	}
-	glm::vec3 getScale() const {	return scale;	}
+	glm::mat4 getModelMatrix() const	{ return mesh_data->modelMatrix;		}
+	glm::vec3 getTranslation() const {	return mesh_data->translation;	}
+	glm::quat getRotation() const {	return mesh_data->rotation;	}
+	glm::vec3 getScale() const {	return mesh_data->scale;	}
 	
-	MeshDataStruct getMeshData() const	{	return mesh_data; }
+	MeshDataStruct* getMeshData() const	{	return mesh_data; }
 	
 	glm::vec3 calculateCurrentTranslation(const AnimationDataStruct& animation_data);
 	glm::quat calculateCurrentRotation(const AnimationDataStruct& animation_data);

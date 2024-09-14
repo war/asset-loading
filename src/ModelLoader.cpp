@@ -26,7 +26,7 @@ ModelLoader::ModelLoader(const std::string& path){
 	if(model.buffers.size() > 1)
 		throw std::logic_error("Only 1 buffer is currently supported.");
 	if(model.buffers.empty())
-		throw std::logic_error("Buffer must not be empty.");
+		throw std::logic_error("Buffer must not be empty->");
 	
 	//cast the buffers to 1D arrays of common data types (float, unsigned short, etc). These arrays hold the raw vertex positions, normals, uv's, animation & skinning data etc
 	float_array = (float*)model.buffers.front().data.data();
@@ -43,16 +43,16 @@ ModelLoader::ModelLoader(const std::string& path){
 		int mesh_node_idx = getMeshNodeIndex(mesh);
 		tinygltf::Node& node = model.nodes[mesh_node_idx];
 		
-		MeshDataStruct mesh_data_struct {};//will store all mesh data [vertex pos/norm/uv, global mesh pos/rot etc]
+		MeshDataStruct* mesh_data_struct = new MeshDataStruct;//will store all mesh data [vertex pos/norm/uv, global mesh pos/rot etc]
 		
-		mesh_data_struct.name	= mesh.name;
+		mesh_data_struct->name	= mesh.name;
 		
 		if(mesh.primitives.size() > 1)
 			throw std::logic_error("Only 1 primitive per mesh is supported");
 		//check to see if has sub-nodes
 		if(!node.children.empty()){
-			mesh_data_struct.has_childs = true;
-			mesh_data_struct.childs_array = node.children;
+			mesh_data_struct->has_childs = true;
+			mesh_data_struct->childs_array = node.children;
 		}
 		//checks to make sure this is NOT a bone
 		if( isBone(mesh_node_idx) ){
@@ -66,47 +66,47 @@ ModelLoader::ModelLoader(const std::string& path){
 		/////////////////////
 		//VERTEX DATA
 		/////////////////////
-		mesh_data_struct.vertex_positions_array = getVertexPositions(mesh);
+		mesh_data_struct->vertex_positions_array = getVertexPositions(mesh);
 		
 		///////////////////////
 		//NORMAL DATA
 		/////////////////////
-		mesh_data_struct.vertex_normals_array = getVertexNormals(mesh);
+		mesh_data_struct->vertex_normals_array = getVertexNormals(mesh);
 		
 		///////////////////////
 		//UVS
 		/////////////////////
-		mesh_data_struct.vertex_uvs_array = getVertexUVs(mesh);
+		mesh_data_struct->vertex_uvs_array = getVertexUVs(mesh);
 		
 		///////////////////////
 		//INDICES
 		/////////////////////
-		mesh_data_struct.vertex_indices_array = getIndices(mesh);
+		mesh_data_struct->vertex_indices_array = getIndices(mesh);
 	
 		///////////////
 		//TEXTURES
 		///////////////
-		mesh_data_struct.texture_map = getTextureMap(mesh);
+		mesh_data_struct->texture_map = getTextureMap(mesh);
 		
 		///////////////////////////
 		//GLOBAL POS/ROT/SCALE/MATRIX
 		///////////////////////////
 		{
 			//find node this mesh is assigned to
-			mesh_data_struct.node_index = mesh_node_idx;
+			mesh_data_struct->node_index = mesh_node_idx;
 			
-			mesh_data_struct.translation = getTranslation(node);
-			mesh_data_struct.rotation = getRotation(node);
-			mesh_data_struct.scale = getScale(node);
+			mesh_data_struct->translation = getTranslation(node);
+			mesh_data_struct->rotation = getRotation(node);
+			mesh_data_struct->scale = getScale(node);
 			
-			mesh_data_struct.modelMatrix = createTRSmatrix(mesh_data_struct.translation, mesh_data_struct.rotation, mesh_data_struct.scale);//if it uses a custom `matrix_transform` in the glTF, then this will get overriden so don't worry
+			mesh_data_struct->modelMatrix = createTRSmatrix(mesh_data_struct->translation, mesh_data_struct->rotation, mesh_data_struct->scale);//if it uses a custom `matrix_transform` in the glTF, then this will get overriden so don't worry
 			
 			if(!node.matrix.empty()){//matrix (if specified in the file)
-				mesh_data_struct.matrix_transform = getTransformMatrix(node);
+				mesh_data_struct->matrix_transform = getTransformMatrix(node);
 				
-				mesh_data_struct.has_matrix_transform = true;
+				mesh_data_struct->has_matrix_transform = true;
 				
-				mesh_data_struct.modelMatrix = mesh_data_struct.matrix_transform;
+				mesh_data_struct->modelMatrix = mesh_data_struct->matrix_transform;
 			}
 		}
 		
@@ -117,32 +117,32 @@ ModelLoader::ModelLoader(const std::string& path){
 			
 			has_skin = true;//USELESS --REMOVE THIS once animation for skinning reworked [needed rn as used by animations]
 			
-			mesh_data_struct.has_skin = true;
+			mesh_data_struct->has_skin = true;
 			
 			//joints
-			mesh_data_struct.joints_array = getSkinJoints(mesh);
+			mesh_data_struct->joints_array = getSkinJoints(mesh);
 			
 			//weights
-			mesh_data_struct.weights_array = getSkinWeights(mesh);
+			mesh_data_struct->weights_array = getSkinWeights(mesh);
 			
-			if(mesh_data_struct.joints_array.empty() || mesh_data_struct.weights_array.empty()){
+			if(mesh_data_struct->joints_array.empty() || mesh_data_struct->weights_array.empty()){
 				has_skin = false;
-				mesh_data_struct.has_skin = false;
+				mesh_data_struct->has_skin = false;
 			}
 		
 			//inverse bind matrices
-			mesh_data_struct.inverse_bind_matrix_array = getInverseBindMatrices(mesh);
+			mesh_data_struct->inverse_bind_matrix_array = getInverseBindMatrices(mesh);
 		}
 		
 		///////////////////////////
 		//ANIMATIONS
 		///////////////////////////
-		mesh_data_struct.animation_data = getMeshAnimationData(mesh);
+		mesh_data_struct->animation_data = getMeshAnimationData(mesh);
 		
 		/////////////////
 		//MATERIALS
 		/////////////////
-		mesh_data_struct.material_data = getMaterial(mesh);
+		mesh_data_struct->material_data = getMaterial(mesh);
 		
 		//add to MeshDataStruct array
 		mesh_data_struct_array.emplace_back(mesh_data_struct);
@@ -152,57 +152,55 @@ ModelLoader::ModelLoader(const std::string& path){
 	//LOAD ALL EMPTIES
 	///////////////////
 	for(int n{}; n<model.nodes.size(); n++){
-		Empty empty;
+		Empty* empty = new Empty;
 		
 		tinygltf::Node& node = model.nodes[n];
 		
-		empty.node_index = n;
+		empty->node_index = n;
 		
-		empty.node = node;
+		empty->node = node;
 		
-		empty.name = node.name;
+		empty->name = node.name;
 		
 		//checks to make sure this is NOT a mesh
 		if(node.mesh != -1){
 			continue;
 		}
 		//checks to make sure this is NOT a bone
-		if( isBone(empty.node_index) ){
+		if( isBone(empty->node_index) ){
 			continue;
 		}
 //		//checks to make sure this is NOT an armature
-//		if( isArmature(empty.node_index) ){
+//		if( isArmature(empty->node_index) ){
 //			continue;
 //		}
 		
 		//check to see if has sub-nodes
 		if(!node.children.empty()){
-			empty.has_childs = true;
-			empty.child_array = node.children;
+			empty->has_childs = true;
+			empty->child_array = node.children;
 		}
 		
 		/////////////
 		//ANIMATIONS
 		/////////////
-		empty.animation_data = getNodeAnimationData(node);
+		empty->animation_data = getNodeAnimationData(node);
 		
-		empty.is_root = isRootNode(node);
-		
-		
+		empty->is_root = isRootNode(node);
 		///////////////////////////
 		//GLOBAL POS/ROT/SCALE/MATRICES
 		///////////////////////////
 		{
-			empty.translation = empty.animation_data.translation = getTranslation(node);
-			empty.rotation = empty.animation_data.rotation = getRotation(node);
-			empty.scale = empty.animation_data.scale = getScale(node);
+			empty->translation = empty->animation_data.translation = getTranslation(node);
+			empty->rotation = empty->animation_data.rotation = getRotation(node);
+			empty->scale = empty->animation_data.scale = getScale(node);
 			
-			empty.modelMatrix = createTRSmatrix(empty.translation, empty.rotation, empty.scale);//if it uses a custom `matrix_transform` in the glTF, then this will get overriden so don't worry 
+			empty->modelMatrix = createTRSmatrix(empty->translation, empty->rotation, empty->scale);//if it uses a custom `matrix_transform` in the glTF, then this will get overriden so don't worry 
 			
 			if(!node.matrix.empty()){
-				empty.matrix_transform = getTransformMatrix(node);
-				empty.has_matrix_transform = true;
-				empty.modelMatrix = empty.matrix_transform;
+				empty->matrix_transform = getTransformMatrix(node);
+				empty->has_matrix_transform = true;
+				empty->modelMatrix = empty->matrix_transform;
 			}
 		}
 		
@@ -213,21 +211,21 @@ ModelLoader::ModelLoader(const std::string& path){
 	//calculate average delta animation time [based on averaged Node animations]
 	{
 		std::map<int, AnimationDataStruct> node_anim_map;
-		for(const Empty& empty : empties_array)
-			node_anim_map.emplace(empty.node_index, empty.animation_data);
+		for(const Empty* empty : empties_array)
+			node_anim_map.emplace(empty->node_index, empty->animation_data);
 		DELTA_TIME_STEP = getAveragedAnimationFps(node_anim_map);
 	}
 	//////////////////////////
 	//fill in Node animation gaps
 	//////////////////////////
-	for(Empty& empty : empties_array)
-		fillInAnimationGaps( empty.animation_data );
+	for(Empty* empty : empties_array)
+		fillInAnimationGaps( empty->animation_data );
 	
 	//get max Node timeline
 	max_node_timeline = getMaxNodeTimeline();
 	//update time arrays with max array for each Empty
-	for(Empty& empty : empties_array)
-		empty.animation_data.time_array = max_node_timeline;
+	for(Empty* empty : empties_array)
+		empty->animation_data.time_array = max_node_timeline;
 	
 	//equalize all Node animations (fill blank arrays, match sizes)
 	equalizeAndMatchNodeAnimations();
@@ -236,8 +234,52 @@ ModelLoader::ModelLoader(const std::string& path){
 	//SKINNED ANIMS
 	////////////////
 	getSkinnedAnimation();
-//	GET_SKINNED_ANIMATION_BLENDER();
 
+	/////////////////////////////////////////
+	//fill in root-subnode relationship array
+	/////////////////////////////////////////
+	for(Empty* empty : empties_array){
+		
+		//skip if bone
+		if(isBone(empty->node_index))
+			continue;
+		
+		int idx = getParentNodeIndex(empty->node);
+		if(idx == -1)
+			continue;
+		
+		std::pair<Empty*, Empty*> pair;
+		
+		//find root empty for the child
+		for(Empty* e_sub : empties_array){
+			if(e_sub->node_index == idx){
+				pair.first = e_sub;
+				break;
+			}
+		}
+		
+		//child empty
+		pair.second = empty;
+		
+		//add to array
+		root_and_child_array.emplace_back(pair);
+	}
+	
+	
+	///////////////////////////////////////////
+	//FOR EDGE CASES -- fill in all root nodes
+	///////////////////////////////////////////
+	for(Empty* empty : empties_array){
+		//skip if bone
+		if(isBone(empty->node_index))
+			continue;
+		
+		int idx = getParentNodeIndex(empty->node);
+		if(idx == -1)//MUST be == -1 for it to be a root node
+			root_array.emplace_back(empty);
+	}
+	
+	
 	//check to see if skin and model anims are synced
 	if(!bone_animation_array.empty() && !max_node_timeline.empty())
 		if(bone_animation_array.front().time_array.size() != max_node_timeline.size())
@@ -248,12 +290,23 @@ ModelLoader::ModelLoader(const std::string& path){
 ModelLoader::~ModelLoader() {
 	
 	//delete all GL texture's once finished
-	for(const MeshDataStruct& mesh_data : mesh_data_struct_array){
-		for(const auto& tex_data : mesh_data.texture_map){
+	for(MeshDataStruct* mesh_data : mesh_data_struct_array){
+		for(const auto& tex_data : mesh_data->texture_map){
 			glDeleteTextures(1, &tex_data.second.tex_id);
 		}
 	}
 
+	//delete all MeshDataStruct objects
+	for(MeshDataStruct* mesh_data : mesh_data_struct_array){
+		delete mesh_data;
+		mesh_data = nullptr;
+	}
+	
+	//delete all Empty objects
+	for(Empty* empty : empties_array){
+		delete empty;
+		empty = nullptr;
+	}
 	
 	PRINT_COLOR( "ModelLoader object destroyed", 40, 220, 90);
 }
@@ -836,8 +889,8 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 std::vector<float> ModelLoader::getMaxNodeTimeline(){
 	std::map<int, std::vector<float>> sorted_timelines;
 	
-	for(const Empty& empty : empties_array){
-		const AnimationDataStruct& animation_data = empty.animation_data;
+	for(const Empty* empty : empties_array){
+		const AnimationDataStruct& animation_data = empty->animation_data;
 		sorted_timelines.emplace(animation_data.trans_time_array.size(), animation_data.trans_time_array);
 		sorted_timelines.emplace(animation_data.rot_time_array.size(), animation_data.rot_time_array);
 		sorted_timelines.emplace(animation_data.scale_time_array.size(), animation_data.scale_time_array);
@@ -938,8 +991,8 @@ void ModelLoader::equalizeAndMatchNodeAnimations(){
 	////////////////////////////////////
 	//makes sure all arrays are not empty [fills them in up to max time size]
 	////////////////////////////////////
-	for(Empty& empty : empties_array){
-		AnimationDataStruct& animation_data = empty.animation_data;
+	for(Empty* empty : empties_array){
+		AnimationDataStruct& animation_data = empty->animation_data;
 		//pos
 		if(animation_data.translation_anim_array.empty())
 			for(float t : max_node_timeline)
@@ -957,8 +1010,8 @@ void ModelLoader::equalizeAndMatchNodeAnimations(){
 	////////////////////////////////////
 	//makes sure all aniamtion arrays are of equal length (pos/rot/scale)
 	////////////////////////////////////
-	for(Empty& empty : empties_array){
-		AnimationDataStruct& animation_data = empty.animation_data;
+	for(Empty* empty : empties_array){
+		AnimationDataStruct& animation_data = empty->animation_data;
 		int max_size = max_node_timeline.size();
 		
 		//equalize translation array
@@ -1824,7 +1877,7 @@ void ModelLoader::getHierarchy(const tinygltf::Node& node_in){
 	
 //	bool base_reached = false;
 	
-//	int idx = empty.node_index;
+//	int idx = empty->node_index;
 	tinygltf::Node node = node_in;
 	
 	int tree_level {};
@@ -1902,12 +1955,12 @@ int ModelLoader::getParentNodeIndex(const tinygltf::Node& node){
 	return parent_idx;
 }
 
-std::vector<MeshDataStruct> ModelLoader::getChildMeshArray(const tinygltf::Node& node){
-	std::vector<MeshDataStruct> child_mesh_array;
+std::vector<MeshDataStruct*> ModelLoader::getChildMeshArray(const tinygltf::Node& node){
+	std::vector<MeshDataStruct*> child_mesh_array;
 	
 	for(int c : node.children){
-		for(const MeshDataStruct& msh : mesh_data_struct_array){
-			if(msh.node_index == c)
+		for(MeshDataStruct* msh : mesh_data_struct_array){
+			if(msh->node_index == c)
 				child_mesh_array.emplace_back(msh);
 		}
 	}

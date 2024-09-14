@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager), direct_light(_direct_light){
+Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct* _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light) : camera(cam), model(model_loader), mesh_data(_mesh_data), shader(_shader), window_manager(win_manager), direct_light(_direct_light){
 	
 	std::vector<glm::vec3> tangent_array;
 	std::vector<glm::vec3> bitangent_array;
@@ -10,17 +10,17 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	std::map<unsigned int, glm::vec3> bitangent_map;
 	
 	
-	std::vector<glm::vec3> vert_pos_vec = mesh_data.vertex_positions_array;
-	std::vector<glm::vec2> uv_coord_vec = mesh_data.vertex_uvs_array;
+	std::vector<glm::vec3> vert_pos_vec = mesh_data->vertex_positions_array;
+	std::vector<glm::vec2> uv_coord_vec = mesh_data->vertex_uvs_array;
 	
-	for(int i{}; i<mesh_data.vertex_indices_array.size()/3; i++){
+	for(int i{}; i<mesh_data->vertex_indices_array.size()/3; i++){
 		
 		for(int count{}; count<3; count++){
-			int vert0_idx = mesh_data.vertex_indices_array[(i*3)+0];
+			int vert0_idx = mesh_data->vertex_indices_array[(i*3)+0];
 			
-			int vert1_idx = mesh_data.vertex_indices_array[(i*3)+1];
+			int vert1_idx = mesh_data->vertex_indices_array[(i*3)+1];
 			
-			int	vert2_idx = mesh_data.vertex_indices_array[(i*3)+2];
+			int	vert2_idx = mesh_data->vertex_indices_array[(i*3)+2];
 			
 			glm::vec3 edge0 = glm::vec3( vert_pos_vec[vert1_idx].x, vert_pos_vec[vert1_idx].y, vert_pos_vec[vert1_idx].z ) - glm::vec3( vert_pos_vec[vert0_idx].x, vert_pos_vec[vert0_idx].y, vert_pos_vec[vert0_idx].z );
 			glm::vec3 edge1 = glm::vec3( vert_pos_vec[vert2_idx].x, vert_pos_vec[vert2_idx].y, vert_pos_vec[vert2_idx].z ) - glm::vec3( vert_pos_vec[vert0_idx].x, vert_pos_vec[vert0_idx].y, vert_pos_vec[vert0_idx].z );
@@ -41,8 +41,8 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 			bitangent.y = div * (-uv1.x*edge0.y + uv0.x*edge1.y);
 			bitangent.z = div * (-uv1.x*edge0.z + uv0.x*edge1.z);
 //			
-			tangent_map.emplace(mesh_data.vertex_indices_array[(i*3) + count], tangent);
-			bitangent_map.emplace(mesh_data.vertex_indices_array[(i*3) + count], bitangent);
+			tangent_map.emplace(mesh_data->vertex_indices_array[(i*3) + count], tangent);
+			bitangent_map.emplace(mesh_data->vertex_indices_array[(i*3) + count], bitangent);
 			
 		}
 		
@@ -56,11 +56,11 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	}
 	
 	//fill in the arrays with flattened GLfloat and GLuint vertex/index data
-	for(unsigned int i{}; i<mesh_data.vertex_positions_array.size(); i++){
+	for(unsigned int i{}; i<mesh_data->vertex_positions_array.size(); i++){
 		
-		glm::vec3& vert_pos = mesh_data.vertex_positions_array[i];
-		glm::vec2& vert_uv = mesh_data.vertex_uvs_array[i];
-		glm::vec3& vert_norm = mesh_data.vertex_normals_array[i];
+		glm::vec3& vert_pos = mesh_data->vertex_positions_array[i];
+		glm::vec2& vert_uv = mesh_data->vertex_uvs_array[i];
+		glm::vec3& vert_norm = mesh_data->vertex_normals_array[i];
 		
 		//push vert positions
 		vertex_data_array.emplace_back( (GLfloat)vert_pos.x );
@@ -88,10 +88,10 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		vertex_data_array.emplace_back( 0.f );
 		vertex_data_array.emplace_back( 0.f );
 		
-		if(mesh_data.has_skin){
+		if(mesh_data->has_skin){
 			//joints
 			{
-				glm::vec4 joint = mesh_data.joints_array[i];
+				glm::vec4 joint = mesh_data->joints_array[i];
 				
 				vertex_data_array.emplace_back( joint.x );
 				vertex_data_array.emplace_back( joint.y );
@@ -100,7 +100,7 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 			}
 			//weights
 			{
-				glm::vec4 weight = mesh_data.weights_array[i];
+				glm::vec4 weight = mesh_data->weights_array[i];
 				
 				vertex_data_array.emplace_back( weight.x );
 				vertex_data_array.emplace_back( weight.y );
@@ -111,7 +111,7 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 		
 	}
 	//indices
-	for(unsigned int v_idx : mesh_data.vertex_indices_array){
+	for(unsigned int v_idx : mesh_data->vertex_indices_array){
 		vertex_indices_array.emplace_back( (GLuint)v_idx );
 	}
 
@@ -120,7 +120,7 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	ebo = EBO(vertex_indices_array);
 	
 	//setup attributes
-	if(mesh_data.has_skin){
+	if(mesh_data->has_skin){
 		//setup pointers to the vertex position data `layout (location = 0)`
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 22*sizeof(float), static_cast<void*>(0));
 		glEnableVertexAttribArray(0);
@@ -183,9 +183,9 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct _mesh_data, Sh
 	__GL_ERROR_THROW__("Failed to generate Mesh object"); //check for any GL errors
 	
 	//set position/scale/orn
-	position = mesh_data.translation;
-	rotation = mesh_data.rotation;
-	scale = mesh_data.scale;
+	position = mesh_data->translation;
+	rotation = mesh_data->rotation;
+	scale = mesh_data->scale;
 	
 }
 
@@ -195,11 +195,10 @@ Mesh::~Mesh(){
 	vbo.free();
 	ebo.free();
 	
-	PRINT_COLOR( "Mesh object [" + mesh_data.name + "] destroyed", 40, 220, 90);
+	PRINT_COLOR( "Mesh object [" + mesh_data->name + "] destroyed", 40, 220, 90);
 }
 
 void Mesh::update(){
-	std::cout << direct_light->strength << std::endl;
 	
 	//apply translation
 	modelMatrix = glm::translate(glm::mat4(1.f), position);
@@ -213,8 +212,8 @@ void Mesh::update(){
 	modelMatrix = glm::scale(modelMatrix, scale);
 	
 	//if this mesh is a child of an empty, the use the calculated modelMatrix [calculated inside AnimationPlayer.cpp, based off of root empty animations]
-	if(mesh_data.inherits_animation)
-		modelMatrix = mesh_data.modelMatrix;
+	if(mesh_data->inherits_animation)
+		modelMatrix = mesh_data->modelMatrix;
 	
 	//update animations
 	updateAnimation();
@@ -239,28 +238,28 @@ void Mesh::update(){
 	//textures
 	///////////
 	//diffuse tex
-	if(mesh_data.texture_map.count(TextureType::DIFFUSE) != 0){
+	if(mesh_data->texture_map.count(TextureType::DIFFUSE) != 0){
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::DIFFUSE].tex_id);
+		glBindTexture(GL_TEXTURE_2D, mesh_data->texture_map[TextureType::DIFFUSE].tex_id);
 		shader->setInt("diffuse_tex", 0);//send Image to frag shader
 	}
 	
 	//normal tex
-	if(mesh_data.texture_map.count(TextureType::NORMAL) != 0){
+	if(mesh_data->texture_map.count(TextureType::NORMAL) != 0){
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::NORMAL].tex_id);
+		glBindTexture(GL_TEXTURE_2D, mesh_data->texture_map[TextureType::NORMAL].tex_id);
 		shader->setInt("normal_tex", 1);//send Image to frag shader
 	}
 	
 	//metal tex
-	if(mesh_data.texture_map.count(TextureType::METAL) != 0){
+	if(mesh_data->texture_map.count(TextureType::METAL) != 0){
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, mesh_data.texture_map[TextureType::METAL].tex_id);
+		glBindTexture(GL_TEXTURE_2D, mesh_data->texture_map[TextureType::METAL].tex_id);
 		shader->setInt("metal_tex", 2);//send Image to frag shader
 	}
 	
 	//send base/diffuse color
-	shader->setVec3("base_color", glm::vec3( mesh_data.material_data.base_color.x, mesh_data.material_data.base_color.y, mesh_data.material_data.base_color.z ) );
+	shader->setVec3("base_color", glm::vec3( mesh_data->material_data.base_color.x, mesh_data->material_data.base_color.y, mesh_data->material_data.base_color.z ) );
 	
 	
 	//////////
@@ -273,7 +272,7 @@ void Mesh::update(){
 	}
 	
 	//send isSkinned var
-	shader->setInt("isSkinned", (int)mesh_data.has_skin);
+	shader->setInt("isSkinned", (int)mesh_data->has_skin);
 	
 	//backface culling (if enabled)
 	(enable_backface_culling) ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
@@ -307,7 +306,7 @@ void Mesh::updateAnimation(){
 	
 	updateSkinnedAnimation();
 	
-	const AnimationDataStruct& animation_data = mesh_data.animation_data;
+	const AnimationDataStruct& animation_data = mesh_data->animation_data;
 	
 	//quit if no animations for this mesh
 	if(!animation_data.has_animation){
@@ -442,7 +441,7 @@ glm::vec3 Mesh::calculateCurrentScale(const AnimationDataStruct& animation_data)
 void Mesh::updateSkinnedAnimation(){
 		std::vector<std::size_t> bone_nodes_vec;//just to store bone/join indices for each matrix. Will be used to find parents for each bone
 	
-	if(!mesh_data.has_skin)
+	if(!mesh_data->has_skin)
 		return;
 	
 	bone_transform_matrix_array.clear();
@@ -485,7 +484,7 @@ void Mesh::updateSkinnedAnimation(){
 	}
 	
 	//FETCH AND SEND ALL inverseBindMatrices
-	std::vector<glm::mat4> inverse_bind_mat_array = mesh_data.inverse_bind_matrix_array;
+	std::vector<glm::mat4> inverse_bind_mat_array = mesh_data->inverse_bind_matrix_array;
 	
 	for (std::size_t m{}; m < inverse_bind_mat_array.size(); m++) {
 		

@@ -51,7 +51,7 @@ struct AnimationDataStruct{
 	
 	float current_animation_time {};
 	int current_animation_frame {};
-	float playback_speed = .5f;
+	float playback_speed = 1.f;
 	
 	std::vector<int> child_array;
 	
@@ -146,6 +146,17 @@ struct Empty{
 	
 	bool has_root = false;
 	int root_idx = -1;
+	
+	void setModelMatrix(const glm::mat4& mat) {	modelMatrix = mat;	}
+	void setTranslation(const glm::vec3& pos) {	translation = pos; animation_data.translation = pos;	}
+	void setRotation(const glm::quat& rot) {	rotation = rot; animation_data.rotation = rot;	}
+	void setScale(const glm::vec3& _scale) {	scale = _scale; animation_data.scale = _scale;	}
+	
+	glm::mat4 getModelMatrix() const	{ return modelMatrix;		}
+	glm::vec3 getTranslation() const {	return translation;	}
+	glm::quat getRotation() const {	return rotation;	}
+	glm::vec3 getScale() const {	return scale;	}
+	
 };
 
 struct DirectionalLight{

@@ -20,20 +20,19 @@ public:
 	glm::quat calculateCurrentRotation(AnimationDataStruct& animation_data);
 	glm::vec3 calculateCurrentScale(AnimationDataStruct& animation_data);
 	
-	MeshDataStruct getFirstChildMesh(const Empty& empty);
-	Empty getFirstChildEmpty(const Empty& parent_empty);
-	std::vector<Empty> getChildEmptyArray(const Empty& parent_empty);
+	MeshDataStruct* getFirstChildMesh(const Empty* empty);
+	Empty* getFirstChildEmpty(const Empty* parent_empty);
+	std::vector<Empty*> getChildEmptyArray(const Empty* parent_empty);
 	
+	void setPlaybackSpeed(float _speed);
 	void resetAnimations();
-
+	
 private:
 	ModelLoader* model_loader;
 	std::vector<Mesh*>* mesh_array;
 	WindowManager* window_manager;
 	
 	std::map<std::string, Empty*> empties_map;
-	std::vector<std::pair<Empty*, Empty*>> root_and_child_array;
-	std::vector<Empty*> root_array;//only will be used for edge cases where root has animations
 	
 };
 
