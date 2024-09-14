@@ -93,16 +93,15 @@ int main(int argc, char* argv[]) {
 		//////////////////////////////
 		for(Empty* empty : model->getRootNodesArray()){
 			//set pos
-			empty->setTranslation( glm::vec3(0.f) );
+//			empty->setTranslation( glm::vec3(0.f) );
 			//set rot
-			empty->setRotation( glm::quat(1.f, 0.f, 0.f, 0.f) );
+//			empty->setRotation( glm::quat(1.f, 0.f, 0.f, 0.f) );
 //			set scale
 			empty->setScale( glm::vec3(100.f) );
 		}
 		/*
 		//alternatively, you can also set the pos/rot/scale of each Mesh
 		//for example:
-		*/
 		for(Mesh* mesh : mesh_array){
 				//set pos
 				mesh->setTranslation( glm::vec3(0.f) );
@@ -111,6 +110,7 @@ int main(int argc, char* argv[]) {
 				//set scale
 				mesh->setScale( glm::vec3(100.f) );
 		}
+		*/
 	
 	
     while (!windowManager.shouldClose()) {
