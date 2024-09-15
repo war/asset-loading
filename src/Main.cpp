@@ -91,26 +91,9 @@ int main(int argc, char* argv[]) {
 		//////////////////////////////
 		//set pos/rot/scale for models
 		//////////////////////////////
-		for(Empty* empty : model->getRootNodesArray()){
-			//set pos
-//			empty->setTranslation( glm::vec3(0.f) );
-			//set rot
-//			empty->setRotation( glm::quat(1.f, 0.f, 0.f, 0.f) );
-//			set scale
+		for(EmptyNode* empty : model->getRootNodesArray()){
 			empty->setScale( glm::vec3(100.f) );
 		}
-		/*
-		//alternatively, you can also set the pos/rot/scale of each Mesh
-		//for example:
-		for(Mesh* mesh : mesh_array){
-				//set pos
-				mesh->setTranslation( glm::vec3(0.f) );
-				//set rot
-				mesh->setRotation( glm::quat(1.f, 0.f, 0.f, 0.f) );
-				//set scale
-				mesh->setScale( glm::vec3(100.f) );
-		}
-		*/
 	
 	
     while (!windowManager.shouldClose()) {
@@ -142,6 +125,14 @@ int main(int argc, char* argv[]) {
 					glDisable(GL_BLEND);
 				}
 			
+				//set model to follow camera
+				for(EmptyNode* empty : model->getRootNodesArray())
+					//set pos
+						empty->setTranslation( camera.GetPosition() - camera.GetUp()*30.f + camera.GetFront()*60.f );
+				
+				//update animation system
+				animation_player.update();
+			
 				//////////////////////
 				//render glTF meshes
 				//////////////////////
@@ -155,15 +146,9 @@ int main(int argc, char* argv[]) {
 					else
 						mesh->setRenderingMode(GL_TRIANGLES);
 					
-					//set mesh scale
-//					mesh->setScale( glm::vec3(5.f) );
-					
 					mesh->update();
 				}
-			
-				//update animation system
-				animation_player.update();
-				
+
 				//reset animations if R pressed
 				if(windowManager.isRKeyPressed())
 					animation_player.resetAnimations();

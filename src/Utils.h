@@ -114,7 +114,7 @@ struct MeshDataStruct{
 	std::vector<int> childs_array;
 };
 
-struct Empty{
+struct EmptyNode{
 	int node_index = -1;
 	tinygltf::Node node;
 	

@@ -48,6 +48,10 @@ public:
 
     glm::mat4 GetViewMatrix();
 		glm::vec3 GetPosition() const {	return Position;	}
+		
+		glm::vec3 GetFront() const { return Front; }
+		glm::vec3 GetUp() const { return Up; }
+		glm::vec3 GetRight() const { return Right; }
 
     void ProcessKeyboard(Camera_Movement direction, float deltaTime);
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);

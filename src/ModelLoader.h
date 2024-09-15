@@ -28,7 +28,7 @@ public:
 		std::vector<unsigned int> getIndices(const tinygltf::Mesh& mesh);
 	
 		std::vector<MeshDataStruct*>& getMeshDataArray() {	return mesh_data_struct_array;	}
-		std::vector<Empty*>& getEmptiesArray() {	return empties_array;	}
+		std::vector<EmptyNode*>& getEmptiesArray() {	return empties_array;	}
 	
 		//get global translation/pos/rot
 		glm::vec3 getTranslation(const tinygltf::Node& node) const; 
@@ -79,8 +79,8 @@ public:
 		int getParentNodeIndex(const tinygltf::Node& node);
 		std::vector<MeshDataStruct*> getChildMeshArray(const tinygltf::Node& node);
 	
-		inline std::vector<Empty*>& getRootNodesArray() {	return root_array;	}
-		inline std::vector<std::pair<Empty*, Empty*>>& getRootAndChildArray() {	return root_and_child_array;	}
+		inline std::vector<EmptyNode*>& getRootNodesArray() {	return root_array;	}
+		inline std::vector<std::pair<EmptyNode*, EmptyNode*>>& getRootAndChildArray() {	return root_and_child_array;	}
 	
 private:
     tinygltf::TinyGLTF tiny_gltf;
@@ -97,11 +97,11 @@ private:
 		GLuint normal_texture {};
 		GLuint metal_texture {};
 	
-		std::vector<Empty*> empties_array;
+		std::vector<EmptyNode*> empties_array;
 		std::vector<MeshDataStruct*> mesh_data_struct_array;
 	
-		std::vector<Empty*> root_array;//only will be used for edge cases where root has animations
-		std::vector<std::pair<Empty*, Empty*>> root_and_child_array;
+		std::vector<EmptyNode*> root_array;//only will be used for edge cases where root has animations
+		std::vector<std::pair<EmptyNode*, EmptyNode*>> root_and_child_array;
 	
 		float DELTA_TIME_STEP = 0.f;
 	

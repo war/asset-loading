@@ -20,9 +20,9 @@ public:
 	glm::quat calculateCurrentRotation(AnimationDataStruct& animation_data);
 	glm::vec3 calculateCurrentScale(AnimationDataStruct& animation_data);
 	
-	MeshDataStruct* getFirstChildMesh(const Empty* empty);
-	Empty* getFirstChildEmpty(const Empty* parent_empty);
-	std::vector<Empty*> getChildEmptyArray(const Empty* parent_empty);
+	MeshDataStruct* getFirstChildMesh(const EmptyNode* empty);
+	EmptyNode* getFirstChildEmptyNode(const EmptyNode* parent_empty);
+	std::vector<EmptyNode*> getChildEmptyNodeArray(const EmptyNode* parent_empty);
 	
 	void setPlaybackSpeed(float _speed);
 	void resetAnimations();
@@ -32,7 +32,7 @@ private:
 	std::vector<Mesh*>* mesh_array;
 	WindowManager* window_manager;
 	
-	std::map<std::string, Empty*> empties_map;
+	std::map<std::string, EmptyNode*> empties_map;
 	
 };
 

@@ -152,7 +152,7 @@ ModelLoader::ModelLoader(const std::string& path){
 	//LOAD ALL EMPTIES
 	///////////////////
 	for(int n{}; n<model.nodes.size(); n++){
-		Empty* empty = new Empty;
+		EmptyNode* empty = new EmptyNode;
 		
 		tinygltf::Node& node = model.nodes[n];
 		
@@ -211,20 +211,20 @@ ModelLoader::ModelLoader(const std::string& path){
 	//calculate average delta animation time [based on averaged Node animations]
 	{
 		std::map<int, AnimationDataStruct> node_anim_map;
-		for(const Empty* empty : empties_array)
+		for(const EmptyNode* empty : empties_array)
 			node_anim_map.emplace(empty->node_index, empty->animation_data);
 		DELTA_TIME_STEP = getAveragedAnimationFps(node_anim_map);
 	}
 	//////////////////////////
 	//fill in Node animation gaps
 	//////////////////////////
-	for(Empty* empty : empties_array)
+	for(EmptyNode* empty : empties_array)
 		fillInAnimationGaps( empty->animation_data );
 	
 	//get max Node timeline
 	max_node_timeline = getMaxNodeTimeline();
-	//update time arrays with max array for each Empty
-	for(Empty* empty : empties_array)
+	//update time arrays with max array for each EmptyNode
+	for(EmptyNode* empty : empties_array)
 		empty->animation_data.time_array = max_node_timeline;
 	
 	//equalize all Node animations (fill blank arrays, match sizes)
@@ -238,7 +238,7 @@ ModelLoader::ModelLoader(const std::string& path){
 	/////////////////////////////////////////
 	//fill in root-subnode relationship array
 	/////////////////////////////////////////
-	for(Empty* empty : empties_array){
+	for(EmptyNode* empty : empties_array){
 		
 		//skip if bone
 		if(isBone(empty->node_index))
@@ -248,10 +248,10 @@ ModelLoader::ModelLoader(const std::string& path){
 		if(idx == -1)
 			continue;
 		
-		std::pair<Empty*, Empty*> pair;
+		std::pair<EmptyNode*, EmptyNode*> pair;
 		
 		//find root empty for the child
-		for(Empty* e_sub : empties_array){
+		for(EmptyNode* e_sub : empties_array){
 			if(e_sub->node_index == idx){
 				pair.first = e_sub;
 				break;
@@ -269,7 +269,7 @@ ModelLoader::ModelLoader(const std::string& path){
 	///////////////////////////////////////////
 	//FOR EDGE CASES -- fill in all root nodes
 	///////////////////////////////////////////
-	for(Empty* empty : empties_array){
+	for(EmptyNode* empty : empties_array){
 		//skip if bone
 		if(isBone(empty->node_index))
 			continue;
@@ -302,8 +302,8 @@ ModelLoader::~ModelLoader() {
 		mesh_data = nullptr;
 	}
 	
-	//delete all Empty objects
-	for(Empty* empty : empties_array){
+	//delete all EmptyNode objects
+	for(EmptyNode* empty : empties_array){
 		delete empty;
 		empty = nullptr;
 	}
@@ -889,7 +889,7 @@ AnimationDataStruct ModelLoader::getNodeAnimationData(const tinygltf::Node& node
 std::vector<float> ModelLoader::getMaxNodeTimeline(){
 	std::map<int, std::vector<float>> sorted_timelines;
 	
-	for(const Empty* empty : empties_array){
+	for(const EmptyNode* empty : empties_array){
 		const AnimationDataStruct& animation_data = empty->animation_data;
 		sorted_timelines.emplace(animation_data.trans_time_array.size(), animation_data.trans_time_array);
 		sorted_timelines.emplace(animation_data.rot_time_array.size(), animation_data.rot_time_array);
@@ -991,7 +991,7 @@ void ModelLoader::equalizeAndMatchNodeAnimations(){
 	////////////////////////////////////
 	//makes sure all arrays are not empty [fills them in up to max time size]
 	////////////////////////////////////
-	for(Empty* empty : empties_array){
+	for(EmptyNode* empty : empties_array){
 		AnimationDataStruct& animation_data = empty->animation_data;
 		//pos
 		if(animation_data.translation_anim_array.empty())
@@ -1010,7 +1010,7 @@ void ModelLoader::equalizeAndMatchNodeAnimations(){
 	////////////////////////////////////
 	//makes sure all aniamtion arrays are of equal length (pos/rot/scale)
 	////////////////////////////////////
-	for(Empty* empty : empties_array){
+	for(EmptyNode* empty : empties_array){
 		AnimationDataStruct& animation_data = empty->animation_data;
 		int max_size = max_node_timeline.size();
 		
