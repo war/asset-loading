@@ -14,6 +14,10 @@
 #include "ErrorLogger.h"
 #include "Utils.h"
 
+//inline constexpr float TIME_STEP = 0.041666666666f;
+inline constexpr float TIME_STEP = 0.0333333333333333333f;
+
+
 class ModelLoader {
 public:
     explicit ModelLoader(const std::string& path);
@@ -42,16 +46,15 @@ public:
 		//materials
 		MaterialDataStruct getMaterial(const tinygltf::Mesh& mesh);
 		
-		//animations
-		bool has_animation = false;
-		std::string animation_name;
-		std::vector<AnimationDataStruct> bone_animation_array;//contains list of all animations for this model, with key being the animation name
+	
+//		std::vector<AnimationDataStruct> bone_animation_array;//contains list of all animations for this model, with key being the animation name
 		AnimationDataStruct getMeshAnimationData(const tinygltf::Mesh& mesh);
 		AnimationDataStruct getNodeAnimationData(const tinygltf::Node& node);
 		void getAllNodeAnimationTimelines();
 		std::map<int, std::vector<float>> node_timelines_map;
 		std::vector<float> getMaxNodeTimeline();
 		std::vector<float> getMaxSkinnedTimeline(const std::map<int, AnimationDataStruct>& bone_anim_map);
+		float getMaxSkinnedDuration(const std::map<int, AnimationDataStruct>& bone_anim_map);
 		void equalizeAndMatchNodeAnimations();
 		std::vector<float> max_node_timeline;//stores the largest time array
 		
@@ -63,6 +66,7 @@ public:
 	
 		//skinning
 		bool has_skin = false;
+		std::map<std::string, std::vector<AnimationDataStruct>> bone_animation_channel_map;//contains animation data for each channel ("channel" in this context means an entire Animation block, e.g. run animation channel or jump animation channel etc). To access each channel, the key specifying the animation channels' name must be used
 		std::vector<glm::vec4> getSkinJoints(const tinygltf::Mesh& mesh);
 		std::vector<glm::vec4> getSkinWeights(const tinygltf::Mesh& mesh);
 		std::vector<glm::mat4> getInverseBindMatrices(const tinygltf::Mesh& mesh);

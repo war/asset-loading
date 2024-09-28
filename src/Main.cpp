@@ -50,17 +50,18 @@ int main(int argc, char* argv[]) {
     std::string windowTitle = "";
 
 		//turn on Vsync
-		windowManager.SetVSyncMode(true);
+//		windowManager.SetVSyncMode(true);
 
     SDL_ShowCursor(SDL_DISABLE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
 		//add directional light
 		DirectionalLight* direct_light = new DirectionalLight;
-	
+		
 		//load in glTF model (meshes, animations, skinning, textures etc)
 //    ModelLoader* model = new ModelLoader("res/models/pistol/scene.gltf");
-    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
+//    ModelLoader* model = new ModelLoader("res/models/m16/scene.gltf");
+    ModelLoader* model = new ModelLoader("res/models/shotgun/scene.gltf");
 
 		///////////////
 		//mesh loading
@@ -92,9 +93,13 @@ int main(int argc, char* argv[]) {
 		//set pos/rot/scale for models
 		//////////////////////////////
 		for(EmptyNode* empty : model->getRootNodesArray()){
-			empty->setScale( glm::vec3(100.f) );
+			empty->setScale( glm::vec3(1.f) );
 		}
 	
+		//set animation channel to be played
+		for(Mesh* mesh : mesh_array)
+			mesh->setSkinnedAnimationChannel("v_shotgun.qc_skeleton|after_reload");
+
 	
     while (!windowManager.shouldClose()) {
         windowManager.clear();
@@ -125,11 +130,13 @@ int main(int argc, char* argv[]) {
 					glDisable(GL_BLEND);
 				}
 			
+			/*
 				//set model to follow camera
 				for(EmptyNode* empty : model->getRootNodesArray())
 					//set pos
-						empty->setTranslation( camera.GetPosition() - camera.GetUp()*30.f + camera.GetFront()*60.f );
-				
+						empty->setTranslation( camera.GetPosition() - camera.GetUp()*2.f + camera.GetFront()*4.f );
+			*/
+					
 				//update animation system
 				animation_player.update();
 			
@@ -148,7 +155,7 @@ int main(int argc, char* argv[]) {
 					
 					mesh->update();
 				}
-
+			
 				//reset animations if R pressed
 				if(windowManager.isRKeyPressed())
 					animation_player.resetAnimations();

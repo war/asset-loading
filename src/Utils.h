@@ -38,7 +38,6 @@ struct AnimationDataStruct{
 	bool has_root = false;
 	int root_idx = -1;
 	
-	
 	bool has_animation = false;
 	
 	glm::vec3 translation = glm::vec3(0.f);//relative to parent bone
@@ -215,6 +214,9 @@ inline glm::mat4 createTRSmatrix(const glm::vec3& position, const glm::quat& rot
 	return mat;
 }
 
+inline constexpr float integerFromFloat(float f, int decimal_count){
+	return (int)(f*std::pow(10, decimal_count));
+}
 
 
 #endif //UTILS_H

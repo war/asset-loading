@@ -187,6 +187,13 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct* _mesh_data, S
 	rotation = mesh_data->rotation;
 	scale = mesh_data->scale;
 	
+	//set fallbacks for selecting which animation channels to play, in case more than 1 is found in the gltf file [and check for channel name validity]
+	std::map<std::string, std::vector<AnimationDataStruct>>& animation_channel_map = model->bone_animation_channel_map;
+	if( animation_channel_map.count(m_skinnedAnimationChannelName) == 0 || m_skinnedAnimationChannelName == "" ){//invalid channel name
+		PRINT_WARN("Animation channel with name `" + m_skinnedAnimationChannelName + "` does not exist. Defaulting to use `" + animation_channel_map.rbegin()->first + "`");
+		m_skinnedAnimationChannelName = animation_channel_map.rbegin()->first;
+	}
+	
 }
 
 Mesh::~Mesh(){
@@ -331,6 +338,20 @@ void Mesh::updateAnimation(){
 	
 }
 
+void Mesh::setSkinnedAnimationChannel(const std::string& channel_name){
+	
+	//set fallbacks for selecting which animation channels to play, in case more than 1 is found in the gltf file [and check for channel name validity]
+	std::map<std::string, std::vector<AnimationDataStruct>>& animation_channel_map = model->bone_animation_channel_map;
+	if( animation_channel_map.count(channel_name) == 0 || channel_name == "" ){//invalid channel name
+		PRINT_WARN("Animation channel with name `" + channel_name + "` does not exist. Defaulting to use `" + animation_channel_map.rbegin()->first + "`");
+		m_skinnedAnimationChannelName = animation_channel_map.rbegin()->first;
+	}
+	else{
+		m_skinnedAnimationChannelName = channel_name;
+	}
+	
+}
+
 glm::vec3 Mesh::calculateCurrentTranslation(const AnimationDataStruct& animation_data){
 	
 	std::vector<float> time_array = animation_data.time_array;
@@ -447,21 +468,14 @@ void Mesh::updateSkinnedAnimation(){
 	bone_transform_matrix_array.clear();
 	bone_skinned_matrix_array.clear();
 	
-	std::vector<AnimationDataStruct> bone_animations_vec = model->bone_animation_array;
+	std::map<std::string, std::vector<AnimationDataStruct>>& animation_channel_map = model->bone_animation_channel_map;
 	
-	for (const AnimationDataStruct& bone_anim : bone_animations_vec) {
+	std::vector<AnimationDataStruct> bone_animations_vec = animation_channel_map[m_skinnedAnimationChannelName];
+	
+	for(const AnimationDataStruct& bone_anim : bone_animations_vec) {
 		glm::vec3 bone_pos = calculateCurrentTranslation(bone_anim);
 		glm::quat bone_rot = calculateCurrentRotation(bone_anim);
 		glm::vec3 bone_scale = calculateCurrentScale(bone_anim);
-		
-		
-		if( model->getTinyGltfModel().nodes[bone_anim.node_index].name == "R_arm_024"){
-//			if( bone_pos.y > 10 && bone_pos.z < -47 && bone_pos.z > -47.4 ){
-//			}
-//			bone_pos = glm::vec3(-2.45008, 9.14387, -48.5768);
-//			std::cout << current_animation_time << " , " << std::flush;
-//			printGlmVec3(bone_pos);
-		}
 		
 		//create TRS for each bone
 		glm::mat4 bone_transform = createTRSmatrix( bone_pos, bone_rot, bone_scale );
@@ -476,11 +490,7 @@ void Mesh::updateSkinnedAnimation(){
 			}
 		}
 		
-
-		
-		
 		bone_transform_matrix_array.emplace_back( bone_transform );
-		
 	}
 	
 	//FETCH AND SEND ALL inverseBindMatrices
@@ -498,6 +508,5 @@ void Mesh::updateSkinnedAnimation(){
 		glm::mat4 skinned_mat = inverse_bind_mat * glm::transpose( bone_transform_matrix_array[m] );
 		bone_skinned_matrix_array.emplace_back( glm::transpose( skinned_mat ) );
 	}
-	
 	
 }

@@ -22,7 +22,6 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 AnimationPlayer::~AnimationPlayer(){}
 
 void AnimationPlayer::update(){
-	
 	std::vector<EmptyNode*>& empties_array = model_loader->getEmptiesArray();
 	std::vector<MeshDataStruct*>& mesh_data_struct_array = model_loader->getMeshDataArray();
 	
@@ -105,7 +104,6 @@ void AnimationPlayer::update(){
 			}
 		}
 	}
-	
 	
 }
 

@@ -50,6 +50,8 @@ public:
 	
 	GLenum render_mode = GL_TRIANGLES;
 	
+	std::string m_skinnedAnimationChannelName;
+	
 public:
 	Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct* _mesh_data, Shader* _shader, WindowManager* win_manager, DirectionalLight* _direct_light);
 	~Mesh();                                    
@@ -57,6 +59,8 @@ public:
 	void update();
 	void updateAnimation();
 	void updateSkinnedAnimation();
+	
+	void setSkinnedAnimationChannel(const std::string& channel_name);
 	
 	void setModelMatrix(const glm::mat4& mat) {	modelMatrix = mat; mesh_data->modelMatrix = mat;	}
 	void setTranslation(const glm::vec3& pos) {	position = pos; mesh_data->translation = pos;	}
