@@ -134,9 +134,15 @@ int main(int argc, char* argv[]) {
 				//set model to follow camera
 				for(EmptyNode* empty : model->getRootNodesArray())
 					//set pos
-						empty->setTranslation( camera.GetPosition() - camera.GetUp()*2.f + camera.GetFront()*4.f );
-			*/
+//						empty->setTranslation( glm::vec3(0, 20, 0) );
+						empty->setTranslation( camera.GetPosition() );
 					
+			*/
+			//follow camera
+			for(Mesh* mesh : mesh_array)
+				mesh->setTranslation( camera.GetPosition() );
+			
+			
 				//update animation system
 				animation_player.update();
 			

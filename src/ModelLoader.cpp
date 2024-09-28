@@ -1315,8 +1315,9 @@ void ModelLoader::getSkinnedAnimation(){
 			time_array_str.emplace_back( std::to_string(f) );
 		}
 		
-		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&7
-		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&7
+		////////////////////////////
+		//FILLS IN ANIMATION GAPS
+		/////////////////////////////
 		for(auto& v : bone_anim_map){
 			
 			//		if(v.second.node.name != "Frame_01")
@@ -1326,74 +1327,18 @@ void ModelLoader::getSkinnedAnimation(){
 			
 			if(anim_map_itr.second.name == "v_shotgun.qc_skeleton|after_reload")
 			{
-				std::cout << "BEFORE trans " << animation_data.trans_time_array.size() << ", rot " << animation_data.rot_time_array.size() << ", scale " << animation_data.scale_time_array.size() << std::endl;
 			}
 
-			/*
 			
-			/////////////////////
-			/////////////////////
-			//REMOVE FRAMES
-			/////////////////////
-			//TRANS
-			{
-				int removed_cnt = 0;
-				std::vector<int> gap_idx_map;
-				for(int i{}; i<animation_data.trans_time_array.size(); i++){
-					if( std::find(time_array_str.begin(), time_array_str.end(), std::to_string(animation_data.trans_time_array[i])) == time_array_str.end() ){
-						//					PRINT_WARN(std::to_string(animation_data.trans_time_array[i]) + " bad value");
-						gap_idx_map.emplace_back(i - removed_cnt);
-						//					std::cout << "remove " << i - removed_cnt << std::endl;
-						removed_cnt += 1;
-					}
-				}
-				for(int i : gap_idx_map){
-					animation_data.trans_time_array.erase(animation_data.trans_time_array.begin() + i);
-					animation_data.translation_anim_array.erase(animation_data.translation_anim_array.begin() + i);
-				}
-			}
-			//ROT
-			{
-				int removed_cnt = 0;
-				std::vector<int> gap_idx_map;
-				for(int i{}; i<animation_data.rot_time_array.size(); i++){
-					if( std::find(time_array_str.begin(), time_array_str.end(), std::to_string(animation_data.rot_time_array[i])) == time_array_str.end() ){
-						//					PRINT_WARN(std::to_string(animation_data.rot_time_array[i]) + " bad value");
-						gap_idx_map.emplace_back(i - removed_cnt);
-						removed_cnt += 1;
-					}
-				}
-				for(int i : gap_idx_map){
-					animation_data.rot_time_array.erase(animation_data.rot_time_array.begin() + i);
-					animation_data.rotation_anim_array.erase(animation_data.rotation_anim_array.begin() + i);
-				}
-			}
-			//SCALE
-			{
-				int removed_cnt = 0;
-				std::vector<int> gap_idx_map;
-				for(int i{}; i<animation_data.scale_time_array.size(); i++){
-					if( std::find(time_array_str.begin(), time_array_str.end(), std::to_string(animation_data.scale_time_array[i])) == time_array_str.end() ){
-						//					PRINT_WARN(std::to_string(animation_data.scale_time_array[i]) + " bad value");
-						gap_idx_map.emplace_back(i - removed_cnt);
-						removed_cnt += 1;
-					}
-				}
-				for(int i : gap_idx_map){
-					animation_data.scale_time_array.erase(animation_data.scale_time_array.begin() + i);
-					animation_data.scale_anim_array.erase(animation_data.scale_anim_array.begin() + i);
-				}
-			}
-			*/
 			fillInAnimationGaps(animation_data);
-			
-			
-			/*
-			*/
-			/////////////////////
-			/////////////////////
-			//REMOVE FRAMES
-			/////////////////////
+		}
+		
+		/////////////////////
+		//REMOVE UNNEEDED FRAMES
+		/////////////////////
+		for(auto& v : bone_anim_map){
+			AnimationDataStruct& animation_data = v.second;
+
 			//TRANS
 			{
 				int removed_cnt = 0;
@@ -1444,22 +1389,21 @@ void ModelLoader::getSkinnedAnimation(){
 				}
 			}
 			
-			
-			
-			if(anim_map_itr.second.name == "v_shotgun.qc_skeleton|after_reload")
-			{
-				std::cout << "AFTER trans " << animation_data.trans_time_array.size() << ", rot " << animation_data.rot_time_array.size() << ", scale " << animation_data.scale_time_array.size() << std::endl;
-			}
-			
-			
 			animation_data.trans_time_array = time_array;
 			animation_data.rot_time_array = time_array;
 			animation_data.scale_time_array = time_array;
 			
 		}	
 		
-		
-		
+		/////////////////////
+		//UPDATE ALL TIMELINES
+		/////////////////////
+		for(auto& v : bone_anim_map){
+			AnimationDataStruct& animation_data = v.second;
+			animation_data.trans_time_array = time_array;
+			animation_data.rot_time_array = time_array;
+			animation_data.scale_time_array = time_array;
+		}	
 		
 		
 		//get static translations/rots/scales for each bone
@@ -1484,7 +1428,7 @@ void ModelLoader::getSkinnedAnimation(){
 		
 		
 		//calculate delta time [if not already done so by model anims, when they dont exist]
-		if(DELTA_TIME_STEP == 0.f)//reminder for me to implement delta time calc fallback for bones, in case mdoels anims dont exist
+		if(DELTA_TIME_STEP == 0.f)//reminder for me to implement delta time calc fallback for bones, in case model anims dont exist
 		{
 //			DELTA_TIME_STEP = getAveragedAnimationFps(bone_anim_map);
 		}
@@ -1492,25 +1436,7 @@ void ModelLoader::getSkinnedAnimation(){
 	
 		
 		
-		/*
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		////////////////////////////
-		//FILLS IN ANIMATION GAPS
-		/////////////////////////////
-		for(auto& itr : bone_anim_map){
-			AnimationDataStruct& animation_data = itr.second;
-			fillInAnimationGaps(animation_data);
-		}
-		*/
 		
-		
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
-		//COMMENTED OUT FOR NOW -- RE-ADD IT LATER
 		//get max timeline array
 	//	std::vector<float> max_timeline = getMaxSkinnedTimeline(bone_anim_map);
 		std::vector<float> max_timeline = time_array;

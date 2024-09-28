@@ -97,7 +97,6 @@ void AnimationPlayer::update(){
 					continue;
 				
 				glm::mat4 mesh_model_matrix = createTRSmatrix(msh_data->translation, msh_data->rotation, msh_data->scale);//model_loader matrix of static pos/rot/scale
-				
 				mesh_index_map[msh_data->node_index]->mesh_data->modelMatrix = mesh_model_matrix * empty_child->modelMatrix;
 				mesh_index_map[msh_data->node_index]->mesh_data->inherits_animation = true;
 				
