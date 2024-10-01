@@ -1289,18 +1289,6 @@ void ModelLoader::getSkinnedAnimation(){
 		
 	}
 		
-		
-		//////////////////////////////////////////
-		//////////////////////////////////////////
-		//////////////////////////////////////////
-		//////////////////////////////////////////
-		// NEW REMOVE FRAMES THING
-		// NEW REMOVE FRAMES THING
-		// NEW REMOVE FRAMES THING
-		// NEW REMOVE FRAMES THING
-		/*
-		*/
-		
 		std::vector<float> time_array;
 		//	int array_size = animation_data.trans_time_array.back()/0.04166666666;
 		float tt {};
@@ -1332,7 +1320,7 @@ void ModelLoader::getSkinnedAnimation(){
 			
 			fillInAnimationGaps(animation_data);
 		}
-		
+
 		/////////////////////
 		//REMOVE UNNEEDED FRAMES
 		/////////////////////

@@ -2,6 +2,7 @@
 // Header-only tiny glTF 2.0 loader and serializer.
 //
 //
+//
 // Copyright (c) 2015 - Present Syoyo Fujita, Aurélien Chatelain and many
 // contributors.
 //
@@ -1210,7 +1211,7 @@ class Model {
   DEFAULT_METHODS(Model)
 
   bool operator==(const Model &) const;
- 
+
   std::vector<Accessor> accessors;
   std::vector<Animation> animations;
   std::vector<Buffer> buffers;
