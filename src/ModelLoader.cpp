@@ -210,13 +210,14 @@ ModelLoader::ModelLoader(const std::string& path){
 	
 	
 	//calculate average delta animation time [based on averaged Node animations]
+	/*
 	{
 		std::map<int, AnimationDataStruct> node_anim_map;
 		for(const EmptyNode* empty : empties_array)
 			node_anim_map.emplace(empty->node_index, empty->animation_data);
-//		DELTA_TIME_STEP = getAveragedAnimationFps(node_anim_map);
+//		TIME_STEP = getAveragedAnimationFps(node_anim_map);
 	}
-	DELTA_TIME_STEP = TIME_STEP;
+	*/
 	
 	//////////////////////////
 	//fill in Node animation gaps
@@ -917,7 +918,7 @@ std::vector<float> ModelLoader::getMaxNodeTimeline(){
 		int summed_gap_size {};
 		for(int y{}; y<max_timeline.size() - 1; y++){
 			float curr_delta = max_timeline[y+1]-max_timeline[y];
-			float delta_time = DELTA_TIME_STEP;
+			float delta_time = TIME_STEP;
 			int gap_steps = std::round(curr_delta/delta_time);
 //			std::cout << y << " " << "ti " << animation_data.trans_time_array[y] << std::endl;
 			if(curr_delta >= delta_time*1.2f){
@@ -929,16 +930,12 @@ std::vector<float> ModelLoader::getMaxNodeTimeline(){
 		}
 		//insert missing times
 		for(const auto& itr : gap_idx_trans_array){
-			float delta = max_timeline[itr.first] + DELTA_TIME_STEP;
+			float delta = max_timeline[itr.first] + TIME_STEP;
 			for(int i{}; i<itr.second; i++){
 				max_timeline.insert(max_timeline.begin() + itr.first + 1 + i, delta);
-				delta += DELTA_TIME_STEP;
+				delta += TIME_STEP;
 			}
 		}
-	
-//	std::cout << "max " << max_timeline.size() << std::endl;
-//	for(int t{}; t<max_timeline.size(); t++)
-//		std::cout << "idx " << t << "   time " << max_timeline[t] << std::endl;
 	
 	return max_timeline;
 }
@@ -965,7 +962,7 @@ std::vector<float> ModelLoader::getMaxSkinnedTimeline(const std::map<int, Animat
 	int summed_gap_size {};
 	for(int y{}; y<max_timeline.size() - 1; y++){
 		float curr_delta = max_timeline[y+1]-max_timeline[y];
-		float delta_time = DELTA_TIME_STEP;
+		float delta_time = TIME_STEP;
 		int gap_steps = std::round(curr_delta/delta_time);
 //			std::cout << y << " " << "ti " << animation_data.trans_time_array[y] << std::endl;
 		if(curr_delta >= delta_time*1.2f){
@@ -977,10 +974,10 @@ std::vector<float> ModelLoader::getMaxSkinnedTimeline(const std::map<int, Animat
 	}
 	//insert missing times
 	for(const auto& itr : gap_idx_trans_array){
-		float delta = max_timeline[itr.first] + DELTA_TIME_STEP;
+		float delta = max_timeline[itr.first] + TIME_STEP;
 		for(int i{}; i<itr.second; i++){
 			max_timeline.insert(max_timeline.begin() + itr.first + 1 + i, delta);
-			delta += DELTA_TIME_STEP;
+			delta += TIME_STEP;
 		}
 	}
 	
@@ -1191,7 +1188,6 @@ void ModelLoader::getSkinnedAnimation(){
 		/////////////////////////////////////////
 		//fetch animation trans/rot/scale for each bone
 		/////////////////////////////////////////
-		static std::size_t idx {};//used to keep track of individual bones
 		for(int c{}; c<anim.channels.size(); c++){
 			
 			tinygltf::AnimationChannel& channel = anim.channels[c];
@@ -1215,10 +1211,10 @@ void ModelLoader::getSkinnedAnimation(){
 			
 			animation_data.has_animation = true;
 			animation_data.node = model.nodes[node_idx];
-			///////////////
-			///////////////
+			
 			///////////////
 			//FIND ROOT BONE
+			///////////////
 			for(std::size_t n{}; n<model.nodes.size(); n++){
 				std::vector<int> childs_vec = model.nodes[n].children;
 				if( std::find(childs_vec.begin(), childs_vec.end(), node_idx) != childs_vec.end() ){
@@ -1227,10 +1223,6 @@ void ModelLoader::getSkinnedAnimation(){
 					break;
 				}
 			}
-			///////////////////////////
-			///////////////////////////
-			///////////////////////////
-			
 			
 			int output_idx = sampler.output;
 			
@@ -1289,6 +1281,9 @@ void ModelLoader::getSkinnedAnimation(){
 		
 	}
 		
+		///////////////////////////////////////
+		//calculate maximum animation timeline
+		///////////////////////////////////////
 		std::vector<float> time_array;
 		//	int array_size = animation_data.trans_time_array.back()/0.04166666666;
 		float tt {};
@@ -1296,11 +1291,6 @@ void ModelLoader::getSkinnedAnimation(){
 		while(tt<max_time){
 			time_array.emplace_back(tt);
 			tt+=TIME_STEP;
-		}
-		
-		std::vector<std::string> time_array_str;
-		for(float f : time_array){
-			time_array_str.emplace_back( std::to_string(f) );
 		}
 		
 		////////////////////////////
@@ -1312,12 +1302,7 @@ void ModelLoader::getSkinnedAnimation(){
 			//			continue;
 			
 			AnimationDataStruct& animation_data = v.second;
-			
-			if(anim_map_itr.second.name == "v_shotgun.qc_skeleton|after_reload")
-			{
-			}
 
-			
 			fillInAnimationGaps(animation_data);
 		}
 
@@ -1409,30 +1394,25 @@ void ModelLoader::getSkinnedAnimation(){
 			}
 			//scale
 			if(!bone_node.scale.empty()){
-				animation_data.scale = glm::vec3( 1.f ) ;
+				animation_data.scale = glm::vec3( bone_node.scale[0], bone_node.scale[1], bone_node.scale[2] ) ;
 			}
 			
 		}
 		
 		
 		//calculate delta time [if not already done so by model anims, when they dont exist]
-		if(DELTA_TIME_STEP == 0.f)//reminder for me to implement delta time calc fallback for bones, in case model anims dont exist
+		/*
+		if(TIME_STEP == 0.f)//reminder for me to implement delta time calc fallback for bones, in case model anims dont exist
 		{
-//			DELTA_TIME_STEP = getAveragedAnimationFps(bone_anim_map);
+			TIME_STEP = getAveragedAnimationFps(bone_anim_map);
 		}
-		DELTA_TIME_STEP = TIME_STEP;
-	
+		*/
+
 		
-		
-		
-		//get max timeline array
-	//	std::vector<float> max_timeline = getMaxSkinnedTimeline(bone_anim_map);
-		std::vector<float> max_timeline = time_array;
-	
 		//update time_array with max timeline for each bone
 		for(auto& itr : bone_anim_map){
 			AnimationDataStruct& animation_data = itr.second;
-			animation_data.time_array = max_timeline;
+			animation_data.time_array = time_array;
 		}
 		
 		//mark all non-anim bones as being animated [not-needed?]
@@ -1465,31 +1445,31 @@ void ModelLoader::getSkinnedAnimation(){
 			//if size == 0
 			//pos
 			if(animation_data.translation_anim_array.empty())
-				for(float t : max_timeline)
+				for(float t : time_array)
 					animation_data.translation_anim_array.emplace_back(animation_data.translation);
 			//if size == 1
 			if(animation_data.translation_anim_array.size() == 1)
-				for(int y{}; y<max_timeline.size() - 1; y++)
+				for(int y{}; y<time_array.size() - 1; y++)
 					animation_data.translation_anim_array.emplace_back(animation_data.translation_anim_array.front());
 			
 			//if size == 0
 			//rots
 			if(animation_data.rotation_anim_array.empty())
-				for(float t : max_timeline)
+				for(float t : time_array)
 					animation_data.rotation_anim_array.emplace_back(animation_data.rotation);
 			//if size == 1
 			if(animation_data.rotation_anim_array.size() == 1)
-				for(int y{}; y<max_timeline.size() - 1; y++)
+				for(int y{}; y<time_array.size() - 1; y++)
 					animation_data.rotation_anim_array.emplace_back(animation_data.rotation_anim_array.front());
 			
 			//if size == 0
 			//scales
 			if(animation_data.scale_anim_array.empty())
-				for(float t : max_timeline)
+				for(float t : time_array)
 					animation_data.scale_anim_array.emplace_back(animation_data.scale);
 			//if size == 1
 			if(animation_data.scale_anim_array.size() == 1)
-				for(int y{}; y<max_timeline.size() - 1; y++)
+				for(int y{}; y<time_array.size() - 1; y++)
 					animation_data.scale_anim_array.emplace_back(animation_data.scale_anim_array.front());
 	
 		}
@@ -1498,7 +1478,7 @@ void ModelLoader::getSkinnedAnimation(){
 		for(auto& v : bone_anim_map){
 			AnimationDataStruct& animation_data = v.second;
 			
-			int max_size = max_timeline.size();
+			int max_size = time_array.size();
 			
 			//equalize translation array
 			if(animation_data.translation_anim_array.size() != max_size){
@@ -1553,7 +1533,7 @@ void ModelLoader::fillInAnimationGaps(AnimationDataStruct& animation_data){
 		int summed_gap_size {};
 		for(int y{}; y<animation_data.translation_anim_array.size() - 1; y++){
 			float curr_delta = animation_data.trans_time_array[y+1]-animation_data.trans_time_array[y];
-			float delta_time = DELTA_TIME_STEP;
+			float delta_time = TIME_STEP;
 			int gap_steps = std::round(curr_delta/delta_time);
 			
 //			std::cout << y << " " << "ti " << animation_data.trans_time_array[y] << std::endl;
@@ -1585,7 +1565,7 @@ void ModelLoader::fillInAnimationGaps(AnimationDataStruct& animation_data){
 		int summed_gap_size {};
 		for(int y{}; y<animation_data.rotation_anim_array.size() - 1; y++){
 			float curr_delta = animation_data.rot_time_array[y+1]-animation_data.rot_time_array[y];
-			float delta_time = DELTA_TIME_STEP;
+			float delta_time = TIME_STEP;
 			int gap_steps = std::round(curr_delta/delta_time);
 			
 //			std::cout << y << " " << "ti " << animation_data.rot_time_array[y] << std::endl;
@@ -1618,7 +1598,7 @@ void ModelLoader::fillInAnimationGaps(AnimationDataStruct& animation_data){
 		int summed_gap_size {};
 		for(int y{}; y<animation_data.scale_anim_array.size() - 1; y++){
 			float curr_delta = animation_data.scale_time_array[y+1]-animation_data.scale_time_array[y];
-			float delta_time = DELTA_TIME_STEP;
+			float delta_time = TIME_STEP;
 			int gap_steps = std::round(curr_delta/delta_time);
 			
 //			std::cout << y << " " << "ti " << animation_data.scale_time_array[y] << std::endl;
@@ -2110,10 +2090,8 @@ int ModelLoader::getParentNodeIndex(const tinygltf::Node& node){
 			parent_idx = getNodeIndex(n);
 			break;
 		}
-			
 		
 	}
-	
 	
 	return parent_idx;
 }

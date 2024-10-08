@@ -4,6 +4,8 @@
 
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model_loader(_model), mesh_array(_mesh_array), window_manager(win_manager){
 	
+	//currrently does nothing
+	/*
 	std::vector<EmptyNode*>& empties_array = model_loader->getEmptiesArray();
 	std::vector<MeshDataStruct*>& mesh_data_struct_array = model_loader->getMeshDataArray();
 	
@@ -16,6 +18,7 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 	//fill in empties map
 	for(EmptyNode* e : model_loader->getEmptiesArray())
 		empties_map.emplace(e->name, e);
+	*/
 	
 }
 

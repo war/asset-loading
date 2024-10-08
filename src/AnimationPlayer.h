@@ -32,7 +32,7 @@ private:
 	std::vector<Mesh*>* mesh_array;
 	WindowManager* window_manager;
 	
-	std::map<std::string, EmptyNode*> empties_map;
+//	std::map<std::string, EmptyNode*> empties_map;
 	
 };
 

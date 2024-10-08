@@ -11,7 +11,6 @@
 
 #include <glad/glad.h>
 
-#include "ErrorLogger.h"
 #include "Utils.h"
 
 //inline constexpr float TIME_STEP = 0.041666666666f;

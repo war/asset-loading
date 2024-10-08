@@ -8,7 +8,6 @@
 #include <glm/glm.hpp>
 
 #include "Window/WindowManager.h"
-#include "ErrorLogger.h"
 #include "ModelLoader.h"
 #include "Camera.h"
 #include "Shader.h"
