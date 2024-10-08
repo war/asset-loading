@@ -4,67 +4,121 @@ Code Structure Breakdown
 ## Table of Contents
 ========================
 
-[Code Structure Breakdown - Main](Code%20Structure%20Breakdown.md#Main)
+[Main](Code%20Structure%20Breakdown.md#Main)
 
-[Code Structure Breakdown - ModelLoader](Code%20Structure%20Breakdown.md#ModelLoader)
-[Code Structure Breakdown - ModelLoader::ModelLoader (constructor)](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AModelLoader%20%28constructor%29)
-[Code Structure Breakdown - ModelLoader::~ModelLoader (destructor)](Code%20Structure%20Breakdown.md#ModelLoader%3A%3A~ModelLoader%20%28destructor%29)
-[Code Structure Breakdown - ModelLoader::getVertexPositions](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexPositions)
-[Code Structure Breakdown - ModelLoader::getVertexNormals](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexNormals)
-[Code Structure Breakdown - ModelLoader::getVertexUV](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexUV)
-[Code Structure Breakdown - ModelLoader::getIndices](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetIndices)
-[Code Structure Breakdown - ModelLoader::getSkinWeights](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinWeights)
-[Code Structure Breakdown - ModelLoader::getSkinJoints](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinJoints)
-[Code Structure Breakdown - ModelLoader::getInverseBindMatrices](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetInverseBindMatrices)
-[Code Structure Breakdown - ModelLoader::getTextureMap](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTextureMap)
-[Code Structure Breakdown - ModelLoader::getMaterial](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaterial)
-[Code Structure Breakdown - ModelLoader::fillInAnimationGaps](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AfillInAnimationGaps)
-[Code Structure Breakdown - ModelLoader::equalizeAndMatchNodeAnimations](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AequalizeAndMatchNodeAnimations)
-[Code Structure Breakdown - ModelLoader::getTimelineArray](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTimelineArray)
-[Code Structure Breakdown - ModelLoader::getMaxNodeTimeline](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaxNodeTimeline)
-[Code Structure Breakdown - ModelLoader::getNodeAnimationData](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetNodeAnimationData)
-[Code Structure Breakdown - ModelLoader::getMeshAnimationData](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMeshAnimationData)
-[Code Structure Breakdown - ModelLoader::getTranslation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTranslation)
-[Code Structure Breakdown - ModelLoader::getRotation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetRotation)
-[Code Structure Breakdown - ModelLoader::getScale](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetScale)
-[Code Structure Breakdown - ModelLoader::getTransformMatrix](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTransformMatrix)
-[Code Structure Breakdown - ModelLoader::getMaxSkinnedDuration](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaxSkinnedDuration)
-[Code Structure Breakdown - ModelLoader::getSkinnedAnimation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinnedAnimation)
-[Code Structure Breakdown - ModelLoader::getParentNodeIndex](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetParentNodeIndex)
 
-[Code Structure Breakdown - Mesh](Code%20Structure%20Breakdown.md#Mesh)
-[Code Structure Breakdown - Mesh::Mesh constructor](Code%20Structure%20Breakdown.md#Mesh%3A%3AMesh%20constructor)
-[Code Structure Breakdown - Mesh::update()](Code%20Structure%20Breakdown.md#Mesh%3A%3Aupdate%28%29)
-[Code Structure Breakdown - Mesh::updateSkinnedAnimation()](Code%20Structure%20Breakdown.md#Mesh%3A%3AupdateSkinnedAnimation%28%29)
+[ModelLoader](Code%20Structure%20Breakdown.md#ModelLoader)
 
-[Code Structure Breakdown - AnimationPlayer](Code%20Structure%20Breakdown.md#AnimationPlayer)
-[Code Structure Breakdown - AnimationPlayer::AnimationPlayer (constructor)](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AAnimationPlayer%20%28constructor%29)
-[Code Structure Breakdown - AnimationPlayer::update](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3Aupdate)
-[Code Structure Breakdown - AnimationPlayer::calculateCurrentTranslation](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentTranslation)
-[Code Structure Breakdown - AnimationPlayer::calculateCurrentRotation](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentRotation)
-[Code Structure Breakdown - AnimationPlayer::calculateCurrentScale](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentScale)
+- [ModelLoader::ModelLoader (constructor)](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AModelLoader%20%28constructor%29)
 
-[Code Structure Breakdown - VAO](Code%20Structure%20Breakdown.md#VAO)
-[Code Structure Breakdown - VAO::VAO (constructor)](Code%20Structure%20Breakdown.md#VAO%3A%3AVAO%20%28constructor%29)
-[Code Structure Breakdown - VAO::free](Code%20Structure%20Breakdown.md#VAO%3A%3Afree)
-[Code Structure Breakdown - VAO::bind](Code%20Structure%20Breakdown.md#VAO%3A%3Abind)
-[Code Structure Breakdown - VAO::unbind](Code%20Structure%20Breakdown.md#VAO%3A%3Aunbind)
+- [ModelLoader::~ModelLoader (destructor)](Code%20Structure%20Breakdown.md#ModelLoader%3A%3A~ModelLoader%20%28destructor%29)
 
-[Code Structure Breakdown - VBO](Code%20Structure%20Breakdown.md#VBO)
-[Code Structure Breakdown - VBO::VBO (constructor)](Code%20Structure%20Breakdown.md#VBO%3A%3AVBO%20%28constructor%29)
-[Code Structure Breakdown - VBO::free](Code%20Structure%20Breakdown.md#VBO%3A%3Afree)
-[Code Structure Breakdown - VBO::bind](Code%20Structure%20Breakdown.md#VBO%3A%3Abind)
-[Code Structure Breakdown - VBO::unbind](Code%20Structure%20Breakdown.md#VBO%3A%3Aunbind)
+- [ModelLoader::getVertexPositions](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexPositions)
 
-[Code Structure Breakdown - EBO](Code%20Structure%20Breakdown.md#EBO)
-[Code Structure Breakdown - EBO::EBO (constructor)](Code%20Structure%20Breakdown.md#EBO%3A%3AEBO%20%28constructor%29)
-[Code Structure Breakdown - EBO::free](Code%20Structure%20Breakdown.md#EBO%3A%3Afree)
-[Code Structure Breakdown - EBO::bind](Code%20Structure%20Breakdown.md#EBO%3A%3Abind)
-[Code Structure Breakdown - EBO::unbind](Code%20Structure%20Breakdown.md#EBO%3A%3Aunbind)
+- [ModelLoader::getVertexNormals](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexNormals)
 
-[Code Structure Breakdown - default_shader](Code%20Structure%20Breakdown.md#default_shader)
-[Code Structure Breakdown - default_shader.vert (vertex shader)](Code%20Structure%20Breakdown.md#default_shader.vert%20%28vertex%20shader%29)
-[Code Structure Breakdown - default_shader.frag (fragment shader)](Code%20Structure%20Breakdown.md#default_shader.frag%20%28fragment%20shader%29)
+- [ModelLoader::getVertexUV](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexUV)
+
+- [ModelLoader::getIndices](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetIndices)
+
+- [ModelLoader::getSkinWeights](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinWeights)
+
+- [ModelLoader::getSkinJoints](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinJoints)
+
+- [ModelLoader::getInverseBindMatrices](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetInverseBindMatrices)
+
+- [ModelLoader::getTextureMap](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTextureMap)
+
+- [ModelLoader::getMaterial](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaterial)
+
+- [ModelLoader::fillInAnimationGaps](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AfillInAnimationGaps)
+
+- [ModelLoader::equalizeAndMatchNodeAnimations](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AequalizeAndMatchNodeAnimations)
+
+- [ModelLoader::getTimelineArray](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTimelineArray)
+
+- [ModelLoader::getMaxNodeTimeline](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaxNodeTimeline)
+
+- [ModelLoader::getNodeAnimationData](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetNodeAnimationData)
+
+- [ModelLoader::getMeshAnimationData](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMeshAnimationData)
+
+- [ModelLoader::getTranslation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTranslation)
+
+- [ModelLoader::getRotation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetRotation)
+
+- [ModelLoader::getScale](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetScale)
+
+- [ModelLoader::getTransformMatrix](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTransformMatrix)
+
+- [ModelLoader::getMaxSkinnedDuration](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaxSkinnedDuration)
+
+- [ModelLoader::getSkinnedAnimation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinnedAnimation)
+
+- [ModelLoader::getParentNodeIndex](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetParentNodeIndex)
+
+
+[Mesh](Code%20Structure%20Breakdown.md#Mesh)
+
+- [Mesh::Mesh constructor](Code%20Structure%20Breakdown.md#Mesh%3A%3AMesh%20constructor)
+
+- [Mesh::update()](Code%20Structure%20Breakdown.md#Mesh%3A%3Aupdate%28%29)
+
+- [Mesh::updateSkinnedAnimation()](Code%20Structure%20Breakdown.md#Mesh%3A%3AupdateSkinnedAnimation%28%29)
+
+
+[AnimationPlayer](Code%20Structure%20Breakdown.md#AnimationPlayer)
+
+- [AnimationPlayer::AnimationPlayer (constructor)](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AAnimationPlayer%20%28constructor%29)
+
+- [AnimationPlayer::update](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3Aupdate)
+
+- [AnimationPlayer::calculateCurrentTranslation](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentTranslation)
+
+- [AnimationPlayer::calculateCurrentRotation](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentRotation)
+
+- [AnimationPlayer::calculateCurrentScale](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentScale)
+
+
+[VAO](Code%20Structure%20Breakdown.md#VAO)
+
+- [VAO::VAO (constructor)](Code%20Structure%20Breakdown.md#VAO%3A%3AVAO%20%28constructor%29)
+
+- [VAO::free](Code%20Structure%20Breakdown.md#VAO%3A%3Afree)
+
+- [VAO::bind](Code%20Structure%20Breakdown.md#VAO%3A%3Abind)
+
+- [VAO::unbind](Code%20Structure%20Breakdown.md#VAO%3A%3Aunbind)
+
+
+[VBO](Code%20Structure%20Breakdown.md#VBO)
+
+- [VBO::VBO (constructor)](Code%20Structure%20Breakdown.md#VBO%3A%3AVBO%20%28constructor%29)
+
+- [VBO::free](Code%20Structure%20Breakdown.md#VBO%3A%3Afree)
+
+- [VBO::bind](Code%20Structure%20Breakdown.md#VBO%3A%3Abind)
+
+- [VBO::unbind](Code%20Structure%20Breakdown.md#VBO%3A%3Aunbind)
+
+
+[EBO](Code%20Structure%20Breakdown.md#EBO)
+
+- [EBO::EBO (constructor)](Code%20Structure%20Breakdown.md#EBO%3A%3AEBO%20%28constructor%29)
+
+- [EBO::free](Code%20Structure%20Breakdown.md#EBO%3A%3Afree)
+
+- [EBO::bind](Code%20Structure%20Breakdown.md#EBO%3A%3Abind)
+
+- [EBO::unbind](Code%20Structure%20Breakdown.md#EBO%3A%3Aunbind)
+
+
+[default_shader](Code%20Structure%20Breakdown.md#default_shader)
+
+- [default_shader.vert (vertex shader)](Code%20Structure%20Breakdown.md#default_shader.vert%20%28vertex%20shader%29)
+
+- [default_shader.frag (fragment shader)](Code%20Structure%20Breakdown.md#default_shader.frag%20%28fragment%20shader%29)
+
 ## Main
 ========================
 
@@ -1781,11 +1835,6 @@ Creates a transform matrix using supplied values of translation, rotation and sc
 
 ### __GL_ERROR_THROW__
 Checks for any GL related errors using `glGetError()`, and throws a `std::logic_error` if any issues occur.
-
-
-
-
-
 
 
 
