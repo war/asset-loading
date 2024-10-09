@@ -12,49 +12,49 @@ Code Structure Breakdown
 
 - [ModelLoader::~ModelLoader (destructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadermodelloader-destructor)
 
-- [ModelLoader::getVertexPositions](https://github.com/war/asset-loading/tree/gltf-asset-loading#getvertexpositions)
+- [ModelLoader::getVertexPositions](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions)
 
-- [ModelLoader::getVertexNormals](https://github.com/war/asset-loading/tree/gltf-asset-loading#getVertexNormals)
+- [ModelLoader::getVertexNormals](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetVertexNormals)
 
-- [ModelLoader::getVertexUV](https://github.com/war/asset-loading/tree/gltf-asset-loading#getVertexUV)
+- [ModelLoader::getVertexUV](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetVertexUV)
 
-- [ModelLoader::getIndices](https://github.com/war/asset-loading/tree/gltf-asset-loading#getIndices)
+- [ModelLoader::getIndices](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetIndices)
 
-- [ModelLoader::getSkinWeights](https://github.com/war/asset-loading/tree/gltf-asset-loading#getSkinWeights)
+- [ModelLoader::getSkinWeights](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetSkinWeights)
 
-- [ModelLoader::getSkinJoints](https://github.com/war/asset-loading/tree/gltf-asset-loading#getSkinJoints)
+- [ModelLoader::getSkinJoints](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetSkinJoints)
 
-- [ModelLoader::getInverseBindMatrices](https://github.com/war/asset-loading/tree/gltf-asset-loading#getInverseBindMatrices)
+- [ModelLoader::getInverseBindMatrices](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetInverseBindMatrices)
 
-- [ModelLoader::getTextureMap](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTextureMap)
+- [ModelLoader::getTextureMap](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTextureMap)
 
-- [ModelLoader::getMaterial](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMaterial)
+- [ModelLoader::getMaterial](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetMaterial)
 
-- [ModelLoader::fillInAnimationGaps](https://github.com/war/asset-loading/tree/gltf-asset-loading#fillInAnimationGaps)
+- [ModelLoader::fillInAnimationGaps](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloaderfillInAnimationGaps)
 
-- [ModelLoader::equalizeAndMatchNodeAnimations](https://github.com/war/asset-loading/tree/gltf-asset-loading#equalizeAndMatchNodeAnimations)
+- [ModelLoader::equalizeAndMatchNodeAnimations](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloaderequalizeAndMatchNodeAnimations)
 
-- [ModelLoader::getTimelineArray](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTimelineArray)
+- [ModelLoader::getTimelineArray](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTimelineArray)
 
-- [ModelLoader::getMaxNodeTimeline](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMaxNodeTimeline)
+- [ModelLoader::getMaxNodeTimeline](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetMaxNodeTimeline)
 
-- [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#getNodeAnimationData)
+- [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetNodeAnimationData)
 
-- [ModelLoader::getMeshAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMeshAnimationData)
+- [ModelLoader::getMeshAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetMeshAnimationData)
 
-- [ModelLoader::getTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTranslation)
+- [ModelLoader::getTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTranslation)
 
-- [ModelLoader::getRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#getRotation)
+- [ModelLoader::getRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetRotation)
 
-- [ModelLoader::getScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#getScale)
+- [ModelLoader::getScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetScale)
 
-- [ModelLoader::getTransformMatrix](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTransformMatrix)
+- [ModelLoader::getTransformMatrix](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTransformMatrix)
 
-- [ModelLoader::getMaxSkinnedDuration](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMaxSkinnedDuration)
+- [ModelLoader::getMaxSkinnedDuration](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetMaxSkinnedDuration)
 
-- [ModelLoader::getSkinnedAnimation](https://github.com/war/asset-loading/tree/gltf-asset-loading#getSkinnedAnimation)
+- [ModelLoader::getSkinnedAnimation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetSkinnedAnimation)
 
-- [ModelLoader::getParentNodeIndex](https://github.com/war/asset-loading/tree/gltf-asset-loading#getParentNodeIndex)
+- [ModelLoader::getParentNodeIndex](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetParentNodeIndex)
 
 
 [Mesh](https://github.com/war/asset-loading/tree/gltf-asset-loading#Mesh)
