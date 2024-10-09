@@ -8,7 +8,7 @@ Code Structure Breakdown
 
 [ModelLoader](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloader)
 
-- [ModelLoader::ModelLoader (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#modeloadermodelloader-constructor)
+- [ModelLoader::ModelLoader (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadermodelloader-constructor)
 
 - [ModelLoader::~ModelLoader (destructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadermodelloader-destructor)
 
@@ -61,9 +61,15 @@ Code Structure Breakdown
 
 - [Mesh::Mesh constructor](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshmesh-constructor)
 
-- [Mesh::update()](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshupdate)
+- [Mesh::update](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshupdate)
 
-- [Mesh::updateSkinnedAnimation()](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshgetskinnedanimation)
+- [Mesh::updateSkinnedAnimation](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshgetskinnedanimation)
+
+- [Mesh::setModelMatrix](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetmodelmatrix)
+
+- [Mesh::enableBackFaceCulling](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshenableBackFaceCulling)
+
+- [Mesh::setSkinnedAnimationChannel](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetSkinnedAnimationChannel)
 
 
 [AnimationPlayer](https://github.com/war/asset-loading/tree/gltf-asset-loading#AnimationPlayer)
@@ -117,6 +123,10 @@ Code Structure Breakdown
 - [default_shader.vert (vertex shader)](https://github.com/war/asset-loading/tree/gltf-asset-loading?tab=readme-ov-file#default_shadervert-vertex-shader)
 
 - [default_shader.frag (fragment shader)](https://github.com/war/asset-loading/tree/gltf-asset-loading?tab=readme-ov-file#default_shaderfrag-fragment-shader)
+
+
+[Utils](https://github.com/war/asset-loading/tree/gltf-asset-loading#utils)
+
 
 ## Main
 
@@ -189,7 +199,7 @@ while(!windowManager.shouldClose()){
     
 }
 ```
-A the position/rotation/scale of a mesh or `EmptyNode` can be set by calling `setPosition(glm::vec3)`, `setRotation(glm::quat)` and `setScale(glm::vec3)`:
+The position/rotation/scale of a mesh or `EmptyNode` can be set by calling `setPosition(glm::vec3)`, `setRotation(glm::quat)` and `setScale(glm::vec3)`:
 ```cpp
 
 			//set EmptyNode to follow camera
@@ -235,14 +245,6 @@ int main(){
 }
 
 ```
-
-
-
-
-
-
-
-
 
 
 ## ModelLoader
@@ -370,7 +372,7 @@ Data for each mesh is stored in the `MeshDataStruct` object. A loop iterates ove
 Each `MeshDataStruct` gets allocated on the heap. After its fields are filled with data, a pointer to each object gets stored in the `ModelLoader::mesh_data_struct_array` array.
 
 
-Creation and storage of animated `EmptyNode` objects (nodes that may hold animation and transform data) is carried out by iterating over the `tinygltf::Model::nodes` array. Checks are made to ensure this node is neither a mesh, nor a bone. Animations are loaded and stored in the `EmptyNode::animation_data` field by calling [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). Other data, such as node static transforms, are retrieved and stored by calling [ModelLoader::getTranslation](ModelLoader.md#ModelLoader%3A%3AgetTranslation), [ModelLoader::getRotation](ModelLoader.md#ModelLoader%3A%3AgetRotation), [ModelLoader::getScale](ModelLoader.md#ModelLoader%3A%3AgetScale), and [ModelLoader::getTransformMatrix](ModelLoader.md#ModelLoader%3A%3AgetTransformMatrix). Once all the data is filled in for each `EmptyNode` object, it gets added to the `ModelLoader::empties_array` array, which stores a pointer to the dynamically allocated `EmptyNode`. To avoid memory leaks, all `EmptyNode` are free'd in the `ModelLoader::~ModelLoader` destructor.
+Creation and storage of animated `EmptyNode` objects (nodes that may hold animation and transform data) is carried out by iterating over the `tinygltf::Model::nodes` array. Checks are made to ensure this node is neither a mesh, nor a bone. Animations are loaded and stored in the `EmptyNode::animation_data` field by calling [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetNodeAnimationData). Other data, such as node static transforms, are retrieved and stored by calling [ModelLoader::getTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTranslation), [ModelLoader::getRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetRotation), [ModelLoader::getScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetScale), and [ModelLoader::getTransformMatrix](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTransformMatrix). Once all the data is filled in for each `EmptyNode` object, it gets added to the `ModelLoader::empties_array` array, which stores a pointer to the dynamically allocated `EmptyNode`. To avoid memory leaks, all `EmptyNode` are free'd in the `ModelLoader::~ModelLoader` destructor.
 ```cpp
 //create, fill, and store each EmptyNode objects
 	for(int n{}; n<model.nodes.size(); n++){
@@ -433,12 +435,12 @@ Creation and storage of animated `EmptyNode` objects (nodes that may hold animat
 	}
 
 ```
-Since data gaps might exist in the node animation, these must be filled in for smooth and valid playback. The [ModelLoader::fillInAnimationGaps](ModelLoader.md#ModelLoader%3A%3AfillInAnimationGaps) is called for each `EmptyNode`:
+Since data gaps might exist in the node animation, these must be filled in for smooth and valid playback. The [ModelLoader::fillInAnimationGaps](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloaderfillInAnimationGaps) is called for each `EmptyNode`:
 ```cpp
 	for(EmptyNode* empty : empties_array)
 		fillInAnimationGaps( empty->animation_data );
 ```
-The maximum timeline is calculated and updated for each `EmptyNode` object by calling [ModelLoader - ModelLoader::getMaxNodeTimeline](ModelLoader.md#ModelLoader%3A%3AgetMaxNodeTimeline) and storing this timeline in the `EmptyNode::animation_data::time_array` variable.
+The maximum timeline is calculated and updated for each `EmptyNode` object by calling [ModelLoader - ModelLoader::getMaxNodeTimeline](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetMaxNodeTimeline) and storing this timeline in the `EmptyNode::animation_data::time_array` variable.
 
 ```cpp
 	//get max Node timeline
@@ -447,9 +449,9 @@ The maximum timeline is calculated and updated for each `EmptyNode` object by ca
 	for(EmptyNode* empty : empties_array)
 		empty->animation_data.time_array = max_node_timeline;
 ```
-Certain animation transforms may be shorter than others, depending on how the model is animated (e.g., translation durations could be shorter than rotation duration). All animation transform arrays must not be empty (greater than 0) and also of equal size for valid playback; hence [ModelLoader - ModelLoader::equalizeAndMatchNodeAnimations](ModelLoader.md#ModelLoader%3A%3AequalizeAndMatchNodeAnimations) is called next.
+Certain animation transforms may be shorter than others, depending on how the model is animated (e.g., translation durations could be shorter than rotation duration). All animation transform arrays must not be empty (greater than 0) and also of equal size for valid playback; hence [ModelLoader - ModelLoader::equalizeAndMatchNodeAnimations](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloaderequalizeAndMatchNodeAnimations) is called next.
 
-All skinning animations are called using [ModelLoader::getSkinnedAnimation](ModelLoader.md#ModelLoader%3A%3AgetSkinnedAnimation)
+All skinning animations are called using [ModelLoader::getSkinnedAnimation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetSkinnedAnimation)
 
 Since meshes can be parented to animated `EmptyNode`, it's important to establish an array that defines the linkage between them. Also, since certain `EmptyNode` objects may also be parented to other nodes, we must also take note of this as well:
 ```cpp
@@ -485,7 +487,7 @@ Since meshes can be parented to animated `EmptyNode`, it's important to establis
 ```
 This hierarchy is stored in `ModelLoader::root_and_child_array`, where each entry is a `std::pair<EmptyNode*, EmptyNode*>` object. The first entry in each pair is the root `EmptyNode` (pointer), while the second is the child.
 
-Since the code above doesn't take into account `EmptyNode` objects that have no parent (i.e., the start of the hierarchy tree), a special case must also be made for them. This time, a very simple check is made to see if the given node has a parent using [ModelLoader::getParentNodeIndex](ModelLoader.md#ModelLoader%3A%3AgetParentNodeIndex), and if not (-1), then it gets added to the `ModelLoader::root_array` array:
+Since the code above doesn't take into account `EmptyNode` objects that have no parent (i.e., the start of the hierarchy tree), a special case must also be made for them. This time, a very simple check is made to see if the given node has a parent using [ModelLoader::getParentNodeIndex](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetParentNodeIndex), and if not (-1), then it gets added to the `ModelLoader::root_array` array:
 ```cpp
     //loop over all EmptyNode objects
 	for(EmptyNode* empty : empties_array){
@@ -541,7 +543,7 @@ Finally, we can access each vertex position by looping over the total vertex cou
 	}
 ```
 ### ModelLoader::getVertexNormals
-Extracts all vertex normal data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the only difference is that the `NORMAL` string is passed to the `tinygltf::primitive::attributes` array:
+Extracts all vertex normal data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). However, the only difference is that the `NORMAL` string is passed to the `tinygltf::primitive::attributes` array:
 ```cpp
   //get primitive
 	tinygltf::Primitive primitive = mesh.primitives.front();
@@ -549,7 +551,7 @@ Extracts all vertex normal data. The process is exactly the same as what is ment
 	int vert_norm_idx = primitive.attributes["NORMAL"];
 ```
 ### ModelLoader::getVertexUV
-Extracts all vertex UV data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, `TEXCOORD_0` string is passed to the `tinygltf::TinyGLTF::primitive::attributes` array:
+Extracts all vertex UV data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). However, `TEXCOORD_0` string is passed to the `tinygltf::TinyGLTF::primitive::attributes` array:
 ```cpp
   
   //get primitive
@@ -566,7 +568,7 @@ Also, since UV's are only a 2 component vector, we do not need the extra `z` com
 	}
 ```
 ### ModelLoader::getIndices
-Extracts all vertex index data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the index used to fetch the `tinygltf::Accessor` is simpler since it's already stored inside `tinygltf::primitive::indices`. Also, calculating the `offset` may require dividing `byteOffset` by either the `sizeof(unsigned short)` or `sizeof(unsigned int)`. This is automatically handled by the `getSizeOfComponentType` function:
+Extracts all vertex index data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). However, the index used to fetch the `tinygltf::Accessor` is simpler since it's already stored inside `tinygltf::primitive::indices`. Also, calculating the `offset` may require dividing `byteOffset` by either the `sizeof(unsigned short)` or `sizeof(unsigned int)`. This is automatically handled by the `getSizeOfComponentType` function:
 ```cpp
 	int offset = byteOffset/getSizeOfComponentType(vert_index_accessor.componentType);	
 ```
@@ -585,7 +587,7 @@ Fetching the raw index data is then straightforward, since we directly read valu
 Note that checks are made to ensure the correct data type, and arrays are being used for indices (either unsigned short or int).
 
 ### ModelLoader::getSkinWeights
-Extracts all skin weight data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions).
+Extracts all skin weight data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions).
 However, `WEIGHTS_0` string is passed to the `tinygltf::TinyGLTF::primitive::attributes` array:
 ```cpp
 //get primitive
@@ -607,7 +609,7 @@ Since skin weights is a 4-component vector, we must also fetch the additional `w
 ```
 
 ### ModelLoader::getSkinJoints
-Extracts all skin joint index data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions).
+Extracts all skin joint index data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions).
 However, `JOINTS_0` string is passed to the `tinygltf::primitive::attributes` array:
 ```cpp
 //get primitive
@@ -641,7 +643,7 @@ Similar to skin weights, joint indices are also a 4-component vector. However, d
 ```
 
 ### ModelLoader::getInverseBindMatrices
-Extracts all inverse bind matrix data used in skinning. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the index used to fetch the `tinygltf::Accessor` is simpler since it's already stored inside `tinygltf::Skin::inverseBindMatrices`. The biggest difference here is that there are 16 floating point elements to be extracted per bind matrix, since each matrix is of dimensions 4x4.
+Extracts all inverse bind matrix data used in skinning. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). However, the index used to fetch the `tinygltf::Accessor` is simpler since it's already stored inside `tinygltf::Skin::inverseBindMatrices`. The biggest difference here is that there are 16 floating point elements to be extracted per bind matrix, since each matrix is of dimensions 4x4.
 ```cpp
 	for(int i{}; i<bone_count; i++){
 		float x0_ = float_array[(i*16) + 0 + offset];
@@ -776,7 +778,7 @@ The same process applies to filling in data gaps for rotation and scale animatio
 This function scales up all `EmptyNode` animation channels (position, rotation, scale) to match the maximum timeline array size. It also fills all empty (size 0) channels with static data (required for the animation system to function).
 
 ### ModelLoader::getTimelineArray
-Pulls raw keyframe time data for a given `tinygltf::AnimationSampler`. Works very similarly to what is described for [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). I.e., the `tinygltf::Accessor` for the given sampler is retrieved from the `tonygltf::Model::accessors` array, based on the sampler input index `tinygltf::AnimationSampler::input`. Then `byteOffset` and `offset` can be found easily:
+Pulls raw keyframe time data for a given `tinygltf::AnimationSampler`. Works very similarly to what is described for [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). I.e., the `tinygltf::Accessor` for the given sampler is retrieved from the `tonygltf::Model::accessors` array, based on the sampler input index `tinygltf::AnimationSampler::input`. Then `byteOffset` and `offset` can be found easily:
 ```cpp
     //get time data accessor
 		tinygltf::Accessor time_accessor = model.accessors[input_idx];
@@ -797,7 +799,7 @@ Raw time data is fetched from the `float_array` using the `offset` variable as t
 ```
 
 ### ModelLoader::getMaxNodeTimeline
-Creates the largest complete timeline for use with `EmptyNode` animations. First, the maximum duration for all `EmptyNode` animations (for translation, scale, and rotation) is stored in an array, and the timeline with the largest value is selected. Since this timeline may contain data gaps, the same method described in [ModelLoader - ModelLoader::fillInAnimationGaps](ModelLoader.md#ModelLoader%3A%3AfillInAnimationGaps) is applied to fill in any missing floating point time data:
+Creates the largest complete timeline for use with `EmptyNode` animations. First, the maximum duration for all `EmptyNode` animations (for translation, scale, and rotation) is stored in an array, and the timeline with the largest value is selected. Since this timeline may contain data gaps, the same method described in [ModelLoader - ModelLoader::fillInAnimationGaps](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloaderfillInAnimationGaps) is applied to fill in any missing floating point time data:
 ```cpp
 		int summed_gap_size {};
 		for(int y{}; y<max_timeline.size() - 1; y++){
@@ -826,7 +828,7 @@ Creates the largest complete timeline for use with `EmptyNode` animations. First
 Once complete, there will be a contiguous maximum timeline that is returned for use in `EmptyNode` animation playback.
 
 ### ModelLoader::getNodeAnimationData
-Models can typically be parented to blank nodes (`EmptyNode`), which have animations. Extracting all of translation, rotation, and scale animation data (as well as their timelines) is carried out in this function. Firstly, the `tinygltf::Animation` object is retrieved for the given node, based on its index. In order to fetch the raw animation data for all animated keyframes, we need to use the `output` variable (stored in `tinygltf::AnimationSampler`) as an index to retrieve the corresponding `tinygltf::Accessor` accessor for this node. The accessor will give us essential `byteOffset` and frame count data required to fetch the animation data from the `buffer` data block, similar to what is explained in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions).
+Models can typically be parented to blank nodes (`EmptyNode`), which have animations. Extracting all of translation, rotation, and scale animation data (as well as their timelines) is carried out in this function. Firstly, the `tinygltf::Animation` object is retrieved for the given node, based on its index. In order to fetch the raw animation data for all animated keyframes, we need to use the `output` variable (stored in `tinygltf::AnimationSampler`) as an index to retrieve the corresponding `tinygltf::Accessor` accessor for this node. The accessor will give us essential `byteOffset` and frame count data required to fetch the animation data from the `buffer` data block, similar to what is explained in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions).
 
 ```cpp
 
@@ -848,7 +850,7 @@ Models can typically be parented to blank nodes (`EmptyNode`), which have animat
 	}
 
 ```
-Once we have `byteOffset` and `offset` integers, we can loop over the total frame count and fetch the raw translation, rotation, and scale data. These are read from the cast `float_array`, in exactly the same way described in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). Taking animated translation as an example, we have:
+Once we have `byteOffset` and `offset` integers, we can loop over the total frame count and fetch the raw translation, rotation, and scale data. These are read from the cast `float_array`, in exactly the same way described in [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). Taking animated translation as an example, we have:
 ```cpp
 
     //fetch animated translations
@@ -886,7 +888,7 @@ The same method applies for fetching rotation data. However, since quaternions a
 Animated scale data is also pulled in the same way described for translations.
 
 ### ModelLoader::getMeshAnimationData
-Fetches any animations for a given `tinygltf::Mesh` object. The process is similar to what has been described in  [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). If no animations exist for the given mesh, then the function exits.
+Fetches any animations for a given `tinygltf::Mesh` object. The process is similar to what has been described in  [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetNodeAnimationData). If no animations exist for the given mesh, then the function exits.
 
 
 ### ModelLoader::getTranslation
@@ -925,7 +927,7 @@ Gets the static transform matrix for a given node by querying the `tinygltf::Nod
 Gets the largest animation time value for a skinned mesh. This is achieved by storing all time values for all transform animations (translation, rotation, scale), per bone, and finding the largest value from these arrays. This maximum value will be used to construct a final timeline array for skinned animation playback.
 
 ### ModelLoader::getSkinnedAnimation
-This function handles fetching animated transform data for each bone in a skinned mesh. Pulling this data is very similar to what has been described in [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData) and [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). All bone node indices are stored in the  `tinygltf::Skin::joints` array.
+This function handles fetching animated transform data for each bone in a skinned mesh. Pulling this data is very similar to what has been described in [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetNodeAnimationData) and [`ModelLoader::getVertexPositions`](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetvertexpositions). All bone node indices are stored in the  `tinygltf::Skin::joints` array.
 
 ```cpp
 	tinygltf::Skin& skin = model.skins.front();
@@ -949,7 +951,7 @@ It's important to note that a skinned mesh may have multiple discrete/separate a
 	}
 
 ```
-We can now iterate over each cycle and start working on pulling its raw transform and time data. Getting time data is the same as what is described in [ModelLoader::getTimelineArray](ModelLoader.md#ModelLoader%3A%3AgetTimelineArray). Fetching the animated translation, rotation, and scale data per bone is also exactly the same as described [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). The only new code block is one that checks if a bone has a root bone (required for calculating the final transform matrix pose of the child bone):
+We can now iterate over each cycle and start working on pulling its raw transform and time data. Getting time data is the same as what is described in [ModelLoader::getTimelineArray](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTimelineArray). Fetching the animated translation, rotation, and scale data per bone is also exactly the same as described [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetNodeAnimationData). The only new code block is one that checks if a bone has a root bone (required for calculating the final transform matrix pose of the child bone):
 ```cpp
   
   //iterate over each animation cycle/channel
@@ -989,7 +991,7 @@ We can now iterate over each cycle and start working on pulling its raw transfor
     }
 
 ```
-The maximum timeline (without gaps) can be calculated, by calling [ModelLoader::getMaxSkinnedDuration](ModelLoader.md#ModelLoader%3A%3AgetMaxSkinnedDuration) to get the maximum end time, and filling the timeline array incrementally in steps of `TIME_STEP` (0.03333):
+The maximum timeline (without gaps) can be calculated, by calling [ModelLoader::getMaxSkinnedDuration](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetMaxSkinnedDuration) to get the maximum end time, and filling the timeline array incrementally in steps of `TIME_STEP` (0.03333):
 ```cpp
     // time_array is the maximum timeline with no gaps
 		std::vector<float> time_array;
@@ -1001,7 +1003,7 @@ The maximum timeline (without gaps) can be calculated, by calling [ModelLoader::
 		}
 
 ```
-Since data gaps might exist, these must be filled in for smooth and valid playback. The [ModelLoader::fillInAnimationGaps](ModelLoader.md#ModelLoader%3A%3AfillInAnimationGaps) is called for each bone:
+Since data gaps might exist, these must be filled in for smooth and valid playback. The [ModelLoader::fillInAnimationGaps](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloaderfillInAnimationGaps) is called for each bone:
 ```cpp
 
 		for(auto& v : bone_anim_map){
@@ -1040,7 +1042,7 @@ Due to a combination of how a model is animated and certain glTF exporters, some
 			
 ```
 The same method is applied to clean up rotation and scale arrays from extra data, which will not be used.
-Static transform data (translation/rotation/scale) for each bone is retrieved for each bone in the same way mentioned in [ModelLoader::getTranslation](ModelLoader.md#ModelLoader%3A%3AgetTranslation), [ModelLoader::getRotation](ModelLoader.md#ModelLoader%3A%3AgetRotation), [ModelLoader::getScale](ModelLoader.md#ModelLoader%3A%3AgetScale).
+Static transform data (translation/rotation/scale) for each bone is retrieved for each bone in the same way mentioned in [ModelLoader::getTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetTranslation), [ModelLoader::getRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetRotation), [ModelLoader::getScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadergetScale).
 Since the animation system requires all arrays to be non-empty, all empty arrays (size 0) or arrays with size 1 are filled with static values to ensure animation validity. Taking translation as an example:
 ```cpp
 		//equalize empty arrays
@@ -1092,12 +1094,9 @@ Finally, all animations get added to the `ModelLoader::bone_animation_channel_ma
 Checks if a given `tinygltf::Node` has a parent. If so, it returns the index of that parent node, which can directly be used to retrieve the node from the `tinygltf::Model::nodes` array. If the index is -1, then the node has no parent.
 
 
-
-
-
 ## AnimationPlayer
 
-The `AnimationPlayer` is responsible for updating all animation of `EmptyNode` objects in realtime, as well as updating the transforms of any linked meshes. Since animating and updating the transforms of linked nodes and meshes must respect a strict inheritance hierarchy, the transforms are calculated starting from the root/base node, and follow the path to the final mesh.
+The `AnimationPlayer` is responsible for updating all animation of `EmptyNode` objects in realtime, as well as updating the transforms of any linked meshes. Since animating and updating the transforms of linked nodes and meshes must respect a strict inheritance hierarchy, the transforms are calculated starting from the root/base node and follow the path to the final mesh.
 
 ### AnimationPlayer::AnimationPlayer (constructor)
 Currently does nothing other than initializing member variables.
@@ -1126,7 +1125,7 @@ Since the order of node animation playback must follow the order of the inherita
 	}
 
 ```
-The [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](AnimationPlayer.md#AnimationPlayer%3A%3AcalculateCurrentTranslation), [AnimationPlayer - AnimationPlayer::calculateCurrentRotation](AnimationPlayer.md#AnimationPlayer%3A%3AcalculateCurrentRotation) and [AnimationPlayer - AnimationPlayer::calculateCurrentScale](AnimationPlayer.md#AnimationPlayer%3A%3AcalculateCurrentScale) are called to update the animated transforms (if they exist). The final transform is obtained by multiplying the animated transform and static transforms together.
+The [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentTranslation), [AnimationPlayer - AnimationPlayer::calculateCurrentRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentRotation) and [AnimationPlayer - AnimationPlayer::calculateCurrentScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentScale) are called to update the animated transforms (if they exist). The final transform is obtained by multiplying the animated transform and static transform together.
 
 Next, all subnodes/child `EmptyNode` objects are updated. The process follows what was mentioned above for root nodes. However, this time any child mesh nodes are updated with the current animated transforms via the `MeshDataStruct` object.
 
@@ -1183,10 +1182,10 @@ Next, all subnodes/child `EmptyNode` objects are updated. The process follows wh
 	
 
 ```
-The final transformed matrix of the mesh will there be the product of its static TRS matrix with the transform matrix of its parent `EmptyNode`.
+The final transformed matrix of the mesh will thus be the product of its static TRS matrix with the transform matrix of its parent `EmptyNode`.
 
 ### AnimationPlayer::calculateCurrentTranslation
-Calculates the new translation for the current time value (`AnimationDataStruct::current_animation_time`). This is calculated by linearly interpolationg (lerping or blending) between the translation value for the current frame (i) and translation value for the future frame (i + 1). Interpolation is crucial, as it allows smooth and consistent playback of animations regardless of frame rate, and ensures animation data is present for every tick of the application's update loop:
+Calculates the new translation for the current time value (`AnimationDataStruct::current_animation_time`). This is calculated by linearly interpolating (lerping) between the translation value for the current frame (i) and translation value for the future frame (i + 1). Interpolation is crucial, as it allows smooth and consistent playback of animations regardless of frame rate and ensures animation data is present for every tick of the application's update loop.
 ```cpp
   //loop over time array
 	for (int i{}; i < time_array.size(); i++) {
@@ -1209,7 +1208,7 @@ Calculates the new translation for the current time value (`AnimationDataStruct:
 The result of the interpolated translation value is returned for the current frame.
 
 ### AnimationPlayer::calculateCurrentRotation
-Calculates the new rotation for the current time value (`AnimationDataStruct::current_animation_time`). The same procedure described in [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](AnimationPlayer.md#AnimationPlayer%3A%3AcalculateCurrentTranslation) is applied. However, spherical linear interpolation (slerp) is carried out between any two rotations, and not linear interpolation (unless an specific edge case is met, which is desscribed below). Also, extra edge-case checks must be made for rotation quaternions. Firstly, the dot product between the current rotation (i) and future rotation (i + 1) is computed, and if this value is negative, then the inverse of `new_rot` (future rotation) is used. This is required since we always want quaternion spherical linear interpolation (slerp) to take the shortest path (otherwise it will yield incorrect animations). 
+Calculates the new rotation for the current time value (`AnimationDataStruct::current_animation_time`). The same procedure described in [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentTranslation) is applied. However, spherical linear interpolation (slerp) is carried out between any two rotations and not linear interpolation (unless a specific edge case is met, which is described below). Also, extra edge-case checks must be made for rotation quaternions. Firstly, the dot product between the current rotation (i) and future rotation (i + 1) is computed, and if this value is negative, then the inverse of `new_rot` (future rotation) is used. This is required since we always want quaternion spherical linear interpolation (slerp) to take the shortest path (otherwise it will yield incorrect animations). 
 
 ```cpp
 
@@ -1222,7 +1221,7 @@ Calculates the new rotation for the current time value (`AnimationDataStruct::cu
 			}
 ```
 
-Another edge case that may occur is when the current rotation (`old_rot`) and future rotation (`new_rot`) are very close to each other. The dot product in that case will be close to 1.0. When two quaternions are very close to each other, we can use normal linear interpolation instead and not spherical linear interpolation:
+Another edge case that may occur is when the current rotation (`old_rot`) and future rotation (`new_rot`) are very close to each other. The dot product in that case will be close to 1.0. When two quaternions are very close to each other, we can use normal linear interpolation instead and not spherical linear interpolation.
 
 ```cpp
 			//EDGE CASE
@@ -1242,44 +1241,29 @@ Another edge case that may occur is when the current rotation (`old_rot`) and fu
 ```
 
 ### AnimationPlayer::calculateCurrentScale
-Calculates the new scale for the current time value (`AnimationDataStruct::current_animation_time`). The same procedure described in [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](AnimationPlayer.md#AnimationPlayer%3A%3AcalculateCurrentTranslation) is applied.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Calculates the new scale for the current time value (`AnimationDataStruct::current_animation_time`). The same procedure described in [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentTranslation) is applied.
 
 
 ## VAO
 
-The Vertex Array Object (VAO) holds VBO data required for rendering a mesh. A more detailed description can be found here https://ogldev.org/www/tutorial32/tutorial32.html
+The Vertex Array Object (VAO) holds VBO data required for rendering a mesh. A more detailed description can be found here: https://ogldev.org/www/tutorial32/tutorial32.html
 
 ### VAO::VAO (constructor)
-When the constructor is called, a call to `glGenVertexArrays(1, &vao)` is made. The GL index of the VAO object is stored in the `VAO::vao` variable
+When the constructor is called, a call to `glGenVertexArrays(1, &vao)` is made. The GL index of the VAO object is stored in the `VAO::vao` variable.
 
 ### VAO::free
-This free's the memory of the VAO object, which has been allocated by the GL driver (to avoid memory leaks once finished). The function `glDeleteVertexArrays(1, &vao)` carries this out.
+This frees the memory of the VAO object, which has been allocated by the GL driver (to avoid memory leaks once finished). The function `glDeleteVertexArrays(1, &vao)` carries this out.
 
 ### VAO::bind
 This function calls `glBindVertexArray(vao)`, which binds the VAO to be the current active one used for rendering.
 
 ### VAO::unbind
-Unbinding the currently active VAO is important once rendering a given mesh is finished, since it avoid undesirably modifying the VAO. Unbinding is achieved by calling `glBindVertexArray(0)` and passing 0 as the argument.VBO
+Unbinding the currently active VAO is important once rendering a given mesh is finished, since it avoids undesirably modifying the VAO. Unbinding is achieved by calling `glBindVertexArray(0)` and passing 0 as the argument.VBO
+
+
 ## VBO
 
-The Vertex Buffer Object (VBO) holds the raw vertex data (coordinates, UV's, etc). A more detailed description can be found here https://opentk.net/learn/chapter1/2-hello-triangle.html#vertex-array-object
+The Vertex Buffer Object (VBO) holds the raw vertex data (coordinates, UV's, etc.). A more detailed description can be found here: https://opentk.net/learn/chapter1/2-hello-triangle.html#vertex-array-object
 
 ### VBO::VBO (constructor)
 Generates a VBO object for use by the GL backend. Raw vertex data is passed in as the argument. When the constructor is called, a new VBO is generated via the GL function call `glGenBuffers(1, &vbo)`. The handle to the VBO object is a GLuint `VBO::vbo`. To pass the raw vertex data to the VBO buffer, we first bind the `VBO::vbo`, and then call `glBufferData`:
@@ -1296,19 +1280,21 @@ Generates a VBO object for use by the GL backend. Raw vertex data is passed in a
 ```
 
 ### VBO::free
-This free's the memory of the VBO object, which has been allocated by the GL driver (to avoid memory leaks once finished). The function `glDeleteBuffers(1, &vbo)` carries this out.
+This frees the memory of the VBO object, which has been allocated by the GL driver (to avoid memory leaks once finished). The function `glDeleteBuffers(1, &vbo)` carries this out.
 
 ### VBO::bind
 This function calls `glBindBuffer(GL_ARRAY_BUFFER, vbo)`, which binds the VBO to be the current active one used for rendering.
 
 ### VBO::unbind
-Unbinding the currently active VBO is important once rendering a given mesh is finished, since it avoid undesirably modifying the VBO. Unbinding is achieved by calling `glBindBuffer(GL_ARRAY_BUFFER, 0)` and passing 0 as the second argument.
+Unbinding the currently active VBO is important once rendering a given mesh is finished, since it avoids undesirably modifying the VBO. Unbinding is achieved by calling `glBindBuffer(GL_ARRAY_BUFFER, 0)` and passing 0 as the second argument.
+
+
 ## EBO
 
-The Element Buffer Object (EBO) holds shared indexed data used for rendering a triangle, without wasting extra index memory. Having an EBO allows for more optimized rendering, since it uses shared indices to render any adjacent triangles, without having to duplicate the indices (thereby saving on VRAM). A more detailed explanation can be found here: https://opentk.net/learn/chapter1/3-element-buffer-objects.html
+The Element Buffer Object (EBO) holds shared indexed data used for rendering a triangle without wasting extra index memory. Having an EBO allows for more optimized rendering since it uses shared indices to render any adjacent triangles without having to duplicate the indices (thereby saving on VRAM). A more detailed explanation can be found here: https://opentk.net/learn/chapter1/3-element-buffer-objects.html
 
 ### EBO::EBO (constructor)
-Generates a EBO object for use by the GL backend. Raw index data is passed in as the argument. When the constructor is called, a new EBO is generated via the GL function call `glGenBuffers(1, &ebo)`. The handle to the EBO object is a GLuint `EBO::ebo`. To pass the raw vertex data to the EBO buffer, we first bind the `EBO::ebo`, and then call `glBufferData`:
+Generates an EBO object for use by the GL backend. Raw index data is passed in as the argument. When the constructor is called, a new EBO is generated via the GL function call `glGenBuffers(1, &ebo)`. The handle to the EBO object is a GLuint `EBO::ebo`. To pass the raw vertex data to the EBO buffer, we first bind the `EBO::ebo`, and then call `glBufferData`:
 ```cpp
 //generate GL ebo
   glGenBuffers(1, &ebo);
@@ -1322,21 +1308,23 @@ Generates a EBO object for use by the GL backend. Raw index data is passed in as
 ```
 
 ### EBO::free
-This free's the memory of the EBO object, which has been allocated by the GL driver (to avoid memory leaks once finished). The function `glDeleteBuffers(1, &ebo)` carries this out.
+This frees the memory of the EBO object, which has been allocated by the GL driver (to avoid memory leaks once finished). The function `glDeleteBuffers(1, &ebo)` carries this out.
 
 ### EBO::bind
 This function calls `glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo)`, which binds the EBO to be the current active one used for rendering.
 
 ### EBO::unbind
-Unbinding the currently active EBO is important once rendering a given mesh is finished, since it avoid undesirably modifying the EBO. Unbinding is achieved by calling `glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)` and passing 0 as the second argument.
+Unbinding the currently active EBO is important once rendering a given mesh is finished, since it avoids undesirably modifying the EBO. Unbinding is achieved by calling `glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)` and passing 0 as the second argument.
+
+
 ## Mesh
 
 The `Mesh` class is responsible for rendering and interfacing with the 3D model. Given that some meshes may have skinning animations, it is also responsible for updating skin animations and passing skin weight and index data to the skinned shader. The two key functions of a Mesh class are its constructor, and `Mesh::update()` methods.
 
 ### Mesh::Mesh constructor
-When a `Mesh` class is created, the relevant mesh data required for rendering and rasterizing the 3D model (vertex coordinates, UV's, etc) are passed to it via the `MeshDataStruct` struct. Although most of this data is already in a usuable format for rendering, other data like tangent and bitangent (required for normal mapping) arrays do not exist yet. Additionally, all this data needs to be layed out in a 1D array with relevant strides and byte offsets demanded by the OpenGL drawing functions. Hence the first course is to create tangent and bitangent arrays, after that we can assemble the data in the required OpenGL format.
+When a `Mesh` class is created, the relevant mesh data required for rendering and rasterizing the 3D model (vertex coordinates, UV's, etc.) are passed to it via the `MeshDataStruct` struct. Although most of this data is already in a usable format for rendering, other data like tangent and bitangent (required for normal mapping) arrays do not exist yet. Additionally, all this data needs to be laid out in a 1D array with relevant strides and byte offsets demanded by the OpenGL drawing functions. Hence the first course is to create tangent and bitangent arrays; after that, we can assemble the data in the required OpenGL format.
 
-The full derivations of tangents and bitangents are not included here for the sake of brevity, but can be found here: https://ogldev.org/www/tutorial26/tutorial26.html
+The full derivations of tangents and bitangents are not included here for the sake of brevity but can be found here: https://ogldev.org/www/tutorial26/tutorial26.html
 In summary, we loop on a set of 3 vertices (due to it being a triangle), and calculate the displacement and UV vectors of two edges either side of the triangle required for the derived equations:
 ```cpp
 
@@ -1374,7 +1362,7 @@ In summary, we loop on a set of 3 vertices (due to it being a triangle), and cal
 
 ```
 
-Now all the data is ready to be filled into `vertex_data_array`. Since the data which will be passed to the shader is layed-out in the order:
+Now all the data is ready to be filled into `vertex_data_array`. Since the data which will be passed to the [default_shader.vert (vertex shader)](https://github.com/war/asset-loading/tree/gltf-asset-loading?tab=readme-ov-file#default_shadervert-vertex-shader) is laid out in the following order:
 ```glsl
 layout(location = 0) in vec3 vertPos; //vertex pos
 layout(location = 1) in vec2 uvVertCoord; //vertex UV's
@@ -1384,7 +1372,7 @@ layout(location = 4) in vec3 vBiTangent; //bitangent
 layout(location = 5) in vec4 joints_0; //JOINTS_0
 layout(location = 6) in vec4 weights_0; //WEIGHTS_0
 ```
-I.e. (1) vertex positions (2) UV's (3) normals (4) tangent (5) bitangent (6) skin joints (7) skin weights, the data inside `vertex_data_array` must follow the same ordering. Hence we have the following loop:
+I.e., (1) vertex positions (2) UV's (3) normals (4) tangent (5) bitangent (6) skin joints (7) skin weights, the data inside `vertex_data_array` must follow the same ordering. Hence we have the following loop:
 
 ```cpp
 //fill in the vertex_data_array with flattened GLfloat vertex data
@@ -1430,15 +1418,15 @@ I.e. (1) vertex positions (2) UV's (3) normals (4) tangent (5) bitangent (6) ski
 	}
 
 ```
-So for each vertex, its data (position, UV, etc) is pushed into `vertex_data_array` into the form `{x_position, y_position, z_position,       uv_x, uv_y,       ....}`.
+So for each vertex, its data (position, UV, etc.) is pushed into `vertex_data_array` into the form `{x_position, y_position, z_position,       uv_x, uv_y,       ....}`.
 
-Since OpenGL relies on the usage of abstract data buffers for rendering (VAO, VBO, EBO), we must transfer the raw data stored in `vertex_data_array` into these buffers. First, we contruct and bind the VAO, VBO and EBO:
+Since OpenGL relies on the usage of abstract data buffers for rendering (VAO, VBO, EBO), we must transfer the raw data stored in `vertex_data_array` into these buffers. First, we create and bind the VAO, VBO and EBO:
 ```cpp
 	vao.bind(); //VAO has already been constructed on init of Mesh class
 	vbo = VBO(vertex_data_array); //construct VBO
 	ebo = EBO(vertex_indices_array); //construct EBO
 ```
-Now we must setup pointers and define the strides and byte offsets of our vertex coordinates, UV, etc data stored within `vertex_data_array`. Vertex position, UV, normal, tangent, bitangent, skin joint index and skin weights will each have pointers. 
+Now we must setup pointers and define the strides and byte offsets of our vertex coordinates, UV, etc. data stored within `vertex_data_array`. Vertex position, UV, normal, tangent, bitangent, skin joint index, and skin weights will each have pointers. 
 
 ```cpp
 		//vertex position pointer (3 component vec)
@@ -1471,8 +1459,8 @@ Now we must setup pointers and define the strides and byte offsets of our vertex
 		glEnableVertexAttribArray(6);	
 
 ```
-Note that the skin joints index and skin weights are both 4 component vectors. While vertex position, normal, tangent and bitangent are 3 components. And UV is only 2 components. Hence the length of a single vertex data block (or stride) in our setup is 22 (2 + 3 + 3 + 3 + 3 + 4 + 4). And since we are using floating point data, the total size will be 22*sizeof(float) = 22*4 = 88.
-Once we have finished setting up pointers, we must unbind VAO, VBO and EBO to avoid modifying them and corrupting the data.
+Note that the skin joint index and skin weights are both 4-component vectors. While vertex position, normal, tangent, and bitangent are 3 components. And UV is only 2 components. Hence the length of a single vertex data block (or stride) in our setup is 22 (2 + 3 + 3 + 3 + 3 + 4 + 4). And since we are using floating point data, the total size will be 22*sizeof(float) = 22*4 = 88.
+Once we have finished setting up pointers, we must unbind VAO, VBO, and EBO to avoid modifying them and corrupting the data.
 
 ```cpp
 	vbo.unbind();
@@ -1498,11 +1486,11 @@ int main(int argc, char* argv[]) {
 }
 
 ```
-This function primarily handles the rendering side (including sending uniform data to shaders), but also updating the mesh transforms (position, rotation, scale), and in case of skinning, updating skinning animations.
+This function primarily handles the rendering side (including sending uniform data to shaders), but also updates the mesh transforms (position, rotation, scale), and, in the case of skinning, updates skinning animations.
 Before asking OpenGL to render a mesh (achieved via `glDrawElements`), we must first pass all the required uniforms to the shader. This includes camera matrix and position, mesh transforms, directional light info,  textures, and skinning data.
 Sending camera and mesh matrices:
 ```cpp
-	shader->setMat4("modelMatrix", modelMatrix);//pass mesh model matrix (the matrix which defines the meshes' position, rotation and scale)
+	shader->setMat4("modelMatrix", modelMatrix);//pass mesh model matrix (the matrix that defines the meshes' position, rotation and scale)
 	shader->setMat4("viewMatrix", camera->GetViewMatrix());//camera view matrix
 	shader->setMat4("projMatrix", glm::perspective(camera->FovRads, window_manager->getAspectRatio(), 0.1f, 1000.0f));//camera projection matrix
 	shader->setVec3("cameraPos", camera->GetPosition());//camera positon
@@ -1541,7 +1529,7 @@ Sending texture GLuint indices. For GL textures, `glActiveTexture(GL_TEXTURE_2D,
 	}
 ```
 The diffuse (albedo) texture is sent first, hence the <INDEX> must be 0, i.e.
-`glActiveTexture(GL_TEXTURE0)`. The `GL_TEXTURE_ID` used in `glBindTexture` can retrieved from the `texture_map` stored in `MeshDataStruct`, which fetches the relevant diffuse/metal/normal texture based on `TextureType` key supplied. I.e. `MeshDataStruct::texture_map[TextureType::DIFFUSE].tex_id`.
+`glActiveTexture(GL_TEXTURE0)`. The `GL_TEXTURE_ID` used in `glBindTexture` can be retrieved from the `texture_map` stored in `MeshDataStruct`, which fetches the relevant diffuse/metal/normal texture based on the `TextureType` key supplied. I.e. `MeshDataStruct::texture_map[TextureType::DIFFUSE].tex_id`.
 
 Base material color is also optionally sent to the shader as well. This will modify the final color of the mesh after the albedo texture is applied. However, it can be set to plain white `glm::vec3(1.f)` if not used.
 ```cpp
@@ -1562,7 +1550,7 @@ Since skinned meshes require inverse bind matrices to be used in realtime, these
 	shader->setInt("isSkinned", (int)mesh_data->has_skin);
 
 ```
-The `inverseBindMatrixArray` is an array of fixed (and maximum) size 64. These means that any skinned mesh can only have 64 bones at a time. This fixed value can be increased to, say, 128. But due to OpenGL array size limitations, this may not work on all graphics cards. The boolean value of `isSkinned` is also sent, and if the mesh has no skinning, then it will discard the skinning calculation loop.
+The `inverseBindMatrixArray` is an array of fixed (and maximum) size 64. This means that any skinned mesh can only have 64 bones at a time. This fixed value can be increased to, say, 128. But due to OpenGL array size limitations, this may not work on all graphics cards. The boolean value of `isSkinned` is also sent, and if the mesh has no skinning, then it will discard the skinning calculation loop.
 
 Finally, to render the mesh, `glDrawElements` is called.
 ```cpp
@@ -1571,14 +1559,14 @@ Finally, to render the mesh, `glDrawElements` is called.
 	
 ```
 The `render_mode` variable is a GLenum, which can also be set externally by calling `Mesh::setRenderingMode(GLenum)`. By default, solid filled triangles are rendered using `GL_TRIANGLES`. But lines (`GL_LINES`) and points (`GL_POINTS`) can also be chosen if so desired.
-The number of indices is also a requirement for indexed rendering, thus the .size()` of the `vertex_indices_array` is passed as the second argument.
+The number of indices is also a requirement for indexed rendering; thus the length of the `vertex_indices_array` is passed as the second argument.
 
 
 ### Mesh::updateSkinnedAnimation()
-Updating all skinning matrices, including calculating bone transforms every frame is carried out in this function.
+Updating all skinning matrices, including calculating bone transforms every frame, is carried out in this function.
 
-Since bones are chained together, and each child bones' transform depends on its root bones' transform, we must find the root of each corresponsing child bone, and multiply their transforms in correct order to get the final child bone pose.
-Once the bone position, rotation and scale is calculated for the current frame, and a transform matrix is created, this is multiplied by the parent bone transform to get the final pose of the bone.
+Since bones are chained together and each child bone's transform depends on its root bone's transform, we must find the root of each corresponsing child's bone and multiply their transforms in the correct order to get the final child's bone pose. 
+Once the bone position, rotation, and scale are calculated for the current frame, using the same method described in [AnimationPlayer::calculateCurrentTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentTranslation), [AnimationPlayer::calculateCurrentRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentRotation), and [AnimationPlayer::calculateCurrentScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentScale), and a transform matrix is created, this is multiplied by the parent bone transform to get the final pose of the bone.
 ```cpp
     //get position
 		glm::vec3 bone_pos = calculateCurrentTranslation(bone_anim);
@@ -1601,7 +1589,7 @@ Once the bone position, rotation and scale is calculated for the current frame, 
 		}
 
 ```
-To get the final transform matrix which will be sent and directly used in the shader, the inverse bind matrix for each bone must be multipled by the transposed tranform matrix, and transposed one final time:
+To get the final transform matrix, which will be sent and directly used in the shader, the inverse bind matrix for each bone must be multiplied by the transposed transform matrix and transposed one final time:
 ```cpp
 
 	for (std::size_t m{}; m < inverse_bind_mat_array.size(); m++) {
@@ -1609,34 +1597,24 @@ To get the final transform matrix which will be sent and directly used in the sh
 		//get inverse bind matrix for each bone
 		glm::mat4 inverse_bind_matrix = inverse_bind_mat_array[m]
 		
-		//multiply inverse bind matrix by trasnposed transform matrix
+		//multiply inverse bind matrix by transposed transform matrix
 		glm::mat4 skinned_mat = inverse_bind_matrix * glm::transpose( bone_transform_matrix_array[m] );
-		//transpose resultant matrix one final time before adding to the array (which will be dispatched to shader)
+		//transpose resultant matrix one final time before adding to the array (that will be dispatched to shader)
 		bone_skinned_matrix_array.emplace_back( glm::transpose( skinned_mat ) );
 	}
 
 ```
-This completes the skinning aspect, and provides us with matrices which are ready to be used in the shader.
+This completes the skinning part, and provides us with matrices that are ready to be used in the [default_shader](https://github.com/war/asset-loading/tree/gltf-asset-loading#default_shader).
 
 
-### Misc functions
+### Mesh::setModelMatrix
+Used to directly set the model matrix of the mesh (with all of position, rotation, and scale transforms applied).
 
-`Mesh::setModelMatrix(glm::mat4)` - Used to directly set the model matrix of the mesh (with all of position, rotation and scale transforms applied)
+### Mesh::enableBackFaceCulling
+Enable/disable backface culling.
 
-`Mesh::enableBackFaceCulling(bool)` - Enable/disable backface culling
-
-`Mesh::setSkinnedAnimationChannel(std::string)` - Set name of animation channel for playback on skinned mesh (in case multiple channels exist)
-
-
-
-
-
-
-
-
-
-
-
+### Mesh::setSkinnedAnimationChannel
+Set name of animation channel for playback on skinned mesh (in case multiple channels exist).
 
 
 ## default_shader
@@ -1648,7 +1626,7 @@ The `default_shader.frag` and `default_shader.vert` are the respective fragment 
 Carries out the lighting and applies texturing and shading to the mesh. The bulk of shading is computed in [default_shader.frag - directionalLightFunc()](default_shader.md#directionalLightFunc%28%29)
 
 #### directionalLightFunc()
-Phong lighting model is used for shading with a single directional light. Details of phong shading can be found here: https://riptutorial.com/opengl/example/14741/phong-lighting-model. Since phong shading relies on a specular map, a basic specular map is quickly calculated by averaging out the colors of the metal map:
+The Phong lighting model is used for shading with a single directional light. Details of phong shading can be found here: https://riptutorial.com/opengl/example/14741/phong-lighting-model. Since phong shading relies on a specular map, a basic specular map can be quickly computed by averaging out the colors of the metal map:
 
 ```glsl
   vec4 specularColor = vec4((texture(metal_tex, uvCoord).r + texture(metal_tex, uvCoord).g + texture(metal_tex, uvCoord).b)/3.f);
@@ -1701,7 +1679,7 @@ A tangent-bitangent-normal (TBN) 3x3 matrix is then created, which is then multi
 ```
 
 #### main()
-The final shaded fragment color ouput is the product of the result of [default_shader - directionalLightFunc()](default_shader.md#directionalLightFunc%28%29) with a `base_color` value (can be set to plain white `vec3(1.f)`):
+The final shaded fragment color output is the product of the result of [default_shader - directionalLightFunc()](default_shader.md#directionalLightFunc%28%29) with a `base_color` value (can be set to plain white `vec3(1.f)`):
 
 ```glsl
 
@@ -1709,10 +1687,10 @@ fragColor = directionalLightFunc() * vec4(base_color.xyz, 0.f);
 ```
 
 ### default_shader.vert (vertex shader)
-Deforming vertices with skin matrices, as well as finalizing vertex transforms are computed in this function. Tangent, bitangent and perpendicular normal vectors are also partially computed and passed to the fragment shader (along with UV data) as well.
+Deforming vertices with skin matrices as well as finalizing vertex transforms are computed in this function. Tangent, bitangent, and perpendicular normal vectors are also partially computed and passed to the fragment shader (along with UV data) as well.
 
 #### main()
-Assuming the mesh is skinned, the first step is to calculate the skinning matrix. This will be used directly to deform each vertex based on the closest bone poses. The skinning matrix is calculated by multiplying each component of the `weights_0` vector, by each component of the `inverseBindMatrix`. Each `inverseBindMatrix` is obtained from the `inverseBindMatrixArray` array using `joints_0` vector's indices as a key:
+Assuming the mesh is skinned, the first step is to calculate the skinning matrix. This will be used directly to deform each vertex based on the closest bone poses. The skinning matrix is calculated by multiplying each component of the `weights_0` vector by each component of the `inverseBindMatrix`. Each `inverseBindMatrix` is obtained from the `inverseBindMatrixArray` array using `joints_0` vector's indices as a key:
 
 ```glsl
 
@@ -1722,7 +1700,7 @@ Assuming the mesh is skinned, the first step is to calculate the skinning matrix
                         ( weights_0.z * inverseBindMatrixArray[int(joints_0.z)].matrix ) +
                         ( weights_0.w * inverseBindMatrixArray[int(joints_0.w)].matrix );
 ```
-The final vertex positions output from the shader will be the product of the projection, view, model, skinning matrices, and the input vertex coordinates into the shader (raw vertex coordinate data):
+The final vertex position output from the shader will be the product of the projection, view, model, skinning matrices, and the input vertex coordinates into the shader (raw vertex coordinate data):
 ```glsl
 gl_Position = projMatrix * viewMatrix * modelMatrix * skinnedMatrix * vec4(vertPos.xyz, 1.f);
 ```
@@ -1733,7 +1711,7 @@ However, if the mesh is not skinned, then we can skip the skinning matrix loop a
 gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(vertPos.xyz, 1.f);
 ```
 
-Since the fragment shader needs the UV's, vertex coordinates, vertex normals, tangent, bitangent and perpendicular normal vectors for lighting and normal mapping, it is more performant to partially calculate some of these vectors in the vertex shader and send them to the fragment shader (since vertex shaders run for every vertex and not every fragment, which means much less cycles and more optimized):
+Since the fragment shader needs the UV's, vertex coordinates, vertex normals, tangent, bitangent, and perpendicular normal vectors for lighting and normal mapping, it is more performant to partially calculate some of these vectors in the vertex shader and send them to the fragment shader (since vertex shaders run for every vertex and not every fragment, which means less cycles and thus more optimized):
 
 ```glsl
 //output uv's
@@ -1756,43 +1734,36 @@ Since the fragment shader needs the UV's, vertex coordinates, vertex normals, ta
 ```
 
 
-
-
-
-
-
-
-
-
-
-
 ## Utils
 
 The `Utils.h` file houses commonly used functions and structs.
 
 ### AnimationDataStruct
-Stores all animation related data for a given animated object. This includes, but not limited to, animation name, time array, transform arrays, static transforms and other data
+Stores all animation-related data for a given animated object. This includes, but is not limited to, animation name, time array, transform arrays, static transforms, and other data
 
 ### MaterialDataStruct
-Stores material related infor for an object. Its fields include material name, base color, metalness, roughness.
+Stores material related info for an object. Its fields include material name, base color, metalness, roughness, and emissiveness.
 
 ### TextureDataStruct
-Stores the GL texture index (which is then passed to the fragment shader) and `TextureType` (diffuse/normal/metal/specular/roughness)
+Stores the GL texture index (which is then passed to the fragment shader) and `TextureType` (diffuse/normal/metal/specular/roughness).
 
 ### MeshDataStruct
-Stores all vertex, texture, material and animation data for a given mesh. Contains arrays which hold vertex positions, UV's, normals, indices. Static model data is also stored as well.
+Stores all vertex, texture, material, and animation data for a given mesh. Contains arrays that hold vertex positions, UV's, normals, indices, and other data. Static model data is also stored as well.
 
 ### EmptyNode
-Stores animation, transform and hierarchy data for blank animated nodes. All animation data is used directly in `AnimationPlayer::update()`.
+Stores animation, transform, and hierarchy data for blank animated nodes. All animation data is used directly in `AnimationPlayer::update()`.
 
 ### DirectionalLight
-Stores light strength, specular intensity, direction and color for a directional light.
+Stores light strength, specular intensity, direction, and color for directional light.
 
 ### createTRSmatrix
-Creates a transform matrix using supplied values of translation, rotation and scale.
+Creates a transform matrix using supplied values of translation, rotation, and scale.
 
 ### __GL_ERROR_THROW__
-Checks for any GL related errors using `glGetError()`, and throws a `std::logic_error` if any issues occur.
+Checks for any GL-related errors using `glGetError()`, and throws a `std::logic_error` if any issues occur.
+
+
+
 
 
 # fps
