@@ -2,125 +2,123 @@ Code Structure Breakdown
 =====================
 
 ## Table of Contents
-========================
 
-[Main](Code%20Structure%20Breakdown.md#Main)
-
-
-[ModelLoader](Code%20Structure%20Breakdown.md#ModelLoader)
-
-- [ModelLoader::ModelLoader (constructor)](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AModelLoader%20%28constructor%29)
-
-- [ModelLoader::~ModelLoader (destructor)](Code%20Structure%20Breakdown.md#ModelLoader%3A%3A~ModelLoader%20%28destructor%29)
-
-- [ModelLoader::getVertexPositions](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexPositions)
-
-- [ModelLoader::getVertexNormals](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexNormals)
-
-- [ModelLoader::getVertexUV](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetVertexUV)
-
-- [ModelLoader::getIndices](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetIndices)
-
-- [ModelLoader::getSkinWeights](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinWeights)
-
-- [ModelLoader::getSkinJoints](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinJoints)
-
-- [ModelLoader::getInverseBindMatrices](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetInverseBindMatrices)
-
-- [ModelLoader::getTextureMap](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTextureMap)
-
-- [ModelLoader::getMaterial](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaterial)
-
-- [ModelLoader::fillInAnimationGaps](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AfillInAnimationGaps)
-
-- [ModelLoader::equalizeAndMatchNodeAnimations](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AequalizeAndMatchNodeAnimations)
-
-- [ModelLoader::getTimelineArray](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTimelineArray)
-
-- [ModelLoader::getMaxNodeTimeline](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaxNodeTimeline)
-
-- [ModelLoader::getNodeAnimationData](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetNodeAnimationData)
-
-- [ModelLoader::getMeshAnimationData](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMeshAnimationData)
-
-- [ModelLoader::getTranslation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTranslation)
-
-- [ModelLoader::getRotation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetRotation)
-
-- [ModelLoader::getScale](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetScale)
-
-- [ModelLoader::getTransformMatrix](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetTransformMatrix)
-
-- [ModelLoader::getMaxSkinnedDuration](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetMaxSkinnedDuration)
-
-- [ModelLoader::getSkinnedAnimation](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetSkinnedAnimation)
-
-- [ModelLoader::getParentNodeIndex](Code%20Structure%20Breakdown.md#ModelLoader%3A%3AgetParentNodeIndex)
+[Main](https://github.com/war/asset-loading/tree/gltf-asset-loading#main)
 
 
-[Mesh](Code%20Structure%20Breakdown.md#Mesh)
+[ModelLoader](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloader)
 
-- [Mesh::Mesh constructor](Code%20Structure%20Breakdown.md#Mesh%3A%3AMesh%20constructor)
+- [ModelLoader::ModelLoader (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#modeloadermodelloader-constructor)
 
-- [Mesh::update()](Code%20Structure%20Breakdown.md#Mesh%3A%3Aupdate%28%29)
+- [ModelLoader::~ModelLoader (destructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#modelloadermodelloader-destructor)
 
-- [Mesh::updateSkinnedAnimation()](Code%20Structure%20Breakdown.md#Mesh%3A%3AupdateSkinnedAnimation%28%29)
+- [ModelLoader::getVertexPositions](https://github.com/war/asset-loading/tree/gltf-asset-loading#getvertexpositions)
 
+- [ModelLoader::getVertexNormals](https://github.com/war/asset-loading/tree/gltf-asset-loading#getVertexNormals)
 
-[AnimationPlayer](Code%20Structure%20Breakdown.md#AnimationPlayer)
+- [ModelLoader::getVertexUV](https://github.com/war/asset-loading/tree/gltf-asset-loading#getVertexUV)
 
-- [AnimationPlayer::AnimationPlayer (constructor)](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AAnimationPlayer%20%28constructor%29)
+- [ModelLoader::getIndices](https://github.com/war/asset-loading/tree/gltf-asset-loading#getIndices)
 
-- [AnimationPlayer::update](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3Aupdate)
+- [ModelLoader::getSkinWeights](https://github.com/war/asset-loading/tree/gltf-asset-loading#getSkinWeights)
 
-- [AnimationPlayer::calculateCurrentTranslation](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentTranslation)
+- [ModelLoader::getSkinJoints](https://github.com/war/asset-loading/tree/gltf-asset-loading#getSkinJoints)
 
-- [AnimationPlayer::calculateCurrentRotation](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentRotation)
+- [ModelLoader::getInverseBindMatrices](https://github.com/war/asset-loading/tree/gltf-asset-loading#getInverseBindMatrices)
 
-- [AnimationPlayer::calculateCurrentScale](Code%20Structure%20Breakdown.md#AnimationPlayer%3A%3AcalculateCurrentScale)
+- [ModelLoader::getTextureMap](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTextureMap)
 
+- [ModelLoader::getMaterial](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMaterial)
 
-[VAO](Code%20Structure%20Breakdown.md#VAO)
+- [ModelLoader::fillInAnimationGaps](https://github.com/war/asset-loading/tree/gltf-asset-loading#fillInAnimationGaps)
 
-- [VAO::VAO (constructor)](Code%20Structure%20Breakdown.md#VAO%3A%3AVAO%20%28constructor%29)
+- [ModelLoader::equalizeAndMatchNodeAnimations](https://github.com/war/asset-loading/tree/gltf-asset-loading#equalizeAndMatchNodeAnimations)
 
-- [VAO::free](Code%20Structure%20Breakdown.md#VAO%3A%3Afree)
+- [ModelLoader::getTimelineArray](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTimelineArray)
 
-- [VAO::bind](Code%20Structure%20Breakdown.md#VAO%3A%3Abind)
+- [ModelLoader::getMaxNodeTimeline](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMaxNodeTimeline)
 
-- [VAO::unbind](Code%20Structure%20Breakdown.md#VAO%3A%3Aunbind)
+- [ModelLoader::getNodeAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#getNodeAnimationData)
 
+- [ModelLoader::getMeshAnimationData](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMeshAnimationData)
 
-[VBO](Code%20Structure%20Breakdown.md#VBO)
+- [ModelLoader::getTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTranslation)
 
-- [VBO::VBO (constructor)](Code%20Structure%20Breakdown.md#VBO%3A%3AVBO%20%28constructor%29)
+- [ModelLoader::getRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#getRotation)
 
-- [VBO::free](Code%20Structure%20Breakdown.md#VBO%3A%3Afree)
+- [ModelLoader::getScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#getScale)
 
-- [VBO::bind](Code%20Structure%20Breakdown.md#VBO%3A%3Abind)
+- [ModelLoader::getTransformMatrix](https://github.com/war/asset-loading/tree/gltf-asset-loading#getTransformMatrix)
 
-- [VBO::unbind](Code%20Structure%20Breakdown.md#VBO%3A%3Aunbind)
+- [ModelLoader::getMaxSkinnedDuration](https://github.com/war/asset-loading/tree/gltf-asset-loading#getMaxSkinnedDuration)
 
+- [ModelLoader::getSkinnedAnimation](https://github.com/war/asset-loading/tree/gltf-asset-loading#getSkinnedAnimation)
 
-[EBO](Code%20Structure%20Breakdown.md#EBO)
-
-- [EBO::EBO (constructor)](Code%20Structure%20Breakdown.md#EBO%3A%3AEBO%20%28constructor%29)
-
-- [EBO::free](Code%20Structure%20Breakdown.md#EBO%3A%3Afree)
-
-- [EBO::bind](Code%20Structure%20Breakdown.md#EBO%3A%3Abind)
-
-- [EBO::unbind](Code%20Structure%20Breakdown.md#EBO%3A%3Aunbind)
+- [ModelLoader::getParentNodeIndex](https://github.com/war/asset-loading/tree/gltf-asset-loading#getParentNodeIndex)
 
 
-[default_shader](Code%20Structure%20Breakdown.md#default_shader)
+[Mesh](https://github.com/war/asset-loading/tree/gltf-asset-loading#Mesh)
 
-- [default_shader.vert (vertex shader)](Code%20Structure%20Breakdown.md#default_shader.vert%20%28vertex%20shader%29)
+- [Mesh::Mesh constructor](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshmesh-constructor)
 
-- [default_shader.frag (fragment shader)](Code%20Structure%20Breakdown.md#default_shader.frag%20%28fragment%20shader%29)
+- [Mesh::update()](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshupdate)
+
+- [Mesh::updateSkinnedAnimation()](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshgetskinnedanimation)
+
+
+[AnimationPlayer](https://github.com/war/asset-loading/tree/gltf-asset-loading#AnimationPlayer)
+
+- [AnimationPlayer::AnimationPlayer (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayeranimationplayer-constructor)
+
+- [AnimationPlayer::update](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayerupdate)
+
+- [AnimationPlayer::calculateCurrentTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentTranslation)
+
+- [AnimationPlayer::calculateCurrentRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentRotation)
+
+- [AnimationPlayer::calculateCurrentScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentScale)
+
+
+[VAO](https://github.com/war/asset-loading/tree/gltf-asset-loading#VAO)
+
+- [VAO::VAO (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#vaovao-constructor)
+
+- [VAO::free](https://github.com/war/asset-loading/tree/gltf-asset-loading#vaofree)
+
+- [VAO::bind](https://github.com/war/asset-loading/tree/gltf-asset-loading#vaobind)
+
+- [VAO::unbind](https://github.com/war/asset-loading/tree/gltf-asset-loading#vaounbind)
+
+
+[VBO](https://github.com/war/asset-loading/tree/gltf-asset-loading#VBO)
+
+- [VBO::VBO (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#vbovbo-constructor)
+
+- [VBO::free](https://github.com/war/asset-loading/tree/gltf-asset-loading#vbofree)
+
+- [VBO::bind](https://github.com/war/asset-loading/tree/gltf-asset-loading#vbobind)
+
+- [VBO::unbind](https://github.com/war/asset-loading/tree/gltf-asset-loading#vbounbind)
+
+
+[EBO](https://github.com/war/asset-loading/tree/gltf-asset-loading#EBO)
+
+- [EBO::EBO (constructor)](https://github.com/war/asset-loading/tree/gltf-asset-loading#ebo-constructor)
+
+- [EBO::free](https://github.com/war/asset-loading/tree/gltf-asset-loading#ebofree)
+
+- [EBO::bind](https://github.com/war/asset-loading/tree/gltf-asset-loading#ebobind)
+
+- [EBO::unbind](https://github.com/war/asset-loading/tree/gltf-asset-loading#ebounbind)
+
+
+[default_shader](https://github.com/war/asset-loading/tree/gltf-asset-loading#default_shader)
+
+- [default_shader.vert (vertex shader)](https://github.com/war/asset-loading/tree/gltf-asset-loading?tab=readme-ov-file#default_shadervert-vertex-shader)
+
+- [default_shader.frag (fragment shader)](https://github.com/war/asset-loading/tree/gltf-asset-loading?tab=readme-ov-file#default_shaderfrag-fragment-shader)
 
 ## Main
-========================
 
 Loading of glTF meshes is done by creating an instance of the `ModelLoader` class inside the `main` function:
 
@@ -134,7 +132,7 @@ int main(int argc, char* argv[]){
 }
 
 ```
-The `Mesh` objects are also created by creating an instance of the  `Mesh` class, and stored inside `mesh_array` array for easy access. However, since more than one mesh may exist in a glTF model, we must loop over the all `MeshDataStruct` objects stored in the loaded `ModelLoader` class, and create a new instance of `Mesh` every time, emplacing each in the `mesh_array`:
+The `Mesh` objects are also created by creating an instance of the  `Mesh` class, and stored inside `mesh_array` array for easy access. However, since more than one mesh may exist in a glTF model, we must loop over all `MeshDataStruct` objects stored in the loaded `ModelLoader` class and create a new instance of `Mesh` every time, emplacing each in the `mesh_array`:
 
 ```cpp
 
@@ -213,7 +211,7 @@ Skinning and model/mesh animations can be reset by calling `AnimationPlayer::res
 
 ```
 
-Finally, once the program is ready to terminate, all of `Mesh`, `ModelLoader` and `DirectionalLight` instances which were allocated on the heap can be free'd (outside the while loop):
+Finally, once the program is ready to terminate, all the `Mesh`, `ModelLoader`, and `DirectionalLight` instances that were allocated on the heap can be free'd (outside the while loop):
 
 ```cpp
 
@@ -248,12 +246,12 @@ int main(){
 
 
 ## ModelLoader
-========================
-The `ModelLoader` class handles the process reading glTF files from disk, and extracting all mesh and animation data required for rendering and animation. It primarly interfaces with the `tinygltf` header for importing of glTF files. All extracted data is stored in separate arrays which can be accessed as public members of the class.
+
+The `ModelLoader` class handles the process of reading glTF files from disk and extracting all mesh and animation data required for rendering and animation. It primarly interfaces with the `tinygltf` header for importing of glTF files. All extracted data is stored in separate arrays, which can be accessed by public members of the class.
 
 ### ModelLoader::ModelLoader (constructor)
-Reading of the glTF file from disk is done through the use of `tinygltf` functions. When a glTF file is specified in binary blob format (.glb), then `tinygltf::TinyGLTF::LoadBinaryFromFile` is called. Otherwise `tinygltf::TinyGLTF::LoadASCIIFromFile` for a plain .gltf extension.
-All mesh and animation data (excluding static transforms and hierarchy info) get stored in the `buffer` field of a glTF file. A `buffer` is a long contiguous array of unsigned bytes (8 bit), which must be converted into relevant data types for the model data they represent.  Vertex positions, normals, UV's, skin weights are all floating point data. Vertex indices and skin joint indices can short integers  (2 byte) or stanadard 4 byte integers (sometimes unsigned bytes for joints, if few bones exist/depending on exporter). The buffer byte array is retrieved via `tinygltf::TinyGLTF::Model::buffers`, and is cast into all data types required for the model (float, unsigned short integer, unsigned integer, unsigned byte):
+Reading of the glTF file from disk is done through the use of `tinygltf` functions. When a glTF file is specified in binary blob format (.glb), then `tinygltf::TinyGLTF::LoadBinaryFromFile` is called. Otherwise, use `tinygltf::TinyGLTF::LoadASCIIFromFile` for a plain .gltf extension.
+All mesh and animation data (excluding static transforms and hierarchy info) get stored in the `buffer` field of a glTF file. A `buffer` is a long contiguous array of unsigned bytes (8 bits), which must be converted into relevant data types for the model data they represent. Vertex positions, normals, UV's, and skin weights are all floating point data. Vertex indices and skin joint indices can be short integers (2 byte) or standard 4 byte integers (sometimes unsigned bytes for joints if few bones exist, depending on the exporter). The buffer byte array is retrieved via `tinygltf::TinyGLTF::Model::buffers` and is cast into all data types required for the model (float, unsigned short integer, unsigned integer, unsigned byte):
 ```cpp
 
 //cast buffer byte array into array of floats (for vertex positions and such)
@@ -269,7 +267,7 @@ All mesh and animation data (excluding static transforms and hierarchy info) get
 	uchar_array = (unsigned char*)model.buffers.front().data.data();
 
 ```
-Data for each mesh is stored in `MeshDataStruct` object. A loop iterates of each `tinygltf::Mesh` object, and populates the data fields for each `MeshDataStruct`. Checks are first made to ensure the `tingltf::Mesh` object is not a bone or armature. Vertices, UV's, normals, indices, textures, materials, animations, static transforms and skinning data (joints/weights) is carried out for each mesh:
+Data for each mesh is stored in the `MeshDataStruct` object. A loop iterates over each `tinygltf::Mesh` object and populates the data fields for each `MeshDataStruct`. Checks are first made to ensure the `tingltf::Mesh` object is not a bone or armature. Vertices, UV's, normals, indices, textures, materials, animations, static transforms, and skinning data (joints/weights) are carried out for each mesh:
 ```cpp
 //loop over all tinygltf::Mesh objects
 	for(int m{}; m<model.meshes.size(); m++){
@@ -372,9 +370,9 @@ Data for each mesh is stored in `MeshDataStruct` object. A loop iterates of each
 Each `MeshDataStruct` gets allocated on the heap. After its fields are filled with data, a pointer to each object gets stored in the `ModelLoader::mesh_data_struct_array` array.
 
 
-Creation and storage of animated `EmptyNode` objects (nodes which may hold animation and transform data) is carried out by iterating over the `tinygltf::Model::nodes` array. Checks are made to ensure this node is neither a mesh, nor a bone. Animations are loaded and stored in the `EmptyNode::animation_data` field, by calling [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). Other data such as node static transforms are retrieved and stored by calling [ModelLoader::getTranslation](ModelLoader.md#ModelLoader%3A%3AgetTranslation), [ModelLoader::getRotation](ModelLoader.md#ModelLoader%3A%3AgetRotation), [ModelLoader::getScale](ModelLoader.md#ModelLoader%3A%3AgetScale), and [ModelLoader::getTransformMatrix](ModelLoader.md#ModelLoader%3A%3AgetTransformMatrix). Once all the data is filled in for each `EmptyNode` object, it gets added to the `ModelLoader::empties_array` array, which stores a pointer to the dynamically allocated `EmptyNode`. To avoid memory leaks, all `EmptyNode` are free'd in the `ModelLoader::~ModelLoader` destructor.
+Creation and storage of animated `EmptyNode` objects (nodes that may hold animation and transform data) is carried out by iterating over the `tinygltf::Model::nodes` array. Checks are made to ensure this node is neither a mesh, nor a bone. Animations are loaded and stored in the `EmptyNode::animation_data` field by calling [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). Other data, such as node static transforms, are retrieved and stored by calling [ModelLoader::getTranslation](ModelLoader.md#ModelLoader%3A%3AgetTranslation), [ModelLoader::getRotation](ModelLoader.md#ModelLoader%3A%3AgetRotation), [ModelLoader::getScale](ModelLoader.md#ModelLoader%3A%3AgetScale), and [ModelLoader::getTransformMatrix](ModelLoader.md#ModelLoader%3A%3AgetTransformMatrix). Once all the data is filled in for each `EmptyNode` object, it gets added to the `ModelLoader::empties_array` array, which stores a pointer to the dynamically allocated `EmptyNode`. To avoid memory leaks, all `EmptyNode` are free'd in the `ModelLoader::~ModelLoader` destructor.
 ```cpp
-//create, fill and store each EmptyNode objects
+//create, fill, and store each EmptyNode objects
 	for(int n{}; n<model.nodes.size(); n++){
 	  //dynamically allocate EmptyNode object
 		EmptyNode* empty = new EmptyNode;
@@ -449,11 +447,11 @@ The maximum timeline is calculated and updated for each `EmptyNode` object by ca
 	for(EmptyNode* empty : empties_array)
 		empty->animation_data.time_array = max_node_timeline;
 ```
-Certain animation transforms may be shorter than others, depending on how the model is animated (e.g. translation durations could be shorter than rotation duration). All animation transform arrays must not be empty (greater than 0), and also of equal size for valid playback, hence [ModelLoader - ModelLoader::equalizeAndMatchNodeAnimations](ModelLoader.md#ModelLoader%3A%3AequalizeAndMatchNodeAnimations) is called next.
+Certain animation transforms may be shorter than others, depending on how the model is animated (e.g., translation durations could be shorter than rotation duration). All animation transform arrays must not be empty (greater than 0) and also of equal size for valid playback; hence [ModelLoader - ModelLoader::equalizeAndMatchNodeAnimations](ModelLoader.md#ModelLoader%3A%3AequalizeAndMatchNodeAnimations) is called next.
 
 All skinning animations are called using [ModelLoader::getSkinnedAnimation](ModelLoader.md#ModelLoader%3A%3AgetSkinnedAnimation)
 
-Since meshes can be parented to animated `EmptyNode`, it's important to establish an array which defines the linkage between them. Also, since certain `EmptyNode` objects may also be parented to other nodes, we must also take note of this as well:
+Since meshes can be parented to animated `EmptyNode`, it's important to establish an array that defines the linkage between them. Also, since certain `EmptyNode` objects may also be parented to other nodes, we must also take note of this as well:
 ```cpp
 
     //loop over all EmptyNode objects
@@ -485,9 +483,9 @@ Since meshes can be parented to animated `EmptyNode`, it's important to establis
 		root_and_child_array.emplace_back(pair);
 	}
 ```
-This hierarchy is stored in `ModelLoader::root_and_child_array`, where each entry is a `std::pair<EmptyNode*, EmptyNode*>` object. The first entry in each pair is the root `EmptyNode` (pointer), whilst the second is the child.
+This hierarchy is stored in `ModelLoader::root_and_child_array`, where each entry is a `std::pair<EmptyNode*, EmptyNode*>` object. The first entry in each pair is the root `EmptyNode` (pointer), while the second is the child.
 
-Since the code above doesn't not take into account `EmptyNode` objects which have no parent (i.e. start of the hierarchy tree), a special case must also be made for them. This time, a very simple check is made to see if the given node has a parent using [ModelLoader::getParentNodeIndex](ModelLoader.md#ModelLoader%3A%3AgetParentNodeIndex), and if not (-1), then it gets added to the `ModelLoader::root_array` array:
+Since the code above doesn't take into account `EmptyNode` objects that have no parent (i.e., the start of the hierarchy tree), a special case must also be made for them. This time, a very simple check is made to see if the given node has a parent using [ModelLoader::getParentNodeIndex](ModelLoader.md#ModelLoader%3A%3AgetParentNodeIndex), and if not (-1), then it gets added to the `ModelLoader::root_array` array:
 ```cpp
     //loop over all EmptyNode objects
 	for(EmptyNode* empty : empties_array){
@@ -503,10 +501,10 @@ Since the code above doesn't not take into account `EmptyNode` objects which hav
 
 
 ### ModelLoader::~ModelLoader (destructor)
-Free'ing of all dynamically allocated memory for models, meshes, textures happens here.
+Free'ing of all dynamically allocated memory for models, meshes, and textures happens here.
 All GL textures must be free'd using `glDeleteTextures`:
 ```cpp
-	//delete all GL texture's once finished
+	//delete all GL textures once finished
 	for(MeshDataStruct* mesh_data : mesh_data_struct_array){
 		for(const auto& tex_data : mesh_data->texture_map){
 			glDeleteTextures(1, &tex_data.second.tex_id);
@@ -517,7 +515,7 @@ All dynamically allocated `MeshDataStruct` and `EmptyNode` objects are also free
 
 
 ### ModelLoader::getVertexPositions
-Extracts all vertex position data from the cast `float_array` buffer. The `x`, `y` and `z` coordinates of each vertex must be located inside `float_array`. All the required vertex position storage locations and byte offsets for each mesh are sotred in the `accessor` field in a glTF file, which translates to `tinygltf::Accessor` in `tinygltf`. But to get the vertex position `accessor` for each mesh, we must first fetch the `tinygltf::Primitive`, and get the index of the `POSITION` string:
+Extracts all vertex position data from the cast `float_array` buffer. The `x`, `y` and `z` coordinates of each vertex must be located inside `float_array`. All the required vertex position storage locations and byte offsets for each mesh are stored in the `accessor` field in a glTF file, which translates to `tinygltf::Accessor` in `tinygltf`. But to get the vertex position `accessor` for each mesh, we must first fetch the `tinygltf::Primitive` and get the index of the `POSITION` string:
 ```cpp
 //get primitive
 	tinygltf::Primitive primitive = mesh.primitives.front();
@@ -533,7 +531,7 @@ The offset of the vertex position block in the `float_array` can be accessed via
 ```cpp
 	int offset = byteOffset/sizeof(float);
 ```
-Finally we can access each vertex position by looping over the total vertex count:
+Finally, we can access each vertex position by looping over the total vertex count:
 ```cpp
 	//get vertex positions
 	for(std::size_t i{}; i<vertex_count; i++){
@@ -543,7 +541,7 @@ Finally we can access each vertex position by looping over the total vertex coun
 	}
 ```
 ### ModelLoader::getVertexNormals
-Extracts all vertex normal data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the only difference is `NORMAL` string is passed to the `tinygltf::primitive::attributes` array:
+Extracts all vertex normal data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the only difference is that the `NORMAL` string is passed to the `tinygltf::primitive::attributes` array:
 ```cpp
   //get primitive
 	tinygltf::Primitive primitive = mesh.primitives.front();
@@ -568,7 +566,7 @@ Also, since UV's are only a 2 component vector, we do not need the extra `z` com
 	}
 ```
 ### ModelLoader::getIndices
-Extracts all vertex index data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the index used to fetch the `tinygltf::Accessor` is simpler, since it's already stored inside `tinygltf::primitive::indices`. Also, calculating the `offset` may require dividing `byteOffset` by either the `sizeof(unsigned short)` or `sizeof(unsigned int)`. This is automatically handled by the `getSizeOfComponentType` function:
+Extracts all vertex index data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the index used to fetch the `tinygltf::Accessor` is simpler since it's already stored inside `tinygltf::primitive::indices`. Also, calculating the `offset` may require dividing `byteOffset` by either the `sizeof(unsigned short)` or `sizeof(unsigned int)`. This is automatically handled by the `getSizeOfComponentType` function:
 ```cpp
 	int offset = byteOffset/getSizeOfComponentType(vert_index_accessor.componentType);	
 ```
@@ -584,7 +582,7 @@ Fetching the raw index data is then straightforward, since we directly read valu
 			indices_array.emplace_back( uint_array[i + offset] );
 	}
 ```
-Note that checks are made to ensure the correct data type and arrays are being used for indices (either unsigned short or int).
+Note that checks are made to ensure the correct data type, and arrays are being used for indices (either unsigned short or int).
 
 ### ModelLoader::getSkinWeights
 Extracts all skin weight data. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions).
@@ -597,7 +595,7 @@ However, `WEIGHTS_0` string is passed to the `tinygltf::TinyGLTF::primitive::att
 	int weights_idx = primitive.attributes["WEIGHTS_0"];
 
 ```
-Since skin weights is a 4 component vector, we must also fetch the additional `w` component:
+Since skin weights is a 4-component vector, we must also fetch the additional `w` component:
 ```cpp
 	for(std::size_t i{}; i<weights_accessor.count; i++){
 		float x = float_array[(i*4) + 0 + offset];
@@ -618,7 +616,7 @@ However, `JOINTS_0` string is passed to the `tinygltf::primitive::attributes` ar
 	//get joints accessor
 	int joints_idx = primitive.attributes["JOINTS_0"];
 ```
-Similar to skin weights, joint indices are also a 4 component vector. However, data type checks are carried out to ensure data from the correct arrays is retrieved (either unsigned byte or unsigned short):
+Similar to skin weights, joint indices are also a 4-component vector. However, data type checks are carried out to ensure data from the correct arrays is retrieved (either unsigned byte or unsigned short):
 ```cpp
 
 	for(std::size_t i{}; i<joints_accessor.count; i++){
@@ -643,7 +641,7 @@ Similar to skin weights, joint indices are also a 4 component vector. However, d
 ```
 
 ### ModelLoader::getInverseBindMatrices
-Extracts all inverse bind matrix data used in skinning. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the index used to fetch the `tinygltf::Accessor` is simpler, since it's already stored inside `tinygltf::Skin::inverseBindMatrices`. The biggest difference here is that there are 16 floating point elements to be extracted per bind matrix, since each matrix is of dimensions 4x4.
+Extracts all inverse bind matrix data used in skinning. The process is exactly the same as what is mentioned in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). However, the index used to fetch the `tinygltf::Accessor` is simpler since it's already stored inside `tinygltf::Skin::inverseBindMatrices`. The biggest difference here is that there are 16 floating point elements to be extracted per bind matrix, since each matrix is of dimensions 4x4.
 ```cpp
 	for(int i{}; i<bone_count; i++){
 		float x0_ = float_array[(i*16) + 0 + offset];
@@ -690,7 +688,7 @@ Extracts all inverse bind matrix data used in skinning. The process is exactly t
 ```
 
 ### ModelLoader::getTextureMap
-Fetches all texture data for albedo, normal and specular maps. Raw image pixel data and other data for each image is stored inside the `tingltf::Image` struct. To access this struct, we need to find the texture index used inside `tinygltf::Texture`, and use its `tinygltf::Texture::source` variable as the index in the `tinygltf::Model::images` array. The `tinygltf::Texture` object can be retrieved by using a diffuse, normal or metalness index stored inside `tinygltf::Material`, and using that as a key in the `tinygltf::Model::textures`. For the diffuse texture:
+Fetches all texture data for albedo, normal, and specular maps. Raw image pixel data and other data for each image is stored inside the `tingltf::Image` struct. To access this struct, we need to find the texture index used inside `tinygltf::Texture` and use its `tinygltf::Texture::source` variable as the index in the `tinygltf::Model::images` array. The `tinygltf::Texture` object can be retrieved by using a diffuse, normal, or metalness index stored inside `tinygltf::Material`, and using that as a key in the `tinygltf::Model::textures`. For the diffuse texture:
 
 ```cpp
     tinygltf::Material mat = model.materials[mat_idx];
@@ -734,24 +732,24 @@ Now we can generate OpenGL texture objects, which are used in the shader.
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 ```
-Same process is carried out to generate normal and metal textures. However, normal texture color format is specified as `GL_SRGB_ALPHA` and not `GL_RGBA`:
+The same process is carried out to generate normal and metal textures. However, normal texture color format is specified as `GL_SRGB_ALPHA` and not `GL_RGBA`:
 ```cpp
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, normal_image.width, normal_image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, normal_image.image.data());
 		
 ```
 
 ### ModelLoader::getMaterial
-The `tinygltf::Material` stores all material related data some certain texture index info. This include PBR data as well, such as base color, metalness, roughness and emissiveness.
+The `tinygltf::Material` stores all material-related data, including texture index info. This includes PBR data as well, such as base color, metalness, roughness, and emissiveness.
 
 ### ModelLoader::fillInAnimationGaps
-Sometimes, depending on how a model is being animated, there can be gaps between keyframes in an animation. This occurs when transform data (position, rotation and scale) are animated at discrete points in an animation timeline, causing undefined/non-existent data gaps when parsing the glTF file. To work around this, we must figure out what data must be present at these missing keyframes, and fill in all data gaps for translation, rotation and scale animation arrays. The missing data will always be the same as the last known data in the last animated keyframe (which is already known after parsing). The first step is to figure out how many missing keyframes there are, and at what indexed locations they occur in an animated timeline. This can easily be done by calculating the delta time between each two frames (future and present frames), and checking if they exceed the fixed time step of 0.03333 seconds (at 30 frames per second = 1/30). The number of missing frames can be calculated by dividing this delta time by the fixed time step. Taking the animated translations as an example:
+Sometimes, depending on how a model is being animated, there can be gaps between keyframes in an animation. This occurs when transform data (position, rotation, and scale) are animated at discrete points in an animation timeline, causing undefined or non-existent data gaps when parsing the glTF file. To work around this, we must figure out what data must be present at these missing keyframes and fill in all data gaps for translation, rotation, and scale animation arrays. The missing data will always be the same as the last known data in the last animated keyframe (which is already known after parsing). The first step is to figure out how many missing keyframes there are and at what indexed locations they occur in an animated timeline. This can easily be done by calculating the delta time between each two frames (future and present frames) and checking if they exceed the fixed time step of 0.03333 seconds (at 30 frames per second = 1/30). The number of missing frames can be calculated by dividing this delta time by the fixed time step. Taking the animated translations as an example:
 ```cpp
 		std::map<int, int> gap_idx_trans_array;
 		
 		int summed_gap_size {};
 		//iterate over translation animation data array (which assuming has gaps)
 		for(int y{}; y<animation_data.translation_anim_array.size() - 1; y++){
-		//calculate the delta time between the future frame y + 1) and present frame (y)
+		//calculate the delta time between the future frame (y + 1) and present frame (y)
 			float curr_delta = animation_data.trans_time_array[y+1]-animation_data.trans_time_array[y];
 
       //calculate gap size (number of missing elements) by dividing by DELTA_TIME_STEP (= 0.03333)
@@ -764,7 +762,7 @@ Now we can fill in the missing data:
 
 		for(const auto& itr : gap_array){
 			for(int i{}; i<itr.second; i++){
-			//missing data will be equivalent to the last know animated data keyframe
+			//missing data will be equivalent to the last known animated data keyframe
 				glm::vec3 last_pos = animation_data.translation_anim_array[itr.first];
 				
 				//fill gaps in array using .insert()
@@ -775,10 +773,10 @@ Now we can fill in the missing data:
 The same process applies to filling in data gaps for rotation and scale animation arrays.
 
 ### ModelLoader::equalizeAndMatchNodeAnimations
-This function scales up all `EmptyNode` animation channels (position, rotation, scale) to match the maximum timeline array size. It also fills all empty (size 0) channels with static data (required for animation system to function).
+This function scales up all `EmptyNode` animation channels (position, rotation, scale) to match the maximum timeline array size. It also fills all empty (size 0) channels with static data (required for the animation system to function).
 
 ### ModelLoader::getTimelineArray
-Pulls raw keyframe time data for a given `tinygltf::AnimationSampler`. Works very similarly to what is described for [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). I.e. the `tinygltf::Accessor` for the given sampler is retrieved from the `tonygltf::Model::accessors` array, based on the sampler input index `tinygltf::AnimationSampler::input`. Then `byteOffset` and `offset` can be found easily:
+Pulls raw keyframe time data for a given `tinygltf::AnimationSampler`. Works very similarly to what is described for [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). I.e., the `tinygltf::Accessor` for the given sampler is retrieved from the `tonygltf::Model::accessors` array, based on the sampler input index `tinygltf::AnimationSampler::input`. Then `byteOffset` and `offset` can be found easily:
 ```cpp
     //get time data accessor
 		tinygltf::Accessor time_accessor = model.accessors[input_idx];
@@ -789,7 +787,7 @@ Pulls raw keyframe time data for a given `tinygltf::AnimationSampler`. Works ver
 		int offset = byteOffset/sizeof(float);
 
 ```
-Raw time data is fetched from the `float_array` using the `offset` variable as the index. However, the current time must be subtracted from the starting time, to ensure the real time data (with no starting offsets) is used:
+Raw time data is fetched from the `float_array` using the `offset` variable as the index. However, the current time must be subtracted from the starting time to ensure the real time data (with no starting offsets) is used.
 ```cpp
      //loop over keyframes and get time data
 		for(int t{}; t<frame_count; t++){
@@ -799,7 +797,7 @@ Raw time data is fetched from the `float_array` using the `offset` variable as t
 ```
 
 ### ModelLoader::getMaxNodeTimeline
-Creates the largest complete timeline for use with `EmptyNode` animations. First, the maximum duration for all `EmptyNode` animations (for translation, scale and rotation) is stored in an array, and the timeline with the largest value is selected. Since this timeline may contain data gaps, the same method described in [ModelLoader - ModelLoader::fillInAnimationGaps](ModelLoader.md#ModelLoader%3A%3AfillInAnimationGaps) is applied to fill in any missing floating point time data:
+Creates the largest complete timeline for use with `EmptyNode` animations. First, the maximum duration for all `EmptyNode` animations (for translation, scale, and rotation) is stored in an array, and the timeline with the largest value is selected. Since this timeline may contain data gaps, the same method described in [ModelLoader - ModelLoader::fillInAnimationGaps](ModelLoader.md#ModelLoader%3A%3AfillInAnimationGaps) is applied to fill in any missing floating point time data:
 ```cpp
 		int summed_gap_size {};
 		for(int y{}; y<max_timeline.size() - 1; y++){
@@ -825,10 +823,10 @@ Creates the largest complete timeline for use with `EmptyNode` animations. First
 		}
 
 ```
-Once complete, there will be a contiguous maximum timeline which is retured for use in `EmptyNode` animation playback.
+Once complete, there will be a contiguous maximum timeline that is returned for use in `EmptyNode` animation playback.
 
 ### ModelLoader::getNodeAnimationData
-Models can typically be parented to blank nodes (`EmptyNode`), which have animations. Extracting all of translation, rotation and scale animation data (as well as thier timelines) is carried out in this function. Firstly, the `tinygltf::Animation` object is retrieved for the given node, based on its index. In order to fetch the raw animation data for all animated keyframes, we need to use the `output` variable (stored in `tinygltf::AnimationSampler`) as an index to retrieve the corresponding `tinygltf::Accessor` accessor for this node. The accessor will give us essential `byteOffset` and frame count data required to fetch the animation data from the `buffer` data block, similar to what is explained in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions).
+Models can typically be parented to blank nodes (`EmptyNode`), which have animations. Extracting all of translation, rotation, and scale animation data (as well as their timelines) is carried out in this function. Firstly, the `tinygltf::Animation` object is retrieved for the given node, based on its index. In order to fetch the raw animation data for all animated keyframes, we need to use the `output` variable (stored in `tinygltf::AnimationSampler`) as an index to retrieve the corresponding `tinygltf::Accessor` accessor for this node. The accessor will give us essential `byteOffset` and frame count data required to fetch the animation data from the `buffer` data block, similar to what is explained in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions).
 
 ```cpp
 
@@ -850,7 +848,7 @@ Models can typically be parented to blank nodes (`EmptyNode`), which have animat
 	}
 
 ```
-Once we have `byteOffset` and `offset` integers, we can loop over the total frame count and fetch the raw translation, rotation and scale data. These are read from the cast `float_array`, in exactly the same way described in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). Taking animated translation as an example, we have:
+Once we have `byteOffset` and `offset` integers, we can loop over the total frame count and fetch the raw translation, rotation, and scale data. These are read from the cast `float_array`, in exactly the same way described in [`ModelLoader::getVertexPositions`](ModelLoader.md#ModelLoader%3A%3AgetVertexPositions). Taking animated translation as an example, we have:
 ```cpp
 
     //fetch animated translations
@@ -888,30 +886,30 @@ The same method applies for fetching rotation data. However, since quaternions a
 Animated scale data is also pulled in the same way described for translations.
 
 ### ModelLoader::getMeshAnimationData
-Fetches any animations for a given `tinygltf::Mesh` object. The process is similar to what has been described in  [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). If no animations exist for the given mesh, then the fucntion exits.
+Fetches any animations for a given `tinygltf::Mesh` object. The process is similar to what has been described in  [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). If no animations exist for the given mesh, then the function exits.
 
 
 ### ModelLoader::getTranslation
-Gets the static translation for a given node, by querying the `tinygltf::Node::translation` variable (if specified for this node).
+Gets the static translation for a given node by querying the `tinygltf::Node::translation` variable (if specified for this node).
 ```cpp
 	if(!node.translation.empty())
 		glm::vec3 translation = glm::vec3(node.translation[0], node.translation[1], node.translation[2]);
 ```
 ### ModelLoader::getRotation
-Gets the static rotation for a given node, by querying the `tinygltf::Node::rotation` variable (if specified for this node).
+Gets the static rotation for a given node by querying the `tinygltf::Node::rotation` variable (if specified for this node).
 ```cpp
 	if(!node.rotation.empty())
 		glm::quat rotation = glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]);
 ```
 ### ModelLoader::getScale
-Gets the static scale for a given node, by querying the `tinygltf::Node::scale` variable (if specified for this node).
+Gets the static scale for a given node by querying the `tinygltf::Node::scale` variable (if specified for this node).
 ```cpp
 	if(!node.scale.empty())
 		glm::vec3 scale = glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
 ```
 
 ### ModelLoader::getTransformMatrix
-Gets the static transform matrix for a given node, by querying the `tinygltf::Node::matrix` variable (if specified for this node).
+Gets the static transform matrix for a given node by querying the `tinygltf::Node::matrix` variable (if specified for this node).
 ```cpp
 	if(!node.matrix.empty()){
 		glm::mat4 matrix = glm::mat4(
@@ -934,11 +932,11 @@ This function handles fetching animated transform data for each bone in a skinne
 	
 	std::vector<int> skin_node_indices = skin.joints;
 ```
-It's important to note that a skinned mesh may have multiple discrete/separate animation cycles (or channels). For example, a character mesh could have run animation cycle, walk cycle, jump cycle, idle cycle, crouch cycle, etc. These cycles all have unique names, and their `tinygltf::Animation` objects retrieved and stored in a map:
+It's important to note that a skinned mesh may have multiple discrete/separate animation cycles (or channels). For example, a character mesh could have run animation cycle, walk cycle, jump cycle, idle cycle, crouch cycle, etc. These cycles all have unique names, and their `tinygltf::Animation` objects are retrieved and stored in a map:
 
 
 ```cpp
-    //stores tinygltf::Animation object for each animtion cycle, with the key being its name (std::string)
+    //stores tinygltf::Animation object for each animation cycle, with the key being its name (std::string)
 	std::map<std::string, tinygltf::Animation> animation_gltf_map;
 	
 	//find animation channels/cycles for this skin
@@ -951,7 +949,7 @@ It's important to note that a skinned mesh may have multiple discrete/separate a
 	}
 
 ```
-We can now iterate over each cycle and start working on pulling its raw transform and time data. Getting time data is the same as what is described in [ModelLoader::getTimelineArray](ModelLoader.md#ModelLoader%3A%3AgetTimelineArray). Fetching the animated translation, rotation and scale data per bone is also excatly the same as decribed [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). The only new code block is one which checks if a bone has a root bone (required for calculating final transform matrix pose of the child bone):
+We can now iterate over each cycle and start working on pulling its raw transform and time data. Getting time data is the same as what is described in [ModelLoader::getTimelineArray](ModelLoader.md#ModelLoader%3A%3AgetTimelineArray). Fetching the animated translation, rotation, and scale data per bone is also exactly the same as described [ModelLoader::getNodeAnimationData](ModelLoader.md#ModelLoader%3A%3AgetNodeAnimationData). The only new code block is one that checks if a bone has a root bone (required for calculating the final transform matrix pose of the child bone):
 ```cpp
   
   //iterate over each animation cycle/channel
@@ -1013,7 +1011,7 @@ Since data gaps might exist, these must be filled in for smooth and valid playba
 			fillInAnimationGaps(animation_data);
 		}
 ```
-Due to a combination of how a model is animated and certain glTF exporters, some animation timelines may contain animation data for more than one playback rate (e.g. 24 FPS and 30 FPS). Only one playback speed is needed, while the rest can be discarded. To figure out which extra frames must be discarded/erased from the timelines, we can simply divide each keyframe time data by a fixed delta time value `TIME_STEP` (which assumes we will use 1/`TIME_STEP` as the desired FPS playback rate), and if the absolute value of the remainer is larger than 0, then it must be an unneeded frame. Taking translation animations as an example:
+Due to a combination of how a model is animated and certain glTF exporters, some animation timelines may contain animation data for more than one playback rate (e.g., 24 FPS and 30 FPS). Only one playback speed is needed, while the rest can be discarded. To figure out which extra frames must be discarded/erased from the timelines, we can simply divide each keyframe time data by a fixed delta time value `TIME_STEP` (which assumes we will use 1/`TIME_STEP` as the desired FPS playback rate), and if the absolute value of the remainer is larger than 0, then it must be an unneeded frame. Taking translation animations as an example:
 ```cpp
     //loop over each bone
 		for(auto& v : bone_anim_map){
@@ -1041,7 +1039,7 @@ Due to a combination of how a model is animated and certain glTF exporters, some
 		}
 			
 ```
-The same method is applied to clean up rotation and scale arrays from extra data which will not be used.
+The same method is applied to clean up rotation and scale arrays from extra data, which will not be used.
 Static transform data (translation/rotation/scale) for each bone is retrieved for each bone in the same way mentioned in [ModelLoader::getTranslation](ModelLoader.md#ModelLoader%3A%3AgetTranslation), [ModelLoader::getRotation](ModelLoader.md#ModelLoader%3A%3AgetRotation), [ModelLoader::getScale](ModelLoader.md#ModelLoader%3A%3AgetScale).
 Since the animation system requires all arrays to be non-empty, all empty arrays (size 0) or arrays with size 1 are filled with static values to ensure animation validity. Taking translation as an example:
 ```cpp
@@ -1065,7 +1063,7 @@ Since the animation system requires all arrays to be non-empty, all empty arrays
 		}
 
 ```
-Since all animation arrays must be the same size for the animation system to function (otherwise desync issues occur), all of translation, rotation and scale arrays are scaled up to match the maximum size of the largest time array. Taking translation animation arrays as an example:
+Since all animation arrays must be the same size for the animation system to function (otherwise desync issues occur), all translation, rotation, and scale arrays are scaled up to match the maximum size of the largest time array. Taking translation animation arrays as an example:
 
 ```cpp
     //loop over each bone
@@ -1088,52 +1086,17 @@ Since all animation arrays must be the same size for the animation system to fun
 		}
 
 ```
-Finally, all animations get added to `ModelLoader::bone_animation_channel_map` map, with the key being the name of the animation channel/cycle for easy access.
+Finally, all animations get added to the `ModelLoader::bone_animation_channel_map` map, with the key being the name of the animation channel/cycle for easy access.
 
 ### ModelLoader::getParentNodeIndex
-Checks if a given `tinygltf::Node` has a parent. If so, returns the index of that parent node, which can directly be used to retrieve the node from `tinygltf::Model::nodes` array. If the index is -1, then the node has no parent.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Checks if a given `tinygltf::Node` has a parent. If so, it returns the index of that parent node, which can directly be used to retrieve the node from the `tinygltf::Model::nodes` array. If the index is -1, then the node has no parent.
 
 
 
 
 
 ## AnimationPlayer
-========================
+
 The `AnimationPlayer` is responsible for updating all animation of `EmptyNode` objects in realtime, as well as updating the transforms of any linked meshes. Since animating and updating the transforms of linked nodes and meshes must respect a strict inheritance hierarchy, the transforms are calculated starting from the root/base node, and follow the path to the final mesh.
 
 ### AnimationPlayer::AnimationPlayer (constructor)
@@ -1300,7 +1263,7 @@ Calculates the new scale for the current time value (`AnimationDataStruct::curre
 
 
 ## VAO
-========================
+
 The Vertex Array Object (VAO) holds VBO data required for rendering a mesh. A more detailed description can be found here https://ogldev.org/www/tutorial32/tutorial32.html
 
 ### VAO::VAO (constructor)
@@ -1314,11 +1277,8 @@ This function calls `glBindVertexArray(vao)`, which binds the VAO to be the curr
 
 ### VAO::unbind
 Unbinding the currently active VAO is important once rendering a given mesh is finished, since it avoid undesirably modifying the VAO. Unbinding is achieved by calling `glBindVertexArray(0)` and passing 0 as the argument.VBO
-#
+## VBO
 
-
-# VBO
-========================
 The Vertex Buffer Object (VBO) holds the raw vertex data (coordinates, UV's, etc). A more detailed description can be found here https://opentk.net/learn/chapter1/2-hello-triangle.html#vertex-array-object
 
 ### VBO::VBO (constructor)
@@ -1344,7 +1304,7 @@ This function calls `glBindBuffer(GL_ARRAY_BUFFER, vbo)`, which binds the VBO to
 ### VBO::unbind
 Unbinding the currently active VBO is important once rendering a given mesh is finished, since it avoid undesirably modifying the VBO. Unbinding is achieved by calling `glBindBuffer(GL_ARRAY_BUFFER, 0)` and passing 0 as the second argument.
 ## EBO
-========================
+
 The Element Buffer Object (EBO) holds shared indexed data used for rendering a triangle, without wasting extra index memory. Having an EBO allows for more optimized rendering, since it uses shared indices to render any adjacent triangles, without having to duplicate the indices (thereby saving on VRAM). A more detailed explanation can be found here: https://opentk.net/learn/chapter1/3-element-buffer-objects.html
 
 ### EBO::EBO (constructor)
@@ -1370,7 +1330,7 @@ This function calls `glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo)`, which binds th
 ### EBO::unbind
 Unbinding the currently active EBO is important once rendering a given mesh is finished, since it avoid undesirably modifying the EBO. Unbinding is achieved by calling `glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)` and passing 0 as the second argument.
 ## Mesh
-========================
+
 The `Mesh` class is responsible for rendering and interfacing with the 3D model. Given that some meshes may have skinning animations, it is also responsible for updating skin animations and passing skin weight and index data to the skinned shader. The two key functions of a Mesh class are its constructor, and `Mesh::update()` methods.
 
 ### Mesh::Mesh constructor
@@ -1679,10 +1639,8 @@ This completes the skinning aspect, and provides us with matrices which are read
 
 
 
-#
+## default_shader
 
-# default_shader
-========================
 The `default_shader.frag` and `default_shader.vert` are the respective fragment and vertex shaders used for rendering the model. This includes updating skinning and lighting.
 
 
@@ -1809,7 +1767,7 @@ Since the fragment shader needs the UV's, vertex coordinates, vertex normals, ta
 
 
 ## Utils
-========================
+
 The `Utils.h` file houses commonly used functions and structs.
 
 ### AnimationDataStruct
@@ -1835,8 +1793,6 @@ Creates a transform matrix using supplied values of translation, rotation and sc
 
 ### __GL_ERROR_THROW__
 Checks for any GL related errors using `glGetError()`, and throws a `std::logic_error` if any issues occur.
-
-
 
 
 # fps
