@@ -128,6 +128,29 @@ Code Structure Breakdown
 [Utils](https://github.com/war/asset-loading/tree/gltf-asset-loading#utils)
 
 
+## Acronyms & Abbreviations
+
+### Lerp
+Linear Interpolation. Blends between two input values, using a normalized weight.
+
+### Slerp
+Spherical Linear Interpolation. Blends between two input rotation values, using a normalized weight.
+
+### VAO
+Vertex Attribute Object.
+
+### VBO
+Vertex Buffer Object.
+
+### EBO
+Element Buffer Object.
+
+### TRS
+Translation, Rotation, and Scale. These three transforms are commonly converted into individual matrices and multiplied together to get a final matrix (TRS matrix), which defines the transform of a model.
+
+
+
+
 ## Main
 
 Loading of glTF meshes is done by creating an instance of the `ModelLoader` class inside the `main` function:
@@ -1761,6 +1784,7 @@ Creates a transform matrix using supplied values of translation, rotation, and s
 
 ### __GL_ERROR_THROW__
 Checks for any GL-related errors using `glGetError()`, and throws a `std::logic_error` if any issues occur.
+
 
 
 
