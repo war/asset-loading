@@ -190,7 +190,7 @@ Mesh::Mesh(Camera* cam, ModelLoader* model_loader, MeshDataStruct* _mesh_data, S
 	//set fallbacks for selecting which animation channels to play, in case more than 1 is found in the gltf file [and check for channel name validity]
 	std::map<std::string, std::vector<AnimationDataStruct>>& animation_channel_map = model->bone_animation_channel_map;
 	if( animation_channel_map.count(m_skinnedAnimationChannelName) == 0 || m_skinnedAnimationChannelName == "" ){//invalid channel name
-		PRINT_WARN("Animation channel with name `" + m_skinnedAnimationChannelName + "` does not exist. Defaulting to use `" + animation_channel_map.rbegin()->first + "`");
+//		PRINT_WARN("Animation channel with name `" + m_skinnedAnimationChannelName + "` does not exist. Defaulting to use `" + animation_channel_map.rbegin()->first + "`");
 		m_skinnedAnimationChannelName = animation_channel_map.rbegin()->first;
 	}
 	

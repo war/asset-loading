@@ -70,7 +70,15 @@ Code Structure Breakdown
 
 - [Mesh::setModelMatrix](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetmodelmatrix)
 
+- [Mesh::setTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetTranslation)
+
+- [Mesh::setRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetRotation)
+
+- [Mesh::setScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetScale)
+
 - [Mesh::enableBackFaceCulling](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshenableBackFaceCulling)
+
+- [Mesh::setRenderingMode](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetRenderingMode)
 
 - [Mesh::setSkinnedAnimationChannel](https://github.com/war/asset-loading/tree/gltf-asset-loading#meshsetSkinnedAnimationChannel)
 
@@ -86,6 +94,10 @@ Code Structure Breakdown
 - [AnimationPlayer::calculateCurrentRotation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentRotation)
 
 - [AnimationPlayer::calculateCurrentScale](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentScale)
+
+- [AnimationPlayer::setPlaybackSpeed](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayersetPlaybackSpeed)
+
+- [AnimationPlayer::resetAnimations](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayerresetAnimations)
 
 
 [VAO](https://github.com/war/asset-loading/tree/gltf-asset-loading#VAO)
@@ -199,6 +211,8 @@ A `DirectionalLight` object is also instanced for lighting the scene:
     //add directional light
     DirectionalLight* direct_light = new DirectionalLight;
 ```
+V-sync can also be turned on to cap the framerate to the monitor's refresh rate by calling `WindowManager::SetVSyncMode(true)`.
+
 All `Mesh` objects and `AnimationPlayer` must be updated in the game's while loop. This is done by calling the `update()` function for each class:
 
 ```cpp
@@ -245,6 +259,12 @@ Skinning and model/mesh animations can be reset by calling `AnimationPlayer::res
     if(windowManager.isRKeyPressed())
         animation_player.resetAnimations();
 
+```
+The last part of the while loop has a call that updates delta time `WindowManager::updateDeltaTime()`. The contents of this function (contained in the `WindowManager` class) simply calculate the difference between the new application time (`sdlCurrTime`) and old application time (`sdlLastTime`), and return the difference.
+```cpp
+	m_deltaTime = (float)(sdlCurrTime - sdlLastTime)/1000.f;
+	
+	sdlLastTime = sdlCurrTime;
 ```
 
 Finally, once the program is ready to terminate, all the `Mesh`, `ModelLoader`, and `DirectionalLight` instances that were allocated on the heap can be free'd (outside the while loop):
@@ -1269,7 +1289,11 @@ Another edge case that may occur is when the current rotation (`old_rot`) and fu
 ### AnimationPlayer::calculateCurrentScale
 Calculates the new scale for the current time value (`AnimationDataStruct::current_animation_time`). The same procedure described in [AnimationPlayer - AnimationPlayer::calculateCurrentTranslation](https://github.com/war/asset-loading/tree/gltf-asset-loading#animationplayercalculateCurrentTranslation) is applied.
 
+### AnimationPlayer::setPlaybackSpeed
+Changes the playback speed for all `Mesh`, `EmptyNode`, and skinning animations. Input value must be greater than 0.
 
+### AnimationPlayer::resetAnimations
+Resets the animation cycle to the starting point for all `Mesh`, `EmptyNode`, and skinning animations. It does this by setting `AnimationDataStruct::current_animation_time` variable to 0.
 ## VAO
 
 The Vertex Array Object (VAO) holds VBO data required for rendering a mesh. A more detailed description can be found here: https://ogldev.org/www/tutorial32/tutorial32.html
@@ -1485,7 +1509,7 @@ Now we must setup pointers and define the strides and byte offsets of our vertex
 		glEnableVertexAttribArray(6);	
 
 ```
-Note that the skin joint index and skin weights are both 4-component vectors. While vertex position, normal, tangent, and bitangent are 3 components. And UV is only 2 components. Hence the length of a single vertex data block (or stride) in our setup is 22 (2 + 3 + 3 + 3 + 3 + 4 + 4). And since we are using floating point data, the total size will be 22*sizeof(float) = 22*4 = 88.
+Note that the skin joint index and skin weights are both 4-component vectors. While vertex position, normal, tangent, and bitangent are 3 components. And UV is only 2 components. Hence the length of a single vertex data block (or stride) in our setup is 22 (2 + 3 + 3 + 3 + 3 + 4 + 4). And since we are using floating point data, the total size will be `22*sizeof(float)` = `22*4` = 88.
 Once we have finished setting up pointers, we must unbind VAO, VBO, and EBO to avoid modifying them and corrupting the data.
 
 ```cpp
@@ -1632,12 +1656,23 @@ To get the final transform matrix, which will be sent and directly used in the s
 ```
 This completes the skinning part, and provides us with matrices that are ready to be used in the [default_shader](https://github.com/war/asset-loading/tree/gltf-asset-loading#default_shader).
 
-
 ### Mesh::setModelMatrix
 Used to directly set the model matrix of the mesh (with all of position, rotation, and scale transforms applied).
 
+### Mesh::setTranslation
+Used to directly set the position of the mesh.
+
+### Mesh::setRotation
+Used to directly set the rotation of the mesh.
+
+### Mesh::setScale
+Used to directly set the scale of the mesh.
+
 ### Mesh::enableBackFaceCulling
 Enable/disable backface culling.
+
+### Mesh::setRenderingMode
+Changes the rendering mode used in `glDrawElements`. The argument is a `GLenum`, which can be set to `GL_LINES` for line rendering or `GL_POINTS` for point cloud rendering. The default mode is a solid triangle fill `GL_TRIANGLES`.
 
 ### Mesh::setSkinnedAnimationChannel
 Set name of animation channel for playback on skinned mesh (in case multiple channels exist).
@@ -1779,14 +1814,34 @@ Stores all vertex, texture, material, and animation data for a given mesh. Conta
 ### EmptyNode
 Stores animation, transform, and hierarchy data for blank animated nodes. All animation data is used directly in `AnimationPlayer::update()`.
 
+#### EmptyNode::setModelMatrix
+Used to directly set the model matrix of the `EmptyNode` (with all of position, rotation, and scale transforms applied).
+
+#### EmptyNode::setTranslation
+Used to directly set the position of the `EmptyNode`.
+
+#### EmptyNode::setRotation
+Used to directly set the rotation of the `EmptyNode`.
+
+#### EmptyNode::setScale
+Used to directly set the scale of the `EmptyNode`.
+
 ### DirectionalLight
 Stores light strength, specular intensity, direction, and color for directional light.
 
 ### createTRSmatrix
 Creates a transform matrix using supplied values of translation, rotation, and scale.
 
+### PRINT_WARN
+Prints a string passed in as the argument, preceeded by an orange `WARNING` label.
+
+### PRINT_COLOR
+`PRINT_COLOR(std::string, int red, int green, int blue).`
+Prints a string passed in as the argument using a custom color. The color is set by passing in red, green, and blue values, which must be in the range 0-255. 
+
 ### __GL_ERROR_THROW__
 Checks for any GL-related errors using `glGetError()`, and throws a `std::logic_error` if any issues occur.
+
 
 
 

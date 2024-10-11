@@ -16,6 +16,8 @@
 
 #include <glad/glad.h>
 
+inline constexpr float TIME_STEP = 0.0333333333333333333f;
+
 enum TextureType{
 	DIFFUSE = 0,
 	NORMAL = 1,

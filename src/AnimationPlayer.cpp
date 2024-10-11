@@ -35,6 +35,7 @@ void AnimationPlayer::update(){
 	for(Mesh* m  : *mesh_array)
 		mesh_index_map.emplace(m->mesh_data->node_index, m);
 	
+	
 	////////////////////////////////////////
 	//EDGE CASE -- update animated ROOT nodes
 	////////////////////////////////////////
@@ -60,9 +61,11 @@ void AnimationPlayer::update(){
 		root_empty->modelMatrix = createTRSmatrix(root_empty->translation, root_empty->rotation, root_empty->scale) * anim_matrix * root_empty->matrix_transform;//if this node is animated, its final matrix will be = root matrix * animted TRS matrix
 	}
 	
+	/*
 	//////////////////////////////////////////////
 	//update all model animations [nodes-subnodes]
 	//////////////////////////////////////////////
+	*/
 	for(const auto& pair_itr : model_loader->getRootAndChildArray()){
 		EmptyNode* empty_root = pair_itr.first;
 		EmptyNode* empty_child = pair_itr.second;

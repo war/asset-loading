@@ -14,7 +14,6 @@
 #include "Utils.h"
 
 //inline constexpr float TIME_STEP = 0.041666666666f;
-inline constexpr float TIME_STEP = 0.0333333333333333333f;
 
 
 class ModelLoader {
