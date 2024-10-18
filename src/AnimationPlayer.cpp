@@ -1,5 +1,7 @@
 #include "AnimationPlayer.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 #include <algorithm>
 
 AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_array, WindowManager* win_manager) : model_loader(_model), mesh_array(_mesh_array), window_manager(win_manager){
@@ -20,6 +22,17 @@ AnimationPlayer::AnimationPlayer(ModelLoader* _model, std::vector<Mesh*>* _mesh_
 		empties_map.emplace(e->name, e);
 	*/
 	
+	
+	/*
+	//matrix decomposition
+	glm::vec3 pos;
+	glm::quat rot;
+	glm::vec3 scale;
+	glm::vec3 skew;
+	glm::vec4 persp;
+	glm::decompose(root_empty->matrix_transform, scale, rot, pos, skew, persp);
+	*/
+
 }
 
 AnimationPlayer::~AnimationPlayer(){}
@@ -36,6 +49,18 @@ void AnimationPlayer::update(){
 		mesh_index_map.emplace(m->mesh_data->node_index, m);
 	
 	
+		std::map<std::string, EmptyNode*> empties_map;
+	//fill in empties map
+	for(EmptyNode* e : model_loader->getEmptiesArray())
+		empties_map.emplace(e->name, e);
+	
+	
+	
+	glm::vec3 root_pos;
+	glm::quat root_rot;
+	glm::vec3 root_scale;
+	glm::vec3 root_skew;
+	glm::vec4 root_persp;
 	////////////////////////////////////////
 	//EDGE CASE -- update animated ROOT nodes
 	////////////////////////////////////////
@@ -56,16 +81,21 @@ void AnimationPlayer::update(){
 		glm::vec3 anim_scale = calculateCurrentScale(animation_data);
 		
 		//animated TRS matrix [if animated]
-		glm::mat4 anim_matrix = createTRSmatrix(anim_position, anim_rotation, anim_scale);
+		if(animation_data.has_animation){
+			glm::mat4 anim_matrix = createTRSmatrix(anim_position, anim_rotation, anim_scale);
+			
+			root_empty->modelMatrix = createTRSmatrix(root_empty->translation, root_empty->rotation, root_empty->scale) * anim_matrix * root_empty->matrix_transform;//if this node is animated, its final matrix will be = root matrix * animted TRS matrix
+		}
+		else{//non-animated
+			root_empty->modelMatrix = createTRSmatrix(root_empty->translation, root_empty->rotation, root_empty->scale) * root_empty->matrix_transform;//if this node is animated, its final matrix will be = root matrix * animted TRS matrix
+		}
 		
-		root_empty->modelMatrix = createTRSmatrix(root_empty->translation, root_empty->rotation, root_empty->scale) * anim_matrix * root_empty->matrix_transform;//if this node is animated, its final matrix will be = root matrix * animted TRS matrix
 	}
 	
-	/*
+	
 	//////////////////////////////////////////////
 	//update all model animations [nodes-subnodes]
 	//////////////////////////////////////////////
-	*/
 	for(const auto& pair_itr : model_loader->getRootAndChildArray()){
 		EmptyNode* empty_root = pair_itr.first;
 		EmptyNode* empty_child = pair_itr.second;
@@ -109,6 +139,8 @@ void AnimationPlayer::update(){
 			}
 		}
 	}
+	/*
+	*/
 	
 }
 

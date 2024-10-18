@@ -130,17 +130,17 @@ int main(int argc, char* argv[]) {
 					glDisable(GL_BLEND);
 				}
 			
-				/*
 					//set model to follow camera
 					for(EmptyNode* empty : model->getRootNodesArray())
 						//set pos
-	//					empty->setTranslation( camera.GetPosition() - camera.GetUp()*30.f + camera.GetFront()*60.f );
 						empty->setTranslation( camera.GetPosition() );
+//						empty->setTranslation( camera.GetPosition() - camera.GetUp()*30.f + camera.GetFront()*60.f );
 	
-				*/
+				/*
 				//follow camera
 				for(Mesh* mesh : mesh_array)
 					mesh->setTranslation( camera.GetPosition() );
+				*/
 			
 				//update animation system
 				animation_player.update();
